@@ -2,9 +2,21 @@
 
 ## Database Overview
 
-This database stores user, donors, event, and donor list. It is designed using **relational databases (MySQL)** to ensure data consistency and scalability.
+This database is designed to manage users, donors, events, and event-specific donor lists. It leverages a relational database (MySQL) to ensure data consistency, scalability, and efficient querying. The system supports user roles, event management, donor tracking, and donor review workflows.
 
 ## Table Structures
+
+### 1. `user` (User)
+Stores user.
+
+| Column Name    | Data Type         | Constraints                                      | Description                         |
+|---------------|------------------|------------------------------------------------|-------------------------------------|
+| id            | BIGINT PRIMARY KEY AUTO_INCREMENT | NOT NULL | User ID |
+| name          | VARCHAR(255)     | NOT NULL | User name |
+| email         | VARCHAR(255)     | NOT NULL | Email address (unique for login) |
+| password      | VARCHAR(255)     | NOT NULL | Hashed password for authentication |
+| role          | ENUM('pmm', 'smm', 'vmm') | DEFAULT 'pmm' | User role: pmm (default), smm, or vmm |
+
 
 ### 1. `event_donor_list` (Event Donor List)
 Stores donor lists for each event.
@@ -51,13 +63,24 @@ Stores basic information about all donors.
 
 ```
 +------------------+     +---------------+     +-------------+
-| event_donor_list|     | event_donor   |     | donor       |
+| event_donor_list |     | event_donor   |     | donor       |
 +------------------+     +---------------+     +-------------+
-| id (PK)         |<----| donor_list_id |     | id (PK)     |
-| event_id (FK)   |     | donor_id (FK) |---->| name        |
-| name           |     | status         |     | email       |
-| total_donors   |     | exclude_reason|     | phone       |
-+------------------+     +---------------+     +-------------+
+| id (PK)          |<----| donor_list_id |     | id (PK)     |
+| event_id (FK)    |     | donor_id (FK) |---->| name        |
+| name             |     | status        |     | email       |
+| total_donors     |     | exclude_reason|     | phone       |
+| generated_by (FK)|     | reviewer_id   |     +-------------+
++------------------+     +---------------+
+         |                        |
+         |                        |
++--------|---------+    +---------|----------+
+| event            |    | user              |
++------------------+    +-------------------+
+| id (PK)          |    | id (PK)          |
+| name             |    | name             |
+| start_date       |    | email            |
+| created_by (FK)  |    | role             |
++------------------+    +-------------------+
 ```
 
 
