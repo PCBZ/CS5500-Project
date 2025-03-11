@@ -20,7 +20,13 @@ const formatUser = (user) => {
 // @access  Private
 router.get('/:id', protect, async (req, res) => {
   try {
-    const userId = parseInt(req.params.id);
+    let userId;
+    try {
+      userId = BigInt(req.params.id);
+    } catch (error) {
+      return res.status(400).json({ message: 'Invalid user ID format' });
+    }
+
     const user = await prisma.user.findUnique({
       where: { id: userId },
       select: {
@@ -49,6 +55,11 @@ router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
     
+    // Validate required fields
+    if (!email || !password) {
+      return res.status(400).json({ message: 'Email and password are required' });
+    }
+
     console.log('Login attempt for email:', email);
 
     const user = await prisma.user.findUnique({
@@ -109,6 +120,17 @@ router.post('/register', async (req, res) => {
   try {
     const { name, email, password, role } = req.body;
 
+    // Validate required fields
+    if (!name || !email || !password || !role) {
+      return res.status(400).json({ message: 'All fields are required' });
+    }
+
+    // Validate role
+    const validRoles = ['pmm', 'smm', 'vmm'];
+    if (!validRoles.includes(role)) {
+      return res.status(400).json({ message: 'Invalid role' });
+    }
+
     // Check if user already exists
     const existingUser = await prisma.user.findUnique({
       where: { email }
@@ -129,6 +151,12 @@ router.post('/register', async (req, res) => {
         email,
         password: hashedPassword,
         role
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true
       }
     });
 

@@ -14,7 +14,7 @@ export const protect = async (req, res, next) => {
 
     // check if token exists
     if (!token) {
-      return res.status(401).json({ message: 'Not authorized to access this route' });
+      return res.status(401).json({ message: 'Not authorized, no token' });
     }
 
     try {
@@ -27,7 +27,7 @@ export const protect = async (req, res, next) => {
       });
 
       if (!user) {
-        return res.status(401).json({ message: 'User not found' });
+        return res.status(401).json({ message: 'Not authorized, token failed' });
       }
 
       // add user info to request object
@@ -40,7 +40,7 @@ export const protect = async (req, res, next) => {
 
       next();
     } catch (error) {
-      return res.status(401).json({ message: 'Not authorized to access this route' });
+      return res.status(401).json({ message: 'Not authorized, token failed' });
     }
   } catch (error) {
     console.error('Auth middleware error:', error);

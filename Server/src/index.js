@@ -1,6 +1,6 @@
-import dotenv from 'dotenv';
 import express from 'express';
 import cors from 'cors';
+import dotenv from 'dotenv';
 import userRoutes from './routes/user.js';
 
 // 加载环境变量
@@ -18,11 +18,15 @@ app.use('/api/user', userRoutes);
 // 错误处理中间件
 app.use((err, req, res, next) => {
   console.error(err.stack);
-  res.status(500).json({ message: 'Something broke!' });
+  res.status(500).json({ message: 'Internal server error' });
 });
 
-const PORT = process.env.PORT || 3000;
+// Only start the server if this file is run directly
+if (process.env.NODE_ENV !== 'test') {
+  const PORT = process.env.PORT || 3000;
+  app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+  });
+}
 
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-}); 
+export default app; 
