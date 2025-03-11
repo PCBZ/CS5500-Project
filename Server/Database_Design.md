@@ -54,10 +54,62 @@ Links `event_donor_list` with `donor`, storing donor review statuses.
 ### 3. `donor` (Donor Information Table)
 Stores basic information about all donors.
 
-| Column Name   | Data Type        | Constraints                                      | Description               |
-|--------------|-----------------|------------------------------------------------|---------------------------|
-| id           | BIGINT PRIMARY KEY AUTO_INCREMENT | NOT NULL | Donor ID |
-| name         | VARCHAR(255)     | NOT NULL | Donor name |
+| Column Name | Data Type | Constraints | Description |
+|-------------|-----------|-------------|-------------|
+| _id | ObjectId | PRIMARY KEY | Unique identifier for the donor |
+| constituentId | String | UNIQUE, NOT NULL | Raiser's Edge constituent ID |
+| pmm | String | | Prospect Move Manager (e.g., "Parvati Patel") |
+| smm | String | | Secondary Move Manager (e.g., "Bob Brown") |
+| vmm | String | | Volunteer Move Manager (e.g., "Olga Smirnov") |
+| excluded | Boolean | NOT NULL, DEFAULT false | Whether donor is excluded (yes/no) |
+| deceased | Boolean | NOT NULL, DEFAULT false | Whether donor is deceased (yes/no) |
+| first_name | String | | First name (e.g., "Mei") |
+| nick_name | String | | Nickname (e.g., "Sunshine") |
+| last_name | String | | Last name (e.g., "Lee") |
+| organization_name | String | | Organization name for corporate donors |
+| total_donations | Number | NOT NULL, DEFAULT 0 | Total donations amount |
+| total_pledges | Number | DEFAULT 0 | Total pledges amount |
+| largest_gift | Number | DEFAULT 0 | Largest gift amount |
+| largest_gift_appeal | String | | Appeal associated with largest gift (e.g., "Appeal2") |
+| first_gift_date | Date | | Date of first gift |
+| last_gift_date | Date | | Date of last gift |
+| last_gift_amount | Number | DEFAULT 0 | Amount of last gift |
+| last_gift_request | String | | Request associated with last gift |
+| last_gift_appeal | String | | Appeal associated with last gift (e.g., "Appeal3") |
+| address_line1 | String | | Address line 1 (e.g., "3707 Redwood Terrace") |
+| address_line2 | String | | Address line 2 (e.g., "Apt 444") |
+| city | String | | City (e.g., "North Vancouver") |
+| contact_phone_type | String | CHECK (contact_phone_type IN ('Home','Mobile','Work','Other')) | Phone type (e.g., "Home", "Mobile") |
+| phone_restrictions | String | | Phone contact restrictions (e.g., "Do Not Call") |
+| email_restrictions | String | | Email contact restrictions (e.g., "No Surveys") |
+| communication_restrictions | String | | General communication restrictions (e.g., "Opt-out") |
+| subscription_events_in_person | String | CHECK (subscription_events_in_person IN ('Opt-in','Opt-out')) | In-person event subscription status (e.g., "Opt-in") |
+| subscription_events_magazine | String | CHECK (subscription_events_magazine IN ('Opt-in','Opt-out')) | Magazine subscription status (e.g., "Opt-out") |
+| communication_preference | String | | Preferred communication method (e.g., "Event", "Newsletter") |
+| tags | Array[String] | | Array of tags for the donor |
+
+
+### 4. `Event` (Event Information Table)
+
+Stores information about fundraising and donor events.
+
+| Column Name | Data Type | Constraints | Description |
+|-------------|-----------|-------------|-------------|
+| _id | ObjectId | PRIMARY KEY | Unique identifier for the event |
+| name | String | NOT NULL | Event name (e.g., "Spring Gala 2025") |
+| type | String | NOT NULL | Event type (e.g., "Major Donor Event") |
+| date | Date | NOT NULL | Event date |
+| location | String | NOT NULL | Event location (e.g., "Vancouver") |
+| capacity | Number | DEFAULT 0 | Maximum number of attendees |
+| focus | String | | Primary focus area (e.g., "Cancer Research") |
+| criteriaMinGivingLevel | Number | DEFAULT 0 | Minimum donation amount for eligibility |
+| timelineListGenerationDate | Date | | Date when donor list should be generated |
+| timelineReviewDeadline | Date | | Deadline for PMMs to complete reviews |
+| timelineInvitationDate | Date | | Date when invitations should be sent |
+| status | String | NOT NULL, CHECK (status IN ('Planning','ListGeneration','Review','Ready','Complete')) | "Planning" \| "ListGeneration" \| "Review" \| "Ready" \| "Complete" |
+| metadataCreatedAt | Date | NOT NULL, DEFAULT CURRENT_TIMESTAMP | Record creation timestamp |
+| metadataUpdatedAt | Date | NOT NULL, DEFAULT CURRENT_TIMESTAMP | Record last update timestamp |
+| metadataCreatedBy | String | NOT NULL | User ID of creator |
 
 ## Relationship Diagram
 
@@ -83,6 +135,23 @@ Stores basic information about all donors.
 +------------------+    +-------------------+
 ```
 
+## DonorsTags (Common Tags Reference)
+
+Tags are used to categorize and provide additional information about donors. They are stored as an array of strings in the donor document.
+
+| Tag Name | Description |
+|----------|-------------|
+| High Priority | Donors requiring special attention |
+| Cancer Research Interest | Donors interested in supporting cancer research |
+| Equipment Interest | Donors interested in supporting equipment purchases |
+| Patient Care Interest | Donors interested in supporting patient care initiatives |
+| Corporate | Corporate donor |
+| Never Invite - Link to Individual | Donors who should not be invited directly |
+| Family Foundation | Family foundation donor |
+| Board Member | Current or former board member |
+| Major Donor | Donors with large contributions |
+| Monthly Donor | Donors who contribute monthly |
+| Planned Giving | Donors with planned giving arrangements |
 
 ## Design Decisions
 - **`event_donor_list` only stores basic list information and does not store a `donor_ids` array** to avoid redundant data.
