@@ -57,7 +57,6 @@ Stores basic information about all donors.
 | Column Name | Data Type | Constraints | Description |
 |-------------|-----------|-------------|-------------|
 | _id | ObjectId | PRIMARY KEY | Unique identifier for the donor |
-| constituentId | String | UNIQUE, NOT NULL | Raiser's Edge constituent ID |
 | pmm | String | | Prospect Move Manager (e.g., "Parvati Patel") |
 | smm | String | | Secondary Move Manager (e.g., "Bob Brown") |
 | vmm | String | | Volunteer Move Manager (e.g., "Olga Smirnov") |
