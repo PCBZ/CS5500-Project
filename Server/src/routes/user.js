@@ -4,10 +4,20 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { protect } from '../middleware/auth.js';
 
+/**
+ * @module UserAPI
+ * @category Routes
+ */
+
 const router = express.Router();
 const prisma = new PrismaClient();
 
-// Helper function: Handle BigInt serialization
+/**
+ * Helper function to handle BigInt serialization in user objects
+ * @param {Object} user - The user object to format
+ * @returns {Object} Formatted user object with stringified ID
+ * @private
+ */
 const formatUser = (user) => {
   return {
     ...user,
@@ -15,9 +25,34 @@ const formatUser = (user) => {
   };
 };
 
-// @desc    Get user details
-// @route   GET /api/user/:id
-// @access  Private
+/**
+ * Get user details by ID
+ * 
+ * @name GET /api/user/:id
+ * @function
+ * @memberof module:UserAPI
+ * @inner
+ * @param {string} req.params.id - User ID
+ * @param {string} req.headers.authorization - Bearer token for authentication
+ * @returns {Object} 200 - User details
+ * @returns {Error} 400 - Invalid user ID format
+ * @returns {Error} 401 - Unauthorized access
+ * @returns {Error} 404 - User not found
+ * @returns {Error} 500 - Server error
+ * 
+ * @example
+ * // Request
+ * GET /api/user/123
+ * Authorization: Bearer <token>
+ * 
+ * // Success Response
+ * {
+ *   "id": "123",
+ *   "name": "John Doe",
+ *   "email": "john@example.com",
+ *   "role": "pmm"
+ * }
+ */
 router.get('/:id', protect, async (req, res) => {
   try {
     let userId;
@@ -48,9 +83,40 @@ router.get('/:id', protect, async (req, res) => {
   }
 });
 
-// @desc    User login
-// @route   POST /api/user/login
-// @access  Public
+/**
+ * User login
+ * 
+ * @name POST /api/user/login
+ * @function
+ * @memberof module:UserAPI
+ * @inner
+ * @param {Object} req.body
+ * @param {string} req.body.email - User email
+ * @param {string} req.body.password - User password
+ * @returns {Object} 200 - Login successful
+ * @returns {Error} 400 - Missing credentials or invalid credentials
+ * @returns {Error} 500 - Server error
+ * 
+ * @example
+ * // Request
+ * POST /api/user/login
+ * {
+ *   "email": "john@example.com",
+ *   "password": "password123"
+ * }
+ * 
+ * // Success Response
+ * {
+ *   "message": "Login successful",
+ *   "token": "jwt_token_here",
+ *   "user": {
+ *     "id": "123",
+ *     "name": "John Doe",
+ *     "email": "john@example.com",
+ *     "role": "pmm"
+ *   }
+ * }
+ */
 router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -113,9 +179,43 @@ router.post('/login', async (req, res) => {
   }
 });
 
-// @desc    Register user
-// @route   POST /api/user/register
-// @access  Public
+/**
+ * Register new user
+ * 
+ * @name POST /api/user/register
+ * @function
+ * @memberof module:UserAPI
+ * @inner
+ * @param {Object} req.body
+ * @param {string} req.body.name - User full name
+ * @param {string} req.body.email - User email
+ * @param {string} req.body.password - User password
+ * @param {string} req.body.role - User role (pmm, smm, or vmm)
+ * @returns {Object} 201 - User created
+ * @returns {Error} 400 - Missing fields, invalid role, or user already exists
+ * @returns {Error} 500 - Server error
+ * 
+ * @example
+ * // Request
+ * POST /api/user/register
+ * {
+ *   "name": "John Doe",
+ *   "email": "john@example.com",
+ *   "password": "password123",
+ *   "role": "pmm"
+ * }
+ * 
+ * // Success Response
+ * {
+ *   "message": "User registered successfully.",
+ *   "user": {
+ *     "id": "123",
+ *     "name": "John Doe",
+ *     "email": "john@example.com",
+ *     "role": "pmm"
+ *   }
+ * }
+ */
 router.post('/register', async (req, res) => {
   try {
     const { name, email, password, role } = req.body;
@@ -170,9 +270,28 @@ router.post('/register', async (req, res) => {
   }
 });
 
-// @desc    User logout
-// @route   POST /api/user/logout
-// @access  Private
+/**
+ * User logout
+ * 
+ * @name POST /api/user/logout
+ * @function
+ * @memberof module:UserAPI
+ * @inner
+ * @param {string} req.headers.authorization - Bearer token for authentication
+ * @returns {Object} 200 - Logout successful
+ * @returns {Error} 401 - Unauthorized access
+ * @returns {Error} 500 - Server error
+ * 
+ * @example
+ * // Request
+ * POST /api/user/logout
+ * Authorization: Bearer <token>
+ * 
+ * // Success Response
+ * {
+ *   "message": "Logout successful."
+ * }
+ */
 router.post('/logout', protect, (req, res) => {
   try {
     // In a stateless JWT setup, we don't need to do anything server-side

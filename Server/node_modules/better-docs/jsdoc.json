@@ -1,0 +1,35 @@
+{
+    "tags": {
+        "allowUnknownTags": true
+    },
+    "source": {
+        "include": [
+            "fixtures/typescript",
+            "fixtures/examples"
+        ],
+        "includePattern": "\\.(jsx|js|ts|tsx)$"
+    },
+    "plugins": [
+        "plugins/markdown",
+        "category",
+        "component",
+        "load",
+        "typescript"
+    ],
+    "markdown": {
+      "tags": ["load"]
+    },
+    "opts": {
+        "encoding": "utf8",
+        "destination": "docs/",
+        "recurse": true,
+        "verbose": true,
+        "template": "./",
+        "tutorials": "./fixtures/tutorials"
+    },
+    "templates": {
+        "better-docs": {
+            "name": "Sample Documentation"
+        }
+    }
+}
