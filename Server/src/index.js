@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import userRoutes from './routes/user.js';
+import donorListRoutes from './routes/donorList.js';
 
 // 加载环境变量
 dotenv.config();
@@ -14,6 +15,7 @@ app.use(express.json());
 
 // 路由
 app.use('/api/user', userRoutes);
+app.use('/api/lists', donorListRoutes);
 
 // 错误处理中间件
 app.use((err, req, res, next) => {
