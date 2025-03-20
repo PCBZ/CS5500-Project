@@ -17,7 +17,7 @@ app.use(express.json());
 app.use('/api/user', userRoutes);
 app.use('/api/lists', donorListRoutes);
 
-// 错误处理中间件
+// Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({ message: 'Internal server error' });
