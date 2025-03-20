@@ -10,6 +10,14 @@ import { protect } from '../middleware/auth.js';
 const router = express.Router();
 const prisma = new PrismaClient();
 
+// Custom JSON serializer to handle BigInt
+const bigIntSerializer = (key, value) => {
+  if (typeof value === 'bigint') {
+    return value.toString();
+  }
+  return value;
+};
+
 /**
  * Get all donor lists with pagination and filtering
  * 
@@ -75,7 +83,7 @@ router.get('/', protect, async (req, res) => {
       }
     });
 
-    res.json({
+    res.json(JSON.parse(JSON.stringify({
       total_count,
       page,
       limit,
@@ -92,7 +100,7 @@ router.get('/', protect, async (req, res) => {
         created_at: list.createdAt,
         generated_by: list.generatedBy
       }))
-    });
+    }, bigIntSerializer)));
   } catch (error) {
     console.error('Error fetching donor lists:', error);
     res.status(500).json({ message: 'Internal server error' });
@@ -166,10 +174,11 @@ router.get('/:id', protect, async (req, res) => {
     });
 
     if (!list) {
-      return res.status(404).json({ message: 'List not found' });
+      return res.status(404).json({ message: 'Donor list not found' });
     }
 
-    res.json({
+    // Transform the data to match the expected format
+    const transformedList = {
       id: list.id,
       event_id: list.eventId,
       name: list.name,
@@ -191,7 +200,9 @@ router.get('/:id', protect, async (req, res) => {
         review_date: donor.reviewDate,
         comments: donor.comments
       }))
-    });
+    };
+
+    res.json(JSON.parse(JSON.stringify(transformedList, bigIntSerializer)));
   } catch (error) {
     console.error('Error fetching donor list details:', error);
     res.status(500).json({ message: 'Internal server error' });
@@ -228,10 +239,10 @@ router.delete('/:id', protect, async (req, res) => {
       where: { id: listId }
     });
 
-    res.json({ message: 'Donor list deleted successfully.' });
+    res.json({ message: 'Donor list deleted successfully' });
   } catch (error) {
     if (error.code === 'P2025') {
-      return res.status(404).json({ message: 'List not found' });
+      return res.status(404).json({ message: 'Donor list not found' });
     }
     console.error('Error deleting donor list:', error);
     res.status(500).json({ message: 'Internal server error' });
@@ -292,12 +303,30 @@ router.post('/:id/donors', protect, async (req, res) => {
     const listId = BigInt(req.params.id);
     const { donors } = req.body;
 
+    if (!Array.isArray(donors)) {
+      return res.status(400).json({ message: 'Invalid request format: donors must be an array' });
+    }
+
     const list = await prisma.eventDonorList.findUnique({
       where: { id: listId }
     });
 
     if (!list) {
       return res.status(404).json({ message: 'List not found' });
+    }
+
+    // Validate donor IDs exist
+    const donorIds = donors.map(d => BigInt(d.donor_id));
+    const existingDonors = await prisma.donor.findMany({
+      where: {
+        id: {
+          in: donorIds
+        }
+      }
+    });
+
+    if (existingDonors.length !== donorIds.length) {
+      return res.status(400).json({ message: 'One or more donor IDs do not exist' });
     }
 
     const added_donors = await prisma.$transaction(
@@ -309,12 +338,15 @@ router.post('/:id/donors', protect, async (req, res) => {
             status: donor.status,
             reviewerId: donor.reviewer_id ? BigInt(donor.reviewer_id) : null,
             comments: donor.comments
+          },
+          include: {
+            donor: true
           }
         })
       )
     );
 
-    // 更新列表统计信息
+    // Update list statistics
     await prisma.eventDonorList.update({
       where: { id: listId },
       data: {
@@ -338,11 +370,19 @@ router.post('/:id/donors', protect, async (req, res) => {
 
     res.status(201).json({
       message: 'Donors added successfully.',
-      added_donors
+      added_donors: JSON.parse(JSON.stringify(added_donors, bigIntSerializer))
     });
   } catch (error) {
     console.error('Error adding donors:', error);
-    res.status(500).json({ message: 'Internal server error' });
+    console.error('Error details:', {
+      code: error.code,
+      message: error.message,
+      meta: error.meta
+    });
+    res.status(500).json({ 
+      message: 'Internal server error',
+      error: error.message
+    });
   }
 });
 
@@ -405,7 +445,7 @@ router.delete('/:id/donors/:donorId', protect, async (req, res) => {
       }
     });
 
-    res.json({ message: 'Donor removed from list successfully.' });
+    res.json({ message: 'Donor removed from list successfully' });
   } catch (error) {
     console.error('Error removing donor:', error);
     res.status(500).json({ message: 'Internal server error' });
@@ -461,9 +501,9 @@ router.put('/:id/status', protect, async (req, res) => {
     });
 
     res.json({
-      message: 'List status updated successfully.',
+      message: 'List status updated successfully',
       list: {
-        id: list.id,
+        id: list.id.toString(),
         review_status: list.reviewStatus,
         updated_at: list.updatedAt
       }
