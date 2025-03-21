@@ -12,7 +12,7 @@ jest.setTimeout(30000);
 describe('User Login', () => {
   const testUser = {
     name: 'Test Login User',
-    email: 'test_login@example.com',
+    email: 'test.login@example.com',
     password: 'password123',
     role: 'pmm'
   };

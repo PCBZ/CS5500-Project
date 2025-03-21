@@ -1,0 +1,706 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>User Management API Documentation donorList.js</title>
+
+  <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="./build/entry.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+  <![endif]-->
+  <link href="https://fonts.googleapis.com/css?family=Roboto:100,400,700|Inconsolata,700" rel="stylesheet">
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.3/css/all.css" integrity="sha384-UHRtZLI+pbxtHCWp1t77Bi1L4ZtiqrqD80Kn4Z8NTSRyMA2Fd33n5dQ8lWUE00s/" crossorigin="anonymous">
+  <link type="text/css" rel="stylesheet" href="https://jmblog.github.io/color-themes-for-google-code-prettify/themes/tomorrow-night.min.css">
+  <link type="text/css" rel="stylesheet" href="styles/app.min.css">
+  <link type="text/css" rel="stylesheet" href="styles/iframe.css">
+  <link type="text/css" rel="stylesheet" href="style.css">
+  <script async defer src="https://buttons.github.io/buttons.js"></script>
+
+  
+</head>
+
+
+
+<body class="layout small-header">
+    <div id="stickyNavbarOverlay"></div>
+    
+
+<div class="top-nav">
+    <div class="inner">
+        <a id="hamburger" role="button" class="navbar-burger" aria-label="menu" aria-expanded="false">
+            <span aria-hidden="true"></span>
+            <span aria-hidden="true"></span>
+            <span aria-hidden="true"></span>
+        </a>
+        <div class="logo">
+            
+             
+                <a href="index.html">
+                    <h1 class="navbar-item">User Management API Documentation</h1>
+                </a>
+            
+        </div>
+        <div class="menu">
+            
+            <div class="navigation">
+                <a
+                    href="index.html"
+                    class="link"
+                >
+                    Documentation
+                </a>
+                
+                
+                
+            </div>
+        </div>
+    </div>
+</div>
+    <div id="main">
+        <div
+            class="sidebar "
+            id="sidebarNav"
+        >
+            
+            <nav>
+                
+                    <h2><a href="index.html">Documentation</a></h2><div class="category"><h3>Modules</h3><ul><li><a href="module-DonorListAPI.html">DonorListAPI</a></li></ul></div><div class="category"><h2>Routes</h2><h3>Modules</h3><ul><li><a href="module-DonorAPI.html">DonorAPI</a></li><li><a href="module-UserAPI.html">UserAPI</a></li></ul></div>
+                
+            </nav>
+        </div>
+        <div class="core" id="main-content-wrapper">
+            <div class="content">
+                <header class="page-title">
+                    <p>Source</p>
+                    <h1>donorList.js</h1>
+                </header>
+                
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import express from 'express';
+import { PrismaClient } from '@prisma/client';
+import { protect } from '../middleware/auth.js';
+
+/**
+ * 捐赠者列表 API 模块
+ * @module DonorListAPI
+ */
+
+const router = express.Router();
+const prisma = new PrismaClient();
+
+// 自定义序列化器，处理 BigInt 类型
+const bigIntSerializer = (key, value) => {
+  if (typeof value === 'bigint') {
+    return value.toString();
+  }
+  return value;
+};
+
+// 确保将此序列化器应用于所有可能包含 BigInt 的响应
+const safeJson = (data) => {
+  return JSON.parse(JSON.stringify(data, bigIntSerializer));
+};
+
+/**
+ * 获取所有捐赠者列表（带分页和筛选）
+ * 
+ * @name GET /api/lists
+ * @function
+ * @memberof module:DonorListAPI
+ * @param {number} [req.query.page=1] - 分页页码
+ * @param {number} [req.query.limit=10] - 每页结果数量
+ * @param {string} [req.query.status] - 按审核状态筛选（'completed'或'pending'）
+ * @param {string} req.headers.authorization - 身份验证令牌（Bearer token）
+ * @returns {object} 200 - 捐赠者列表和分页信息
+ * @returns {Error} 500 - 服务器错误
+ * 
+ * @example 请求示例:
+ * GET /api/lists?page=1&amp;limit=10&amp;status=pending
+ * Authorization: Bearer &lt;token>
+ * 
+ * @example 成功响应:
+ * {
+ *   "total_count": 25,
+ *   "page": 1,
+ *   "limit": 10,
+ *   "lists": [
+ *     {
+ *       "id": "1", // BigInt类型，转换为字符串
+ *       "event_id": "101", // BigInt类型，转换为字符串
+ *       "name": "夏季筹款活动2024",
+ *       "total_donors": 150,
+ *       "approved": 120,
+ *       "excluded": 15,
+ *       "pending": 15,
+ *       "auto_excluded": 5,
+ *       "review_status": "pending",
+ *       "created_at": "2024-03-01T10:00:00Z",
+ *       "generated_by": "42" // BigInt类型，转换为字符串
+ *     }
+ *   ]
+ * }
+ */
+router.get('/', protect, async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const status = req.query.status;
+
+    const where = status ? { reviewStatus: status } : {};
+    
+    const total_count = await prisma.eventDonorList.count({ where });
+    const lists = await prisma.eventDonorList.findMany({
+      where,
+      skip: (page - 1) * limit,
+      take: limit,
+      include: {
+        event: true,
+        generator: {
+          select: {
+            id: true,
+            name: true
+          }
+        }
+      }
+    });
+
+    res.json(safeJson({
+      total_count,
+      page,
+      limit,
+      lists: lists.map(list => ({
+        id: list.id,
+        event_id: list.eventId,
+        name: list.name,
+        total_donors: list.totalDonors,
+        approved: list.approved,
+        excluded: list.excluded,
+        pending: list.pending,
+        auto_excluded: list.autoExcluded,
+        review_status: list.reviewStatus,
+        created_at: list.createdAt,
+        generated_by: list.generatedBy
+      }))
+    }));
+  } catch (error) {
+    console.error('Error fetching donor lists:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+/**
+ * 获取捐赠者列表详情
+ * 
+ * @name GET /api/lists/:id
+ * @function
+ * @memberof module:DonorListAPI
+ * @param {string} req.params.id - 捐赠者列表ID（BigInt类型）
+ * @param {string} req.headers.authorization - 身份验证令牌（Bearer token）
+ * @returns {object} 200 - 捐赠者列表详细信息
+ * @returns {Error} 404 - 列表未找到
+ * @returns {Error} 500 - 服务器错误
+ * 
+ * @example 请求示例:
+ * GET /api/lists/1
+ * Authorization: Bearer &lt;token>
+ * 
+ * @example 成功响应:
+ * {
+ *   "id": "1", // BigInt类型，转换为字符串
+ *   "event_id": "101", // BigInt类型，转换为字符串
+ *   "name": "夏季筹款活动2024",
+ *   "total_donors": 150,
+ *   "approved": 120,
+ *   "excluded": 15,
+ *   "pending": 15,
+ *   "auto_excluded": 5,
+ *   "review_status": "pending",
+ *   "created_at": "2024-03-01T10:00:00Z",
+ *   "updated_at": "2024-03-02T14:30:00Z",
+ *   "generated_by": "42", // BigInt类型，转换为字符串
+ *   "donors": [
+ *     {
+ *       "id": "201", // BigInt类型，转换为字符串
+ *       "donor_id": "301", // BigInt类型，转换为字符串
+ *       "status": "Approved",
+ *       "reviewer_id": null,
+ *       "comments": "重要捐赠者",
+ *       "created_at": "2024-03-01T12:00:00Z",
+ *       "updated_at": "2024-03-01T14:00:00Z",
+ *       "donor": {
+ *         "id": "301", // BigInt类型，转换为字符串
+ *         "first_name": "张",
+ *         "last_name": "三",
+ *         "total_donations": 5000,
+ *         "largest_gift": 2000,
+ *         "created_at": "2024-01-01T00:00:00Z",
+ *         "updated_at": "2024-01-01T00:00:00Z"
+ *       }
+ *     }
+ *   ]
+ * }
+ */
+router.get('/:id', protect, async (req, res) => {
+  try {
+    const listId = BigInt(req.params.id);
+    const list = await prisma.eventDonorList.findUnique({
+      where: { id: listId },
+      include: {
+        donors: {
+          include: {
+            donor: true
+          }
+        }
+      }
+    });
+
+    if (!list) {
+      return res.status(404).json({ message: 'List not found' });
+    }
+
+    // Transform the data to match the expected format
+    const transformedList = {
+      id: list.id.toString(),
+      event_id: list.eventId.toString(),
+      name: list.name,
+      total_donors: list.totalDonors,
+      approved: list.approved,
+      excluded: list.excluded,
+      pending: list.pending,
+      auto_excluded: list.autoExcluded,
+      review_status: list.reviewStatus,
+      created_at: list.createdAt,
+      updated_at: list.updatedAt,
+      generated_by: list.generatedBy.toString(),
+      donors: list.donors.map(d => ({
+        id: d.id.toString(),
+        donor_id: d.donorId.toString(),
+        status: d.status,
+        reviewer_id: d.reviewerId ? d.reviewerId.toString() : null,
+        comments: d.comments,
+        created_at: d.createdAt,
+        updated_at: d.updatedAt,
+        donor: {
+          id: d.donor.id.toString(),
+          first_name: d.donor.firstName,
+          last_name: d.donor.lastName,
+          total_donations: d.donor.totalDonations,
+          largest_gift: d.donor.largestGift,
+          created_at: d.donor.createdAt,
+          updated_at: d.donor.updatedAt
+        }
+      }))
+    };
+
+    res.json(safeJson(transformedList));
+  } catch (error) {
+    console.error('Error fetching list details:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+/**
+ * 删除捐赠者列表
+ * 
+ * @name DELETE /api/lists/:id
+ * @function
+ * @memberof module:DonorListAPI
+ * @param {string} req.params.id - 捐赠者列表ID（BigInt类型）
+ * @param {string} req.headers.authorization - 身份验证令牌（Bearer token）
+ * @returns {object} 200 - 成功消息
+ * @returns {Error} 404 - 列表未找到
+ * @returns {Error} 500 - 服务器错误
+ * 
+ * @example 请求示例:
+ * DELETE /api/lists/1
+ * Authorization: Bearer &lt;token>
+ * 
+ * @example 成功响应:
+ * {
+ *   "message": "Donor list deleted successfully"
+ * }
+ */
+router.delete('/:id', protect, async (req, res) => {
+  try {
+    const listId = BigInt(req.params.id);
+    
+    // First delete associated event donors
+    await prisma.eventDonor.deleteMany({
+      where: { donorListId: listId }
+    });
+    
+    await prisma.eventDonorList.delete({
+      where: { id: listId }
+    });
+
+    res.json({ message: 'Donor list deleted successfully' });
+  } catch (error) {
+    if (error.code === 'P2025') {
+      return res.status(404).json({ message: 'List not found' });
+    }
+    console.error('Error deleting donor list:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+/**
+ * 更新捐赠者列表状态
+ * 
+ * @name PUT /api/lists/:id/status
+ * @function
+ * @memberof module:DonorListAPI
+ * @param {string} req.params.id - 捐赠者列表ID（BigInt类型）
+ * @param {object} req.body - 请求体
+ * @param {string} req.body.review_status - 新状态 ('completed'或'pending')
+ * @param {string} req.headers.authorization - 身份验证令牌（Bearer token）
+ * @returns {object} 200 - 更新后的列表状态
+ * @returns {Error} 400 - 无效状态
+ * @returns {Error} 404 - 列表未找到
+ * @returns {Error} 500 - 服务器错误
+ * 
+ * @example 请求示例:
+ * PUT /api/lists/1/status
+ * Authorization: Bearer &lt;token>
+ * Content-Type: application/json
+ * 
+ * {
+ *   "review_status": "completed"
+ * }
+ * 
+ * @example 成功响应:
+ * {
+ *   "message": "List status updated successfully",
+ *   "list": {
+ *     "id": "1", // BigInt类型，转换为字符串
+ *     "review_status": "completed",
+ *     "updated_at": "2024-04-15T09:30:00Z"
+ *   }
+ * }
+ */
+router.put('/:id/status', protect, async (req, res) => {
+  try {
+    const listId = BigInt(req.params.id);
+    const { review_status } = req.body;
+
+    if (!['completed', 'pending'].includes(review_status)) {
+      return res.status(400).json({ message: 'Invalid status' });
+    }
+
+    const list = await prisma.eventDonorList.update({
+      where: { id: listId },
+      data: { reviewStatus: review_status }
+    });
+
+    res.json({
+      message: 'List status updated successfully',
+      list: safeJson({
+        id: list.id,
+        review_status: list.reviewStatus,
+        updated_at: list.updatedAt
+      })
+    });
+  } catch (error) {
+    if (error.code === 'P2025') {
+      return res.status(404).json({ message: 'List not found' });
+    }
+    console.error('Error updating list status:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+/**
+ * 向列表添加捐赠者
+ * 
+ * @name POST /api/lists/:id/donors
+ * @function
+ * @memberof module:DonorListAPI
+ * @param {string} req.params.id - 捐赠者列表ID（BigInt类型）
+ * @param {object} req.body - 请求体
+ * @param {Array} req.body.donors - 捐赠者数组
+ * @param {string} req.body.donors[].donor_id - 捐赠者ID（BigInt类型）
+ * @param {string} req.body.donors[].status - 状态 ('Pending', 'Approved', 'Excluded', 'AutoExcluded')
+ * @param {string} [req.body.donors[].reviewer_id] - 审核者ID（BigInt类型，可选）
+ * @param {string} [req.body.donors[].comments] - 备注（可选）
+ * @param {string} req.headers.authorization - 身份验证令牌（Bearer token）
+ * @returns {object} 201 - 添加的捐赠者信息
+ * @returns {Error} 400 - 无效请求格式
+ * @returns {Error} 404 - 列表未找到
+ * @returns {Error} 500 - 服务器错误
+ * 
+ * @example 请求示例:
+ * POST /api/lists/1/donors
+ * Authorization: Bearer &lt;token>
+ * Content-Type: application/json
+ * 
+ * {
+ *   "donors": [
+ *     {
+ *       "donor_id": "301",
+ *       "status": "Pending",
+ *       "comments": "潜在大额捐赠者"
+ *     },
+ *     {
+ *       "donor_id": "302",
+ *       "status": "Approved",
+ *       "comments": "可靠的捐赠者"
+ *     }
+ *   ]
+ * }
+ * 
+ * @example 成功响应:
+ * {
+ *   "message": "Donors added successfully.",
+ *   "added_donors": [
+ *     {
+ *       "id": "201", // BigInt类型，转换为字符串
+ *       "donorListId": "1", // BigInt类型，转换为字符串
+ *       "donorId": "301", // BigInt类型，转换为字符串
+ *       "status": "Pending",
+ *       "comments": "潜在大额捐赠者",
+ *       "donor": {
+ *         "id": "301", // BigInt类型，转换为字符串
+ *         "firstName": "张",
+ *         "lastName": "三",
+ *         "totalDonations": 5000,
+ *         "largestGift": 2000
+ *       }
+ *     },
+ *     {
+ *       "id": "202", // BigInt类型，转换为字符串
+ *       "donorListId": "1", // BigInt类型，转换为字符串
+ *       "donorId": "302", // BigInt类型，转换为字符串
+ *       "status": "Approved",
+ *       "comments": "可靠的捐赠者",
+ *       "donor": {
+ *         "id": "302", // BigInt类型，转换为字符串
+ *         "firstName": "李",
+ *         "lastName": "四",
+ *         "totalDonations": 3000,
+ *         "largestGift": 1000
+ *       }
+ *     }
+ *   ]
+ * }
+ */
+router.post('/:id/donors', protect, async (req, res) => {
+  try {
+    const listId = BigInt(req.params.id);
+    const { donors } = req.body;
+
+    if (!Array.isArray(donors)) {
+      return res.status(400).json({ message: 'Invalid request format: donors must be an array' });
+    }
+
+    const list = await prisma.eventDonorList.findUnique({
+      where: { id: listId }
+    });
+
+    if (!list) {
+      return res.status(404).json({ message: 'List not found' });
+    }
+
+    // Validate donor IDs exist
+    const donorIds = donors.map(d => BigInt(d.donor_id));
+    const existingDonors = await prisma.donor.findMany({
+      where: {
+        id: {
+          in: donorIds
+        }
+      }
+    });
+
+    if (existingDonors.length !== donorIds.length) {
+      return res.status(400).json({ message: 'One or more donor IDs do not exist' });
+    }
+
+    const added_donors = await prisma.$transaction(
+      donors.map(donor => 
+        prisma.eventDonor.create({
+          data: {
+            donorListId: listId,
+            donorId: BigInt(donor.donor_id),
+            status: donor.status,
+            reviewerId: donor.reviewer_id ? BigInt(donor.reviewer_id) : null,
+            comments: donor.comments
+          },
+          include: {
+            donor: true
+          }
+        })
+      )
+    );
+
+    // Update list statistics
+    await prisma.eventDonorList.update({
+      where: { id: listId },
+      data: {
+        totalDonors: {
+          increment: donors.length
+        },
+        pending: {
+          increment: donors.filter(d => d.status === 'Pending').length
+        },
+        approved: {
+          increment: donors.filter(d => d.status === 'Approved').length
+        },
+        excluded: {
+          increment: donors.filter(d => d.status === 'Excluded').length
+        },
+        autoExcluded: {
+          increment: donors.filter(d => d.status === 'AutoExcluded').length
+        }
+      }
+    });
+
+    res.status(201).json({
+      message: 'Donors added successfully.',
+      added_donors: safeJson(added_donors)
+    });
+  } catch (error) {
+    console.error('Error adding donors:', error);
+    console.error('Error details:', {
+      code: error.code,
+      message: error.message,
+      meta: error.meta
+    });
+    res.status(500).json({ 
+      message: 'Internal server error',
+      error: error.message
+    });
+  }
+});
+
+/**
+ * 从列表中移除捐赠者
+ * 
+ * @name DELETE /api/lists/:id/donors/:donorId
+ * @function
+ * @memberof module:DonorListAPI
+ * @param {string} req.params.id - 捐赠者列表ID（BigInt类型）
+ * @param {string} req.params.donorId - 捐赠者ID（BigInt类型）
+ * @param {string} req.headers.authorization - 身份验证令牌（Bearer token）
+ * @returns {object} 200 - 成功消息和更新后的列表信息
+ * @returns {Error} 404 - 列表或捐赠者未找到
+ * @returns {Error} 500 - 服务器错误
+ * 
+ * @example 请求示例:
+ * DELETE /api/lists/1/donors/301
+ * Authorization: Bearer &lt;token>
+ * 
+ * @example 成功响应:
+ * {
+ *   "message": "Donor removed from list successfully",
+ *   "list": {
+ *     "id": "1", // BigInt类型，转换为字符串
+ *     "total_donors": 149,
+ *     "approved": 120,
+ *     "excluded": 14,
+ *     "pending": 15,
+ *     "auto_excluded": 5,
+ *     "review_status": "pending"
+ *   }
+ * }
+ */
+router.delete('/:id/donors/:donorId', protect, async (req, res) => {
+  try {
+    const listId = BigInt(req.params.id);
+    const donorId = BigInt(req.params.donorId);
+
+    const list = await prisma.eventDonorList.findUnique({
+      where: { id: listId }
+    });
+
+    if (!list) {
+      return res.status(404).json({ message: 'List not found' });
+    }
+
+    const eventDonor = await prisma.eventDonor.findFirst({
+      where: {
+        donorListId: listId,
+        donorId: donorId
+      }
+    });
+
+    if (!eventDonor) {
+      return res.status(404).json({ message: 'Donor not found in the list' });
+    }
+
+    // Get the status to update list statistics
+    const donorStatus = eventDonor.status;
+
+    await prisma.eventDonor.delete({
+      where: { id: eventDonor.id }
+    });
+
+    // Update list statistics
+    await prisma.eventDonorList.update({
+      where: { id: listId },
+      data: {
+        totalDonors: {
+          decrement: 1
+        },
+        ...(donorStatus === 'Pending' &amp;&amp; { pending: { decrement: 1 } }),
+        ...(donorStatus === 'Approved' &amp;&amp; { approved: { decrement: 1 } }),
+        ...(donorStatus === 'Excluded' &amp;&amp; { excluded: { decrement: 1 } }),
+        ...(donorStatus === 'AutoExcluded' &amp;&amp; { autoExcluded: { decrement: 1 } }),
+      }
+    });
+
+    // Get the updated list
+    const updatedList = await prisma.eventDonorList.findUnique({
+      where: { id: listId }
+    });
+
+    res.json({
+      message: 'Donor removed from list successfully',
+      list: safeJson(updatedList)
+    });
+  } catch (error) {
+    console.error('Error removing donor from list:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+export default router; </code></pre>
+        </article>
+    </section>
+
+
+
+
+            </div>
+            
+            <footer class="footer">
+                <div class="content has-text-centered">
+                    <p>Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 4.0.4</a></p>
+                    <p class="sidebar-created-by">
+                        <a href="https://github.com/SoftwareBrothers/better-docs" target="_blank">BetterDocs theme</a> provided with <i class="fas fa-heart"></i> by
+                        <a href="http://softwarebrothers.co" target="_blank">SoftwareBrothers - JavaScript Development Agency</a>
+                    </p>
+                </div>
+            </footer>
+            
+        </div>
+        <div id="side-nav" class="side-nav">
+        </div>
+    </div>
+<script src="scripts/app.min.js"></script>
+<script>PR.prettyPrint();</script>
+<script src="scripts/linenumber.js"> </script>
+
+
+</body>
+</html>

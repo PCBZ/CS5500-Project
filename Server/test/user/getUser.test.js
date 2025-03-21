@@ -12,7 +12,7 @@ jest.setTimeout(30000);
 describe('Get User Details', () => {
   const testUser = {
     name: 'Test Get User',
-    email: 'test_get_user@example.com',
+    email: 'test.getUser@example.com',
     password: 'password123',
     role: 'pmm'
   };
@@ -43,7 +43,7 @@ describe('Get User Details', () => {
         }
       });
 
-      userId = user.id.toString();
+      userId = user.id;
 
       // Get auth token by logging in
       const loginResponse = await request(app)

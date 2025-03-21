@@ -13,41 +13,26 @@ const router = express.Router();
 const prisma = new PrismaClient();
 
 /**
- * Helper function to handle BigInt serialization in user objects
- * @param {Object} user - The user object to format
- * @returns {Object} Formatted user object with stringified ID
- * @private
- */
-const formatUser = (user) => {
-  return {
-    ...user,
-    id: user.id.toString(),
-  };
-};
-
-/**
  * Get user details by ID
  * 
  * @name GET /api/user/:id
  * @function
  * @memberof module:UserAPI
- * @inner
- * @param {string} req.params.id - User ID
+ * @param {number} req.params.id - User ID
  * @param {string} req.headers.authorization - Bearer token for authentication
- * @returns {Object} 200 - User details
+ * @returns {object} 200 - User details
  * @returns {Error} 400 - Invalid user ID format
  * @returns {Error} 401 - Unauthorized access
  * @returns {Error} 404 - User not found
  * @returns {Error} 500 - Server error
  * 
- * @example
- * // Request
+ * @example Request Example:
  * GET /api/user/123
  * Authorization: Bearer <token>
  * 
- * // Success Response
+ * @example Success Response:
  * {
- *   "id": "123",
+ *   "id": 123,
  *   "name": "John Doe",
  *   "email": "john@example.com",
  *   "role": "pmm"
@@ -57,7 +42,10 @@ router.get('/:id', protect, async (req, res) => {
   try {
     let userId;
     try {
-      userId = BigInt(req.params.id);
+      userId = parseInt(req.params.id);
+      if (isNaN(userId)) {
+        return res.status(400).json({ message: 'Invalid user ID format' });
+      }
     } catch (error) {
       return res.status(400).json({ message: 'Invalid user ID format' });
     }
@@ -76,7 +64,7 @@ router.get('/:id', protect, async (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    res.json(formatUser(user));
+    res.json(user);
   } catch (error) {
     console.error('Error fetching user:', error);
     res.status(500).json({ message: 'Internal server error' });
@@ -89,28 +77,26 @@ router.get('/:id', protect, async (req, res) => {
  * @name POST /api/user/login
  * @function
  * @memberof module:UserAPI
- * @inner
- * @param {Object} req.body
+ * @param {object} req.body - Request body
  * @param {string} req.body.email - User email
  * @param {string} req.body.password - User password
- * @returns {Object} 200 - Login successful
+ * @returns {object} 200 - Login successful
  * @returns {Error} 400 - Missing credentials or invalid credentials
  * @returns {Error} 500 - Server error
  * 
- * @example
- * // Request
+ * @example Request Example:
  * POST /api/user/login
  * {
  *   "email": "john@example.com",
  *   "password": "password123"
  * }
  * 
- * // Success Response
+ * @example Success Response:
  * {
  *   "message": "Login successful",
  *   "token": "jwt_token_here",
  *   "user": {
- *     "id": "123",
+ *     "id": 123,
  *     "name": "John Doe",
  *     "email": "john@example.com",
  *     "role": "pmm"
@@ -151,7 +137,7 @@ router.post('/login', async (req, res) => {
     }
 
     const token = jwt.sign(
-      { userId: user.id.toString(), role: user.role },
+      { userId: user.id, role: user.role },
       process.env.JWT_SECRET || 'your_jwt_secret_key',
       { expiresIn: '24h' }
     );
@@ -166,7 +152,7 @@ router.post('/login', async (req, res) => {
     res.json({
       message: 'Login successful',
       token,
-      user: formatUser(userWithoutPassword)
+      user: userWithoutPassword
     });
   } catch (error) {
     console.error('Error during login - Full error:', error);
@@ -185,18 +171,16 @@ router.post('/login', async (req, res) => {
  * @name POST /api/user/register
  * @function
  * @memberof module:UserAPI
- * @inner
- * @param {Object} req.body
+ * @param {object} req.body - Request body
  * @param {string} req.body.name - User full name
  * @param {string} req.body.email - User email
  * @param {string} req.body.password - User password
  * @param {string} req.body.role - User role (pmm, smm, or vmm)
- * @returns {Object} 201 - User created
+ * @returns {object} 201 - User created
  * @returns {Error} 400 - Missing fields, invalid role, or user already exists
  * @returns {Error} 500 - Server error
  * 
- * @example
- * // Request
+ * @example Request Example:
  * POST /api/user/register
  * {
  *   "name": "John Doe",
@@ -205,11 +189,11 @@ router.post('/login', async (req, res) => {
  *   "role": "pmm"
  * }
  * 
- * // Success Response
+ * @example Success Response:
  * {
  *   "message": "User registered successfully.",
  *   "user": {
- *     "id": "123",
+ *     "id": 123,
  *     "name": "John Doe",
  *     "email": "john@example.com",
  *     "role": "pmm"
@@ -262,7 +246,7 @@ router.post('/register', async (req, res) => {
 
     res.status(201).json({
       message: 'User registered successfully.',
-      user: formatUser(user)
+      user
     });
   } catch (error) {
     console.error('Error registering user:', error);
@@ -276,18 +260,16 @@ router.post('/register', async (req, res) => {
  * @name POST /api/user/logout
  * @function
  * @memberof module:UserAPI
- * @inner
  * @param {string} req.headers.authorization - Bearer token for authentication
- * @returns {Object} 200 - Logout successful
+ * @returns {object} 200 - Logout successful
  * @returns {Error} 401 - Unauthorized access
  * @returns {Error} 500 - Server error
  * 
- * @example
- * // Request
+ * @example Request Example:
  * POST /api/user/logout
  * Authorization: Bearer <token>
  * 
- * // Success Response
+ * @example Success Response:
  * {
  *   "message": "Logout successful."
  * }
