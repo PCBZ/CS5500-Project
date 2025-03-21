@@ -70,7 +70,7 @@
             
             <nav>
                 
-                    <h2><a href="index.html">Documentation</a></h2><div class="category"><h3>Modules</h3><ul><li><a href="module-DonorListAPI.html">DonorListAPI</a></li></ul></div><div class="category"><h2>Routes</h2><h3>Modules</h3><ul><li><a href="module-DonorAPI.html">DonorAPI</a></li><li><a href="module-UserAPI.html">UserAPI</a></li></ul></div>
+                    <h2><a href="index.html">Documentation</a></h2><div class="category"><h3>Modules</h3><ul><li><a href="module-DonorAPI.html">DonorAPI</a></li><li><a href="module-DonorListAPI.html">DonorListAPI</a></li><li><a href="module-UserAPI.html">UserAPI</a></li></ul></div>
                 
             </nav>
         </div>
@@ -99,7 +99,7 @@
     <div class="container-overview">
     
         
-            <div class="description"><p>捐赠者列表 API 模块</p></div>
+            <div class="description"><p>Donor List API Module</p></div>
         
 
         
@@ -225,7 +225,7 @@
     
     
     <div class="description">
-        <p>删除捐赠者列表</p>
+        <p>Delete a donor list</p>
     </div>
     
 
@@ -269,7 +269,7 @@
   <td class="type">
   
       
-<code class="param-type">string</code>
+<code class="param-type">number</code>
 
 
   
@@ -279,7 +279,7 @@
 
   
 
-  <td class="description last"><p>捐赠者列表ID（BigInt类型）</p></td>
+  <td class="description last"><p>Donor list ID</p></td>
 </tr>
 
 
@@ -304,7 +304,7 @@
 
   
 
-  <td class="description last"><p>身份验证令牌（Bearer token）</p></td>
+  <td class="description last"><p>Bearer token for authentication</p></td>
 </tr>
 
 
@@ -352,7 +352,7 @@
         <p class="tag-source">
             <a href="donorList.js.html" class="button">View Source</a>
             <span>
-                <a href="donorList.js.html">donorList.js</a>, <a href="donorList.js.html#line224">line 224</a>
+                <a href="donorList.js.html">donorList.js</a>, <a href="donorList.js.html#line211">line 211</a>
             </span>
         </p>
     
@@ -383,7 +383,7 @@
 
 <div class="columns">
     
-    <div class='param-desc column is-7'><p>200 - 成功消息</p></div>
+    <div class='param-desc column is-7'><p>200 - Success message</p></div>
     
     
     <div class='column is-5 has-text-left'>
@@ -401,7 +401,7 @@
 
 <div class="columns">
     
-    <div class='param-desc column is-7'><p>404 - 列表未找到</p></div>
+    <div class='param-desc column is-7'><p>404 - List not found</p></div>
     
     
     <div class='column is-5 has-text-left'>
@@ -419,7 +419,7 @@
 
 <div class="columns">
     
-    <div class='param-desc column is-7'><p>500 - 服务器错误</p></div>
+    <div class='param-desc column is-7'><p>500 - Server error</p></div>
     
     
     <div class='column is-5 has-text-left'>
@@ -442,13 +442,13 @@
     <h5>Examples</h5>
     
     
-        <pre class="prettyprint"><code>请求示例:
+        <pre class="prettyprint"><code>Request Example:
 DELETE /api/lists/1
 Authorization: Bearer &lt;token></code></pre>
     
 
     
-        <pre class="prettyprint"><code>成功响应:
+        <pre class="prettyprint"><code>Success Response:
 {
   "message": "Donor list deleted successfully"
 }</code></pre>
@@ -479,7 +479,7 @@ Authorization: Bearer &lt;token></code></pre>
     
     
     <div class="description">
-        <p>从列表中移除捐赠者</p>
+        <p>Remove a donor from a list</p>
     </div>
     
 
@@ -523,7 +523,7 @@ Authorization: Bearer &lt;token></code></pre>
   <td class="type">
   
       
-<code class="param-type">string</code>
+<code class="param-type">number</code>
 
 
   
@@ -533,7 +533,7 @@ Authorization: Bearer &lt;token></code></pre>
 
   
 
-  <td class="description last"><p>捐赠者列表ID（BigInt类型）</p></td>
+  <td class="description last"><p>Donor list ID</p></td>
 </tr>
 
 
@@ -548,7 +548,7 @@ Authorization: Bearer &lt;token></code></pre>
   <td class="type">
   
       
-<code class="param-type">string</code>
+<code class="param-type">number</code>
 
 
   
@@ -558,7 +558,7 @@ Authorization: Bearer &lt;token></code></pre>
 
   
 
-  <td class="description last"><p>捐赠者ID（BigInt类型）</p></td>
+  <td class="description last"><p>Donor ID</p></td>
 </tr>
 
 
@@ -583,7 +583,7 @@ Authorization: Bearer &lt;token></code></pre>
 
   
 
-  <td class="description last"><p>身份验证令牌（Bearer token）</p></td>
+  <td class="description last"><p>Bearer token for authentication</p></td>
 </tr>
 
 
@@ -631,7 +631,7 @@ Authorization: Bearer &lt;token></code></pre>
         <p class="tag-source">
             <a href="donorList.js.html" class="button">View Source</a>
             <span>
-                <a href="donorList.js.html">donorList.js</a>, <a href="donorList.js.html#line495">line 495</a>
+                <a href="donorList.js.html">donorList.js</a>, <a href="donorList.js.html#line482">line 482</a>
             </span>
         </p>
     
@@ -662,7 +662,7 @@ Authorization: Bearer &lt;token></code></pre>
 
 <div class="columns">
     
-    <div class='param-desc column is-7'><p>200 - 成功消息和更新后的列表信息</p></div>
+    <div class='param-desc column is-7'><p>200 - Success message and updated list information</p></div>
     
     
     <div class='column is-5 has-text-left'>
@@ -680,7 +680,7 @@ Authorization: Bearer &lt;token></code></pre>
 
 <div class="columns">
     
-    <div class='param-desc column is-7'><p>404 - 列表或捐赠者未找到</p></div>
+    <div class='param-desc column is-7'><p>404 - List or donor not found</p></div>
     
     
     <div class='column is-5 has-text-left'>
@@ -698,7 +698,7 @@ Authorization: Bearer &lt;token></code></pre>
 
 <div class="columns">
     
-    <div class='param-desc column is-7'><p>500 - 服务器错误</p></div>
+    <div class='param-desc column is-7'><p>500 - Server error</p></div>
     
     
     <div class='column is-5 has-text-left'>
@@ -721,17 +721,17 @@ Authorization: Bearer &lt;token></code></pre>
     <h5>Examples</h5>
     
     
-        <pre class="prettyprint"><code>请求示例:
+        <pre class="prettyprint"><code>Request Example:
 DELETE /api/lists/1/donors/301
 Authorization: Bearer &lt;token></code></pre>
     
 
     
-        <pre class="prettyprint"><code>成功响应:
+        <pre class="prettyprint"><code>Success Response:
 {
   "message": "Donor removed from list successfully",
   "list": {
-    "id": "1", // BigInt类型，转换为字符串
+    "id": 1,
     "total_donors": 149,
     "approved": 120,
     "excluded": 14,
@@ -767,7 +767,7 @@ Authorization: Bearer &lt;token></code></pre>
     
     
     <div class="description">
-        <p>获取所有捐赠者列表（带分页和筛选）</p>
+        <p>Get all donor lists with pagination and filtering</p>
     </div>
     
 
@@ -841,7 +841,7 @@ Authorization: Bearer &lt;token></code></pre>
       </td>
   
 
-  <td class="description last"><p>分页页码</p></td>
+  <td class="description last"><p>Page number for pagination</p></td>
 </tr>
 
 
@@ -882,7 +882,7 @@ Authorization: Bearer &lt;token></code></pre>
       </td>
   
 
-  <td class="description last"><p>每页结果数量</p></td>
+  <td class="description last"><p>Number of results per page</p></td>
 </tr>
 
 
@@ -921,7 +921,7 @@ Authorization: Bearer &lt;token></code></pre>
       </td>
   
 
-  <td class="description last"><p>按审核状态筛选（'completed'或'pending'）</p></td>
+  <td class="description last"><p>Filter by review status ('completed' or 'pending')</p></td>
 </tr>
 
 
@@ -958,7 +958,7 @@ Authorization: Bearer &lt;token></code></pre>
       </td>
   
 
-  <td class="description last"><p>身份验证令牌（Bearer token）</p></td>
+  <td class="description last"><p>Bearer token for authentication</p></td>
 </tr>
 
 
@@ -1006,7 +1006,7 @@ Authorization: Bearer &lt;token></code></pre>
         <p class="tag-source">
             <a href="donorList.js.html" class="button">View Source</a>
             <span>
-                <a href="donorList.js.html">donorList.js</a>, <a href="donorList.js.html#line26">line 26</a>
+                <a href="donorList.js.html">donorList.js</a>, <a href="donorList.js.html#line13">line 13</a>
             </span>
         </p>
     
@@ -1037,7 +1037,7 @@ Authorization: Bearer &lt;token></code></pre>
 
 <div class="columns">
     
-    <div class='param-desc column is-7'><p>200 - 捐赠者列表和分页信息</p></div>
+    <div class='param-desc column is-7'><p>200 - Donor lists with pagination info</p></div>
     
     
     <div class='column is-5 has-text-left'>
@@ -1055,7 +1055,7 @@ Authorization: Bearer &lt;token></code></pre>
 
 <div class="columns">
     
-    <div class='param-desc column is-7'><p>500 - 服务器错误</p></div>
+    <div class='param-desc column is-7'><p>500 - Server error</p></div>
     
     
     <div class='column is-5 has-text-left'>
@@ -1078,22 +1078,22 @@ Authorization: Bearer &lt;token></code></pre>
     <h5>Examples</h5>
     
     
-        <pre class="prettyprint"><code>请求示例:
+        <pre class="prettyprint"><code>Request Example:
 GET /api/lists?page=1&amp;limit=10&amp;status=pending
 Authorization: Bearer &lt;token></code></pre>
     
 
     
-        <pre class="prettyprint"><code>成功响应:
+        <pre class="prettyprint"><code>Success Response:
 {
   "total_count": 25,
   "page": 1,
   "limit": 10,
   "lists": [
     {
-      "id": "1", // BigInt类型，转换为字符串
-      "event_id": "101", // BigInt类型，转换为字符串
-      "name": "夏季筹款活动2024",
+      "id": 1,
+      "event_id": 101,
+      "name": "Summer Fundraiser 2024",
       "total_donors": 150,
       "approved": 120,
       "excluded": 15,
@@ -1101,7 +1101,7 @@ Authorization: Bearer &lt;token></code></pre>
       "auto_excluded": 5,
       "review_status": "pending",
       "created_at": "2024-03-01T10:00:00Z",
-      "generated_by": "42" // BigInt类型，转换为字符串
+      "generated_by": 42
     }
   ]
 }</code></pre>
@@ -1132,7 +1132,7 @@ Authorization: Bearer &lt;token></code></pre>
     
     
     <div class="description">
-        <p>获取捐赠者列表详情</p>
+        <p>Get donor list details by ID</p>
     </div>
     
 
@@ -1176,7 +1176,7 @@ Authorization: Bearer &lt;token></code></pre>
   <td class="type">
   
       
-<code class="param-type">string</code>
+<code class="param-type">number</code>
 
 
   
@@ -1186,7 +1186,7 @@ Authorization: Bearer &lt;token></code></pre>
 
   
 
-  <td class="description last"><p>捐赠者列表ID（BigInt类型）</p></td>
+  <td class="description last"><p>Donor list ID</p></td>
 </tr>
 
 
@@ -1211,7 +1211,7 @@ Authorization: Bearer &lt;token></code></pre>
 
   
 
-  <td class="description last"><p>身份验证令牌（Bearer token）</p></td>
+  <td class="description last"><p>Bearer token for authentication</p></td>
 </tr>
 
 
@@ -1259,7 +1259,7 @@ Authorization: Bearer &lt;token></code></pre>
         <p class="tag-source">
             <a href="donorList.js.html" class="button">View Source</a>
             <span>
-                <a href="donorList.js.html">donorList.js</a>, <a href="donorList.js.html#line113">line 113</a>
+                <a href="donorList.js.html">donorList.js</a>, <a href="donorList.js.html#line100">line 100</a>
             </span>
         </p>
     
@@ -1290,7 +1290,7 @@ Authorization: Bearer &lt;token></code></pre>
 
 <div class="columns">
     
-    <div class='param-desc column is-7'><p>200 - 捐赠者列表详细信息</p></div>
+    <div class='param-desc column is-7'><p>200 - Detailed donor list information</p></div>
     
     
     <div class='column is-5 has-text-left'>
@@ -1308,7 +1308,7 @@ Authorization: Bearer &lt;token></code></pre>
 
 <div class="columns">
     
-    <div class='param-desc column is-7'><p>404 - 列表未找到</p></div>
+    <div class='param-desc column is-7'><p>404 - List not found</p></div>
     
     
     <div class='column is-5 has-text-left'>
@@ -1326,7 +1326,7 @@ Authorization: Bearer &lt;token></code></pre>
 
 <div class="columns">
     
-    <div class='param-desc column is-7'><p>500 - 服务器错误</p></div>
+    <div class='param-desc column is-7'><p>500 - Server error</p></div>
     
     
     <div class='column is-5 has-text-left'>
@@ -1349,17 +1349,17 @@ Authorization: Bearer &lt;token></code></pre>
     <h5>Examples</h5>
     
     
-        <pre class="prettyprint"><code>请求示例:
+        <pre class="prettyprint"><code>Request Example:
 GET /api/lists/1
 Authorization: Bearer &lt;token></code></pre>
     
 
     
-        <pre class="prettyprint"><code>成功响应:
+        <pre class="prettyprint"><code>Success Response:
 {
-  "id": "1", // BigInt类型，转换为字符串
-  "event_id": "101", // BigInt类型，转换为字符串
-  "name": "夏季筹款活动2024",
+  "id": 1,
+  "event_id": 101,
+  "name": "Summer Fundraiser 2024",
   "total_donors": 150,
   "approved": 120,
   "excluded": 15,
@@ -1368,20 +1368,20 @@ Authorization: Bearer &lt;token></code></pre>
   "review_status": "pending",
   "created_at": "2024-03-01T10:00:00Z",
   "updated_at": "2024-03-02T14:30:00Z",
-  "generated_by": "42", // BigInt类型，转换为字符串
+  "generated_by": 42,
   "donors": [
     {
-      "id": "201", // BigInt类型，转换为字符串
-      "donor_id": "301", // BigInt类型，转换为字符串
+      "id": 201,
+      "donor_id": 301,
       "status": "Approved",
       "reviewer_id": null,
-      "comments": "重要捐赠者",
+      "comments": "Important donor",
       "created_at": "2024-03-01T12:00:00Z",
       "updated_at": "2024-03-01T14:00:00Z",
       "donor": {
-        "id": "301", // BigInt类型，转换为字符串
-        "first_name": "张",
-        "last_name": "三",
+        "id": 301,
+        "first_name": "John",
+        "last_name": "Doe",
         "total_donations": 5000,
         "largest_gift": 2000,
         "created_at": "2024-01-01T00:00:00Z",
@@ -1417,7 +1417,7 @@ Authorization: Bearer &lt;token></code></pre>
     
     
     <div class="description">
-        <p>向列表添加捐赠者</p>
+        <p>Add donors to a list</p>
     </div>
     
 
@@ -1463,7 +1463,7 @@ Authorization: Bearer &lt;token></code></pre>
   <td class="type">
   
       
-<code class="param-type">string</code>
+<code class="param-type">number</code>
 
 
   
@@ -1481,7 +1481,7 @@ Authorization: Bearer &lt;token></code></pre>
 
   
 
-  <td class="description last"><p>捐赠者列表ID（BigInt类型）</p></td>
+  <td class="description last"><p>Donor list ID</p></td>
 </tr>
 
 
@@ -1514,7 +1514,7 @@ Authorization: Bearer &lt;token></code></pre>
 
   
 
-  <td class="description last"><p>请求体</p></td>
+  <td class="description last"><p>Request body</p></td>
 </tr>
 
   
@@ -1546,7 +1546,7 @@ Authorization: Bearer &lt;token></code></pre>
 
   
 
-  <td class="description last"><p>捐赠者数组</p></td>
+  <td class="description last"><p>Array of donors</p></td>
 </tr>
 
   
@@ -1559,7 +1559,7 @@ Authorization: Bearer &lt;token></code></pre>
   <td class="type">
   
       
-<code class="param-type">string</code>
+<code class="param-type">number</code>
 
 
   
@@ -1577,7 +1577,7 @@ Authorization: Bearer &lt;token></code></pre>
 
   
 
-  <td class="description last"><p>捐赠者ID（BigInt类型）</p></td>
+  <td class="description last"><p>Donor ID</p></td>
 </tr>
 
   
@@ -1608,7 +1608,7 @@ Authorization: Bearer &lt;token></code></pre>
 
   
 
-  <td class="description last"><p>状态 ('Pending', 'Approved', 'Excluded', 'AutoExcluded')</p></td>
+  <td class="description last"><p>Status ('Pending', 'Approved', 'Excluded', 'AutoExcluded')</p></td>
 </tr>
 
   
@@ -1621,7 +1621,7 @@ Authorization: Bearer &lt;token></code></pre>
   <td class="type">
   
       
-<code class="param-type">string</code>
+<code class="param-type">number</code>
 
 
   
@@ -1641,7 +1641,7 @@ Authorization: Bearer &lt;token></code></pre>
 
   
 
-  <td class="description last"><p>审核者ID（BigInt类型，可选）</p></td>
+  <td class="description last"><p>Reviewer ID (optional)</p></td>
 </tr>
 
   
@@ -1674,7 +1674,7 @@ Authorization: Bearer &lt;token></code></pre>
 
   
 
-  <td class="description last"><p>备注（可选）</p></td>
+  <td class="description last"><p>Comments (optional)</p></td>
 </tr>
 
   
@@ -1709,7 +1709,7 @@ Authorization: Bearer &lt;token></code></pre>
 
   
 
-  <td class="description last"><p>身份验证令牌（Bearer token）</p></td>
+  <td class="description last"><p>Bearer token for authentication</p></td>
 </tr>
 
 
@@ -1757,7 +1757,7 @@ Authorization: Bearer &lt;token></code></pre>
         <p class="tag-source">
             <a href="donorList.js.html" class="button">View Source</a>
             <span>
-                <a href="donorList.js.html">donorList.js</a>, <a href="donorList.js.html#line333">line 333</a>
+                <a href="donorList.js.html">donorList.js</a>, <a href="donorList.js.html#line320">line 320</a>
             </span>
         </p>
     
@@ -1788,7 +1788,7 @@ Authorization: Bearer &lt;token></code></pre>
 
 <div class="columns">
     
-    <div class='param-desc column is-7'><p>201 - 添加的捐赠者信息</p></div>
+    <div class='param-desc column is-7'><p>201 - Added donors information</p></div>
     
     
     <div class='column is-5 has-text-left'>
@@ -1806,7 +1806,7 @@ Authorization: Bearer &lt;token></code></pre>
 
 <div class="columns">
     
-    <div class='param-desc column is-7'><p>400 - 无效请求格式</p></div>
+    <div class='param-desc column is-7'><p>400 - Invalid request format</p></div>
     
     
     <div class='column is-5 has-text-left'>
@@ -1824,7 +1824,7 @@ Authorization: Bearer &lt;token></code></pre>
 
 <div class="columns">
     
-    <div class='param-desc column is-7'><p>404 - 列表未找到</p></div>
+    <div class='param-desc column is-7'><p>404 - List not found</p></div>
     
     
     <div class='column is-5 has-text-left'>
@@ -1842,7 +1842,7 @@ Authorization: Bearer &lt;token></code></pre>
 
 <div class="columns">
     
-    <div class='param-desc column is-7'><p>500 - 服务器错误</p></div>
+    <div class='param-desc column is-7'><p>500 - Server error</p></div>
     
     
     <div class='column is-5 has-text-left'>
@@ -1865,7 +1865,7 @@ Authorization: Bearer &lt;token></code></pre>
     <h5>Examples</h5>
     
     
-        <pre class="prettyprint"><code>请求示例:
+        <pre class="prettyprint"><code>Request Example:
 POST /api/lists/1/donors
 Authorization: Bearer &lt;token>
 Content-Type: application/json
@@ -1873,48 +1873,48 @@ Content-Type: application/json
 {
   "donors": [
     {
-      "donor_id": "301",
+      "donor_id": 301,
       "status": "Pending",
-      "comments": "潜在大额捐赠者"
+      "comments": "Potential major donor"
     },
     {
-      "donor_id": "302",
+      "donor_id": 302,
       "status": "Approved",
-      "comments": "可靠的捐赠者"
+      "comments": "Reliable donor"
     }
   ]
 }</code></pre>
     
 
     
-        <pre class="prettyprint"><code>成功响应:
+        <pre class="prettyprint"><code>Success Response:
 {
   "message": "Donors added successfully.",
   "added_donors": [
     {
-      "id": "201", // BigInt类型，转换为字符串
-      "donorListId": "1", // BigInt类型，转换为字符串
-      "donorId": "301", // BigInt类型，转换为字符串
+      "id": 201,
+      "donorListId": 1,
+      "donorId": 301,
       "status": "Pending",
-      "comments": "潜在大额捐赠者",
+      "comments": "Potential major donor",
       "donor": {
-        "id": "301", // BigInt类型，转换为字符串
-        "firstName": "张",
-        "lastName": "三",
+        "id": 301,
+        "firstName": "John",
+        "lastName": "Doe",
         "totalDonations": 5000,
         "largestGift": 2000
       }
     },
     {
-      "id": "202", // BigInt类型，转换为字符串
-      "donorListId": "1", // BigInt类型，转换为字符串
-      "donorId": "302", // BigInt类型，转换为字符串
+      "id": 202,
+      "donorListId": 1,
+      "donorId": 302,
       "status": "Approved",
-      "comments": "可靠的捐赠者",
+      "comments": "Reliable donor",
       "donor": {
-        "id": "302", // BigInt类型，转换为字符串
-        "firstName": "李",
-        "lastName": "四",
+        "id": 302,
+        "firstName": "Jane",
+        "lastName": "Smith",
         "totalDonations": 3000,
         "largestGift": 1000
       }
@@ -1948,7 +1948,7 @@ Content-Type: application/json
     
     
     <div class="description">
-        <p>更新捐赠者列表状态</p>
+        <p>Update donor list status</p>
     </div>
     
 
@@ -1992,7 +1992,7 @@ Content-Type: application/json
   <td class="type">
   
       
-<code class="param-type">string</code>
+<code class="param-type">number</code>
 
 
   
@@ -2002,7 +2002,7 @@ Content-Type: application/json
 
   
 
-  <td class="description last"><p>捐赠者列表ID（BigInt类型）</p></td>
+  <td class="description last"><p>Donor list ID</p></td>
 </tr>
 
 
@@ -2027,7 +2027,7 @@ Content-Type: application/json
 
   
 
-  <td class="description last"><p>请求体</p></td>
+  <td class="description last"><p>Request body</p></td>
 </tr>
 
   
@@ -2051,7 +2051,7 @@ Content-Type: application/json
 
   
 
-  <td class="description last"><p>新状态 ('completed'或'pending')</p></td>
+  <td class="description last"><p>New status ('completed' or 'pending')</p></td>
 </tr>
 
   
@@ -2078,7 +2078,7 @@ Content-Type: application/json
 
   
 
-  <td class="description last"><p>身份验证令牌（Bearer token）</p></td>
+  <td class="description last"><p>Bearer token for authentication</p></td>
 </tr>
 
 
@@ -2126,7 +2126,7 @@ Content-Type: application/json
         <p class="tag-source">
             <a href="donorList.js.html" class="button">View Source</a>
             <span>
-                <a href="donorList.js.html">donorList.js</a>, <a href="donorList.js.html#line268">line 268</a>
+                <a href="donorList.js.html">donorList.js</a>, <a href="donorList.js.html#line255">line 255</a>
             </span>
         </p>
     
@@ -2157,7 +2157,7 @@ Content-Type: application/json
 
 <div class="columns">
     
-    <div class='param-desc column is-7'><p>200 - 更新后的列表状态</p></div>
+    <div class='param-desc column is-7'><p>200 - Updated list status</p></div>
     
     
     <div class='column is-5 has-text-left'>
@@ -2175,7 +2175,7 @@ Content-Type: application/json
 
 <div class="columns">
     
-    <div class='param-desc column is-7'><p>400 - 无效状态</p></div>
+    <div class='param-desc column is-7'><p>400 - Invalid status</p></div>
     
     
     <div class='column is-5 has-text-left'>
@@ -2193,7 +2193,7 @@ Content-Type: application/json
 
 <div class="columns">
     
-    <div class='param-desc column is-7'><p>404 - 列表未找到</p></div>
+    <div class='param-desc column is-7'><p>404 - List not found</p></div>
     
     
     <div class='column is-5 has-text-left'>
@@ -2211,7 +2211,7 @@ Content-Type: application/json
 
 <div class="columns">
     
-    <div class='param-desc column is-7'><p>500 - 服务器错误</p></div>
+    <div class='param-desc column is-7'><p>500 - Server error</p></div>
     
     
     <div class='column is-5 has-text-left'>
@@ -2234,7 +2234,7 @@ Content-Type: application/json
     <h5>Examples</h5>
     
     
-        <pre class="prettyprint"><code>请求示例:
+        <pre class="prettyprint"><code>Request Example:
 PUT /api/lists/1/status
 Authorization: Bearer &lt;token>
 Content-Type: application/json
@@ -2245,11 +2245,11 @@ Content-Type: application/json
     
 
     
-        <pre class="prettyprint"><code>成功响应:
+        <pre class="prettyprint"><code>Success Response:
 {
   "message": "List status updated successfully",
   "list": {
-    "id": "1", // BigInt类型，转换为字符串
+    "id": 1,
     "review_status": "completed",
     "updated_at": "2024-04-15T09:30:00Z"
   }

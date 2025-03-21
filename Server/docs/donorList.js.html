@@ -72,7 +72,7 @@
             
             <nav>
                 
-                    <h2><a href="index.html">Documentation</a></h2><div class="category"><h3>Modules</h3><ul><li><a href="module-DonorListAPI.html">DonorListAPI</a></li></ul></div><div class="category"><h2>Routes</h2><h3>Modules</h3><ul><li><a href="module-DonorAPI.html">DonorAPI</a></li><li><a href="module-UserAPI.html">UserAPI</a></li></ul></div>
+                    <h2><a href="index.html">Documentation</a></h2><div class="category"><h3>Modules</h3><ul><li><a href="module-DonorAPI.html">DonorAPI</a></li><li><a href="module-DonorListAPI.html">DonorListAPI</a></li><li><a href="module-UserAPI.html">UserAPI</a></li></ul></div>
                 
             </nav>
         </div>
@@ -94,53 +94,40 @@ import { PrismaClient } from '@prisma/client';
 import { protect } from '../middleware/auth.js';
 
 /**
- * 捐赠者列表 API 模块
+ * Donor List API Module
  * @module DonorListAPI
  */
 
 const router = express.Router();
 const prisma = new PrismaClient();
 
-// 自定义序列化器，处理 BigInt 类型
-const bigIntSerializer = (key, value) => {
-  if (typeof value === 'bigint') {
-    return value.toString();
-  }
-  return value;
-};
-
-// 确保将此序列化器应用于所有可能包含 BigInt 的响应
-const safeJson = (data) => {
-  return JSON.parse(JSON.stringify(data, bigIntSerializer));
-};
-
 /**
- * 获取所有捐赠者列表（带分页和筛选）
+ * Get all donor lists with pagination and filtering
  * 
  * @name GET /api/lists
  * @function
  * @memberof module:DonorListAPI
- * @param {number} [req.query.page=1] - 分页页码
- * @param {number} [req.query.limit=10] - 每页结果数量
- * @param {string} [req.query.status] - 按审核状态筛选（'completed'或'pending'）
- * @param {string} req.headers.authorization - 身份验证令牌（Bearer token）
- * @returns {object} 200 - 捐赠者列表和分页信息
- * @returns {Error} 500 - 服务器错误
+ * @param {number} [req.query.page=1] - Page number for pagination
+ * @param {number} [req.query.limit=10] - Number of results per page
+ * @param {string} [req.query.status] - Filter by review status ('completed' or 'pending')
+ * @param {string} req.headers.authorization - Bearer token for authentication
+ * @returns {object} 200 - Donor lists with pagination info
+ * @returns {Error} 500 - Server error
  * 
- * @example 请求示例:
+ * @example Request Example:
  * GET /api/lists?page=1&amp;limit=10&amp;status=pending
  * Authorization: Bearer &lt;token>
  * 
- * @example 成功响应:
+ * @example Success Response:
  * {
  *   "total_count": 25,
  *   "page": 1,
  *   "limit": 10,
  *   "lists": [
  *     {
- *       "id": "1", // BigInt类型，转换为字符串
- *       "event_id": "101", // BigInt类型，转换为字符串
- *       "name": "夏季筹款活动2024",
+ *       "id": 1,
+ *       "event_id": 101,
+ *       "name": "Summer Fundraiser 2024",
  *       "total_donors": 150,
  *       "approved": 120,
  *       "excluded": 15,
@@ -148,7 +135,7 @@ const safeJson = (data) => {
  *       "auto_excluded": 5,
  *       "review_status": "pending",
  *       "created_at": "2024-03-01T10:00:00Z",
- *       "generated_by": "42" // BigInt类型，转换为字符串
+ *       "generated_by": 42
  *     }
  *   ]
  * }
@@ -177,7 +164,7 @@ router.get('/', protect, async (req, res) => {
       }
     });
 
-    res.json(safeJson({
+    res.json({
       total_count,
       page,
       limit,
@@ -194,7 +181,7 @@ router.get('/', protect, async (req, res) => {
         created_at: list.createdAt,
         generated_by: list.generatedBy
       }))
-    }));
+    });
   } catch (error) {
     console.error('Error fetching donor lists:', error);
     res.status(500).json({ message: 'Internal server error' });
@@ -202,26 +189,26 @@ router.get('/', protect, async (req, res) => {
 });
 
 /**
- * 获取捐赠者列表详情
+ * Get donor list details by ID
  * 
  * @name GET /api/lists/:id
  * @function
  * @memberof module:DonorListAPI
- * @param {string} req.params.id - 捐赠者列表ID（BigInt类型）
- * @param {string} req.headers.authorization - 身份验证令牌（Bearer token）
- * @returns {object} 200 - 捐赠者列表详细信息
- * @returns {Error} 404 - 列表未找到
- * @returns {Error} 500 - 服务器错误
+ * @param {number} req.params.id - Donor list ID
+ * @param {string} req.headers.authorization - Bearer token for authentication
+ * @returns {object} 200 - Detailed donor list information
+ * @returns {Error} 404 - List not found
+ * @returns {Error} 500 - Server error
  * 
- * @example 请求示例:
+ * @example Request Example:
  * GET /api/lists/1
  * Authorization: Bearer &lt;token>
  * 
- * @example 成功响应:
+ * @example Success Response:
  * {
- *   "id": "1", // BigInt类型，转换为字符串
- *   "event_id": "101", // BigInt类型，转换为字符串
- *   "name": "夏季筹款活动2024",
+ *   "id": 1,
+ *   "event_id": 101,
+ *   "name": "Summer Fundraiser 2024",
  *   "total_donors": 150,
  *   "approved": 120,
  *   "excluded": 15,
@@ -230,20 +217,20 @@ router.get('/', protect, async (req, res) => {
  *   "review_status": "pending",
  *   "created_at": "2024-03-01T10:00:00Z",
  *   "updated_at": "2024-03-02T14:30:00Z",
- *   "generated_by": "42", // BigInt类型，转换为字符串
+ *   "generated_by": 42,
  *   "donors": [
  *     {
- *       "id": "201", // BigInt类型，转换为字符串
- *       "donor_id": "301", // BigInt类型，转换为字符串
+ *       "id": 201,
+ *       "donor_id": 301,
  *       "status": "Approved",
  *       "reviewer_id": null,
- *       "comments": "重要捐赠者",
+ *       "comments": "Important donor",
  *       "created_at": "2024-03-01T12:00:00Z",
  *       "updated_at": "2024-03-01T14:00:00Z",
  *       "donor": {
- *         "id": "301", // BigInt类型，转换为字符串
- *         "first_name": "张",
- *         "last_name": "三",
+ *         "id": 301,
+ *         "first_name": "John",
+ *         "last_name": "Doe",
  *         "total_donations": 5000,
  *         "largest_gift": 2000,
  *         "created_at": "2024-01-01T00:00:00Z",
@@ -255,11 +242,11 @@ router.get('/', protect, async (req, res) => {
  */
 router.get('/:id', protect, async (req, res) => {
   try {
-    const listId = BigInt(req.params.id);
+    const listId = parseInt(req.params.id);
     const list = await prisma.eventDonorList.findUnique({
       where: { id: listId },
       include: {
-        donors: {
+        eventDonors: {
           include: {
             donor: true
           }
@@ -268,13 +255,13 @@ router.get('/:id', protect, async (req, res) => {
     });
 
     if (!list) {
-      return res.status(404).json({ message: 'List not found' });
+      return res.status(404).json({ message: 'Donor list not found' });
     }
 
     // Transform the data to match the expected format
     const transformedList = {
-      id: list.id.toString(),
-      event_id: list.eventId.toString(),
+      id: list.id,
+      event_id: list.eventId,
       name: list.name,
       total_donors: list.totalDonors,
       approved: list.approved,
@@ -284,17 +271,17 @@ router.get('/:id', protect, async (req, res) => {
       review_status: list.reviewStatus,
       created_at: list.createdAt,
       updated_at: list.updatedAt,
-      generated_by: list.generatedBy.toString(),
-      donors: list.donors.map(d => ({
-        id: d.id.toString(),
-        donor_id: d.donorId.toString(),
+      generated_by: list.generatedBy,
+      donors: list.eventDonors.map(d => ({
+        id: d.id,
+        donor_id: d.donorId,
         status: d.status,
-        reviewer_id: d.reviewerId ? d.reviewerId.toString() : null,
+        reviewer_id: d.reviewerId,
         comments: d.comments,
         created_at: d.createdAt,
         updated_at: d.updatedAt,
         donor: {
-          id: d.donor.id.toString(),
+          id: d.donor.id,
           first_name: d.donor.firstName,
           last_name: d.donor.lastName,
           total_donations: d.donor.totalDonations,
@@ -305,7 +292,7 @@ router.get('/:id', protect, async (req, res) => {
       }))
     };
 
-    res.json(safeJson(transformedList));
+    res.json(transformedList);
   } catch (error) {
     console.error('Error fetching list details:', error);
     res.status(500).json({ message: 'Internal server error' });
@@ -313,29 +300,29 @@ router.get('/:id', protect, async (req, res) => {
 });
 
 /**
- * 删除捐赠者列表
+ * Delete a donor list
  * 
  * @name DELETE /api/lists/:id
  * @function
  * @memberof module:DonorListAPI
- * @param {string} req.params.id - 捐赠者列表ID（BigInt类型）
- * @param {string} req.headers.authorization - 身份验证令牌（Bearer token）
- * @returns {object} 200 - 成功消息
- * @returns {Error} 404 - 列表未找到
- * @returns {Error} 500 - 服务器错误
+ * @param {number} req.params.id - Donor list ID
+ * @param {string} req.headers.authorization - Bearer token for authentication
+ * @returns {object} 200 - Success message
+ * @returns {Error} 404 - List not found
+ * @returns {Error} 500 - Server error
  * 
- * @example 请求示例:
+ * @example Request Example:
  * DELETE /api/lists/1
  * Authorization: Bearer &lt;token>
  * 
- * @example 成功响应:
+ * @example Success Response:
  * {
  *   "message": "Donor list deleted successfully"
  * }
  */
 router.delete('/:id', protect, async (req, res) => {
   try {
-    const listId = BigInt(req.params.id);
+    const listId = parseInt(req.params.id);
     
     // First delete associated event donors
     await prisma.eventDonor.deleteMany({
@@ -349,7 +336,7 @@ router.delete('/:id', protect, async (req, res) => {
     res.json({ message: 'Donor list deleted successfully' });
   } catch (error) {
     if (error.code === 'P2025') {
-      return res.status(404).json({ message: 'List not found' });
+      return res.status(404).json({ message: 'Donor list not found' });
     }
     console.error('Error deleting donor list:', error);
     res.status(500).json({ message: 'Internal server error' });
@@ -357,21 +344,21 @@ router.delete('/:id', protect, async (req, res) => {
 });
 
 /**
- * 更新捐赠者列表状态
+ * Update donor list status
  * 
  * @name PUT /api/lists/:id/status
  * @function
  * @memberof module:DonorListAPI
- * @param {string} req.params.id - 捐赠者列表ID（BigInt类型）
- * @param {object} req.body - 请求体
- * @param {string} req.body.review_status - 新状态 ('completed'或'pending')
- * @param {string} req.headers.authorization - 身份验证令牌（Bearer token）
- * @returns {object} 200 - 更新后的列表状态
- * @returns {Error} 400 - 无效状态
- * @returns {Error} 404 - 列表未找到
- * @returns {Error} 500 - 服务器错误
+ * @param {number} req.params.id - Donor list ID
+ * @param {object} req.body - Request body
+ * @param {string} req.body.review_status - New status ('completed' or 'pending')
+ * @param {string} req.headers.authorization - Bearer token for authentication
+ * @returns {object} 200 - Updated list status
+ * @returns {Error} 400 - Invalid status
+ * @returns {Error} 404 - List not found
+ * @returns {Error} 500 - Server error
  * 
- * @example 请求示例:
+ * @example Request Example:
  * PUT /api/lists/1/status
  * Authorization: Bearer &lt;token>
  * Content-Type: application/json
@@ -380,11 +367,11 @@ router.delete('/:id', protect, async (req, res) => {
  *   "review_status": "completed"
  * }
  * 
- * @example 成功响应:
+ * @example Success Response:
  * {
  *   "message": "List status updated successfully",
  *   "list": {
- *     "id": "1", // BigInt类型，转换为字符串
+ *     "id": 1,
  *     "review_status": "completed",
  *     "updated_at": "2024-04-15T09:30:00Z"
  *   }
@@ -392,7 +379,7 @@ router.delete('/:id', protect, async (req, res) => {
  */
 router.put('/:id/status', protect, async (req, res) => {
   try {
-    const listId = BigInt(req.params.id);
+    const listId = parseInt(req.params.id);
     const { review_status } = req.body;
 
     if (!['completed', 'pending'].includes(review_status)) {
@@ -406,11 +393,11 @@ router.put('/:id/status', protect, async (req, res) => {
 
     res.json({
       message: 'List status updated successfully',
-      list: safeJson({
+      list: {
         id: list.id,
         review_status: list.reviewStatus,
         updated_at: list.updatedAt
-      })
+      }
     });
   } catch (error) {
     if (error.code === 'P2025') {
@@ -422,25 +409,25 @@ router.put('/:id/status', protect, async (req, res) => {
 });
 
 /**
- * 向列表添加捐赠者
+ * Add donors to a list
  * 
  * @name POST /api/lists/:id/donors
  * @function
  * @memberof module:DonorListAPI
- * @param {string} req.params.id - 捐赠者列表ID（BigInt类型）
- * @param {object} req.body - 请求体
- * @param {Array} req.body.donors - 捐赠者数组
- * @param {string} req.body.donors[].donor_id - 捐赠者ID（BigInt类型）
- * @param {string} req.body.donors[].status - 状态 ('Pending', 'Approved', 'Excluded', 'AutoExcluded')
- * @param {string} [req.body.donors[].reviewer_id] - 审核者ID（BigInt类型，可选）
- * @param {string} [req.body.donors[].comments] - 备注（可选）
- * @param {string} req.headers.authorization - 身份验证令牌（Bearer token）
- * @returns {object} 201 - 添加的捐赠者信息
- * @returns {Error} 400 - 无效请求格式
- * @returns {Error} 404 - 列表未找到
- * @returns {Error} 500 - 服务器错误
+ * @param {number} req.params.id - Donor list ID
+ * @param {object} req.body - Request body
+ * @param {Array} req.body.donors - Array of donors
+ * @param {number} req.body.donors[].donor_id - Donor ID
+ * @param {string} req.body.donors[].status - Status ('Pending', 'Approved', 'Excluded', 'AutoExcluded')
+ * @param {number} [req.body.donors[].reviewer_id] - Reviewer ID (optional)
+ * @param {string} [req.body.donors[].comments] - Comments (optional)
+ * @param {string} req.headers.authorization - Bearer token for authentication
+ * @returns {object} 201 - Added donors information
+ * @returns {Error} 400 - Invalid request format
+ * @returns {Error} 404 - List not found
+ * @returns {Error} 500 - Server error
  * 
- * @example 请求示例:
+ * @example Request Example:
  * POST /api/lists/1/donors
  * Authorization: Bearer &lt;token>
  * Content-Type: application/json
@@ -448,46 +435,46 @@ router.put('/:id/status', protect, async (req, res) => {
  * {
  *   "donors": [
  *     {
- *       "donor_id": "301",
+ *       "donor_id": 301,
  *       "status": "Pending",
- *       "comments": "潜在大额捐赠者"
+ *       "comments": "Potential major donor"
  *     },
  *     {
- *       "donor_id": "302",
+ *       "donor_id": 302,
  *       "status": "Approved",
- *       "comments": "可靠的捐赠者"
+ *       "comments": "Reliable donor"
  *     }
  *   ]
  * }
  * 
- * @example 成功响应:
+ * @example Success Response:
  * {
  *   "message": "Donors added successfully.",
  *   "added_donors": [
  *     {
- *       "id": "201", // BigInt类型，转换为字符串
- *       "donorListId": "1", // BigInt类型，转换为字符串
- *       "donorId": "301", // BigInt类型，转换为字符串
+ *       "id": 201,
+ *       "donorListId": 1,
+ *       "donorId": 301,
  *       "status": "Pending",
- *       "comments": "潜在大额捐赠者",
+ *       "comments": "Potential major donor",
  *       "donor": {
- *         "id": "301", // BigInt类型，转换为字符串
- *         "firstName": "张",
- *         "lastName": "三",
+ *         "id": 301,
+ *         "firstName": "John",
+ *         "lastName": "Doe",
  *         "totalDonations": 5000,
  *         "largestGift": 2000
  *       }
  *     },
  *     {
- *       "id": "202", // BigInt类型，转换为字符串
- *       "donorListId": "1", // BigInt类型，转换为字符串
- *       "donorId": "302", // BigInt类型，转换为字符串
+ *       "id": 202,
+ *       "donorListId": 1,
+ *       "donorId": 302,
  *       "status": "Approved",
- *       "comments": "可靠的捐赠者",
+ *       "comments": "Reliable donor",
  *       "donor": {
- *         "id": "302", // BigInt类型，转换为字符串
- *         "firstName": "李",
- *         "lastName": "四",
+ *         "id": 302,
+ *         "firstName": "Jane",
+ *         "lastName": "Smith",
  *         "totalDonations": 3000,
  *         "largestGift": 1000
  *       }
@@ -497,7 +484,7 @@ router.put('/:id/status', protect, async (req, res) => {
  */
 router.post('/:id/donors', protect, async (req, res) => {
   try {
-    const listId = BigInt(req.params.id);
+    const listId = parseInt(req.params.id);
     const { donors } = req.body;
 
     if (!Array.isArray(donors)) {
@@ -513,7 +500,7 @@ router.post('/:id/donors', protect, async (req, res) => {
     }
 
     // Validate donor IDs exist
-    const donorIds = donors.map(d => BigInt(d.donor_id));
+    const donorIds = donors.map(d => parseInt(d.donor_id));
     const existingDonors = await prisma.donor.findMany({
       where: {
         id: {
@@ -531,9 +518,9 @@ router.post('/:id/donors', protect, async (req, res) => {
         prisma.eventDonor.create({
           data: {
             donorListId: listId,
-            donorId: BigInt(donor.donor_id),
+            donorId: parseInt(donor.donor_id),
             status: donor.status,
-            reviewerId: donor.reviewer_id ? BigInt(donor.reviewer_id) : null,
+            reviewerId: donor.reviewer_id ? parseInt(donor.reviewer_id) : null,
             comments: donor.comments
           },
           include: {
@@ -567,7 +554,7 @@ router.post('/:id/donors', protect, async (req, res) => {
 
     res.status(201).json({
       message: 'Donors added successfully.',
-      added_donors: safeJson(added_donors)
+      added_donors: added_donors
     });
   } catch (error) {
     console.error('Error adding donors:', error);
@@ -584,27 +571,27 @@ router.post('/:id/donors', protect, async (req, res) => {
 });
 
 /**
- * 从列表中移除捐赠者
+ * Remove a donor from a list
  * 
  * @name DELETE /api/lists/:id/donors/:donorId
  * @function
  * @memberof module:DonorListAPI
- * @param {string} req.params.id - 捐赠者列表ID（BigInt类型）
- * @param {string} req.params.donorId - 捐赠者ID（BigInt类型）
- * @param {string} req.headers.authorization - 身份验证令牌（Bearer token）
- * @returns {object} 200 - 成功消息和更新后的列表信息
- * @returns {Error} 404 - 列表或捐赠者未找到
- * @returns {Error} 500 - 服务器错误
+ * @param {number} req.params.id - Donor list ID
+ * @param {number} req.params.donorId - Donor ID
+ * @param {string} req.headers.authorization - Bearer token for authentication
+ * @returns {object} 200 - Success message and updated list information
+ * @returns {Error} 404 - List or donor not found
+ * @returns {Error} 500 - Server error
  * 
- * @example 请求示例:
+ * @example Request Example:
  * DELETE /api/lists/1/donors/301
  * Authorization: Bearer &lt;token>
  * 
- * @example 成功响应:
+ * @example Success Response:
  * {
  *   "message": "Donor removed from list successfully",
  *   "list": {
- *     "id": "1", // BigInt类型，转换为字符串
+ *     "id": 1,
  *     "total_donors": 149,
  *     "approved": 120,
  *     "excluded": 14,
@@ -616,15 +603,15 @@ router.post('/:id/donors', protect, async (req, res) => {
  */
 router.delete('/:id/donors/:donorId', protect, async (req, res) => {
   try {
-    const listId = BigInt(req.params.id);
-    const donorId = BigInt(req.params.donorId);
+    const listId = parseInt(req.params.id);
+    const donorId = parseInt(req.params.donorId);
 
     const list = await prisma.eventDonorList.findUnique({
       where: { id: listId }
     });
 
     if (!list) {
-      return res.status(404).json({ message: 'List not found' });
+      return res.status(404).json({ message: 'Donor not found in list' });
     }
 
     const eventDonor = await prisma.eventDonor.findFirst({
@@ -635,7 +622,7 @@ router.delete('/:id/donors/:donorId', protect, async (req, res) => {
     });
 
     if (!eventDonor) {
-      return res.status(404).json({ message: 'Donor not found in the list' });
+      return res.status(404).json({ message: 'Donor not found in list' });
     }
 
     // Get the status to update list statistics
@@ -666,7 +653,7 @@ router.delete('/:id/donors/:donorId', protect, async (req, res) => {
 
     res.json({
       message: 'Donor removed from list successfully',
-      list: safeJson(updatedList)
+      list: updatedList
     });
   } catch (error) {
     console.error('Error removing donor from list:', error);
