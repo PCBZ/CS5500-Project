@@ -12,11 +12,13 @@ jest.setTimeout(30000);
 beforeAll(async () => {
   try {
     await prisma.$connect();
+    // Clean up specific test email and any other test users
     await prisma.user.deleteMany({
       where: {
-        email: {
-          contains: 'test_user'
-        }
+        OR: [
+          { email: 'test.register@example.com' },
+          { email: { contains: 'test_user' } }
+        ]
       }
     });
   } catch (error) {
@@ -27,11 +29,13 @@ beforeAll(async () => {
 
 afterAll(async () => {
   try {
+    // Clean up specific test email and any other test users
     await prisma.user.deleteMany({
       where: {
-        email: {
-          contains: 'test_user'
-        }
+        OR: [
+          { email: 'test.register@example.com' },
+          { email: { contains: 'test_user' } }
+        ]
       }
     });
   } catch (error) {
@@ -44,7 +48,7 @@ afterAll(async () => {
 describe('User Registration', () => {
   const validUser = {
     name: 'Test User',
-    email: 'test_user@example.com',
+    email: 'test.register@example.com',
     password: 'password123',
     role: 'pmm'
   };

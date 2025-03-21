@@ -3,20 +3,12 @@ import { PrismaClient } from '@prisma/client';
 import { protect } from '../middleware/auth.js';
 
 /**
+ * Donor List API Module
  * @module DonorListAPI
- * @category Routes
  */
 
 const router = express.Router();
 const prisma = new PrismaClient();
-
-// Custom JSON serializer to handle BigInt
-const bigIntSerializer = (key, value) => {
-  if (typeof value === 'bigint') {
-    return value.toString();
-  }
-  return value;
-};
 
 /**
  * Get all donor lists with pagination and filtering
@@ -24,28 +16,26 @@ const bigIntSerializer = (key, value) => {
  * @name GET /api/lists
  * @function
  * @memberof module:DonorListAPI
- * @inner
- * @param {string} req.query.page - Page number for pagination (default: 1)
- * @param {string} req.query.limit - Number of results per page (default: 10)
- * @param {string} req.query.status - Filter by review status ('completed', 'pending')
+ * @param {number} [req.query.page=1] - Page number for pagination
+ * @param {number} [req.query.limit=10] - Number of results per page
+ * @param {string} [req.query.status] - Filter by review status ('completed' or 'pending')
  * @param {string} req.headers.authorization - Bearer token for authentication
- * @returns {Object} 200 - List of donor lists with pagination info
+ * @returns {object} 200 - Donor lists with pagination info
  * @returns {Error} 500 - Server error
  * 
- * @example
- * // Request
+ * @example Request Example:
  * GET /api/lists?page=1&limit=10&status=pending
  * Authorization: Bearer <token>
  * 
- * // Success Response
+ * @example Success Response:
  * {
  *   "total_count": 25,
  *   "page": 1,
  *   "limit": 10,
  *   "lists": [
  *     {
- *       "id": "1",
- *       "event_id": "101",
+ *       "id": 1,
+ *       "event_id": 101,
  *       "name": "Summer Fundraiser 2024",
  *       "total_donors": 150,
  *       "approved": 120,
@@ -54,7 +44,7 @@ const bigIntSerializer = (key, value) => {
  *       "auto_excluded": 5,
  *       "review_status": "pending",
  *       "created_at": "2024-03-01T10:00:00Z",
- *       "generated_by": "42"
+ *       "generated_by": 42
  *     }
  *   ]
  * }
@@ -83,7 +73,7 @@ router.get('/', protect, async (req, res) => {
       }
     });
 
-    res.json(JSON.parse(JSON.stringify({
+    res.json({
       total_count,
       page,
       limit,
@@ -100,7 +90,7 @@ router.get('/', protect, async (req, res) => {
         created_at: list.createdAt,
         generated_by: list.generatedBy
       }))
-    }, bigIntSerializer)));
+    });
   } catch (error) {
     console.error('Error fetching donor lists:', error);
     res.status(500).json({ message: 'Internal server error' });
@@ -113,22 +103,20 @@ router.get('/', protect, async (req, res) => {
  * @name GET /api/lists/:id
  * @function
  * @memberof module:DonorListAPI
- * @inner
- * @param {string} req.params.id - Donor list ID
+ * @param {number} req.params.id - Donor list ID
  * @param {string} req.headers.authorization - Bearer token for authentication
- * @returns {Object} 200 - Detailed donor list information
+ * @returns {object} 200 - Detailed donor list information
  * @returns {Error} 404 - List not found
  * @returns {Error} 500 - Server error
  * 
- * @example
- * // Request
+ * @example Request Example:
  * GET /api/lists/1
  * Authorization: Bearer <token>
  * 
- * // Success Response
+ * @example Success Response:
  * {
- *   "id": "1",
- *   "event_id": "101",
+ *   "id": 1,
+ *   "event_id": 101,
  *   "name": "Summer Fundraiser 2024",
  *   "total_donors": 150,
  *   "approved": 120,
@@ -138,33 +126,35 @@ router.get('/', protect, async (req, res) => {
  *   "review_status": "pending",
  *   "created_at": "2024-03-01T10:00:00Z",
  *   "updated_at": "2024-03-02T14:30:00Z",
- *   "generated_by": "42",
+ *   "generated_by": 42,
  *   "donors": [
  *     {
- *       "id": "201",
- *       "name": "John Doe",
+ *       "id": 201,
+ *       "donor_id": 301,
  *       "status": "Approved",
- *       "exclude_reason": null,
  *       "reviewer_id": null,
- *       "review_date": null,
- *       "comments": null
+ *       "comments": "Important donor",
+ *       "created_at": "2024-03-01T12:00:00Z",
+ *       "updated_at": "2024-03-01T14:00:00Z",
+ *       "donor": {
+ *         "id": 301,
+ *         "first_name": "John",
+ *         "last_name": "Doe",
+ *         "total_donations": 5000,
+ *         "largest_gift": 2000,
+ *         "created_at": "2024-01-01T00:00:00Z",
+ *         "updated_at": "2024-01-01T00:00:00Z"
+ *       }
  *     }
  *   ]
  * }
  */
 router.get('/:id', protect, async (req, res) => {
   try {
-    const listId = BigInt(req.params.id);
+    const listId = parseInt(req.params.id);
     const list = await prisma.eventDonorList.findUnique({
       where: { id: listId },
       include: {
-        event: true,
-        generator: {
-          select: {
-            id: true,
-            name: true
-          }
-        },
         eventDonors: {
           include: {
             donor: true
@@ -191,20 +181,29 @@ router.get('/:id', protect, async (req, res) => {
       created_at: list.createdAt,
       updated_at: list.updatedAt,
       generated_by: list.generatedBy,
-      donors: list.eventDonors.map(donor => ({
-        id: donor.id,
-        name: `${donor.donor.firstName || ''} ${donor.donor.lastName || ''}`.trim(),
-        status: donor.status,
-        exclude_reason: donor.excludeReason,
-        reviewer_id: donor.reviewerId,
-        review_date: donor.reviewDate,
-        comments: donor.comments
+      donors: list.eventDonors.map(d => ({
+        id: d.id,
+        donor_id: d.donorId,
+        status: d.status,
+        reviewer_id: d.reviewerId,
+        comments: d.comments,
+        created_at: d.createdAt,
+        updated_at: d.updatedAt,
+        donor: {
+          id: d.donor.id,
+          first_name: d.donor.firstName,
+          last_name: d.donor.lastName,
+          total_donations: d.donor.totalDonations,
+          largest_gift: d.donor.largestGift,
+          created_at: d.donor.createdAt,
+          updated_at: d.donor.updatedAt
+        }
       }))
     };
 
-    res.json(JSON.parse(JSON.stringify(transformedList, bigIntSerializer)));
+    res.json(transformedList);
   } catch (error) {
-    console.error('Error fetching donor list details:', error);
+    console.error('Error fetching list details:', error);
     res.status(500).json({ message: 'Internal server error' });
   }
 });
@@ -215,26 +214,30 @@ router.get('/:id', protect, async (req, res) => {
  * @name DELETE /api/lists/:id
  * @function
  * @memberof module:DonorListAPI
- * @inner
- * @param {string} req.params.id - Donor list ID
+ * @param {number} req.params.id - Donor list ID
  * @param {string} req.headers.authorization - Bearer token for authentication
- * @returns {Object} 200 - Success message
+ * @returns {object} 200 - Success message
  * @returns {Error} 404 - List not found
  * @returns {Error} 500 - Server error
  * 
- * @example
- * // Request
+ * @example Request Example:
  * DELETE /api/lists/1
  * Authorization: Bearer <token>
  * 
- * // Success Response
+ * @example Success Response:
  * {
- *   "message": "Donor list deleted successfully."
+ *   "message": "Donor list deleted successfully"
  * }
  */
 router.delete('/:id', protect, async (req, res) => {
   try {
-    const listId = BigInt(req.params.id);
+    const listId = parseInt(req.params.id);
+    
+    // First delete associated event donors
+    await prisma.eventDonor.deleteMany({
+      where: { donorListId: listId }
+    });
+    
     await prisma.eventDonorList.delete({
       where: { id: listId }
     });
@@ -250,57 +253,147 @@ router.delete('/:id', protect, async (req, res) => {
 });
 
 /**
+ * Update donor list status
+ * 
+ * @name PUT /api/lists/:id/status
+ * @function
+ * @memberof module:DonorListAPI
+ * @param {number} req.params.id - Donor list ID
+ * @param {object} req.body - Request body
+ * @param {string} req.body.review_status - New status ('completed' or 'pending')
+ * @param {string} req.headers.authorization - Bearer token for authentication
+ * @returns {object} 200 - Updated list status
+ * @returns {Error} 400 - Invalid status
+ * @returns {Error} 404 - List not found
+ * @returns {Error} 500 - Server error
+ * 
+ * @example Request Example:
+ * PUT /api/lists/1/status
+ * Authorization: Bearer <token>
+ * Content-Type: application/json
+ * 
+ * {
+ *   "review_status": "completed"
+ * }
+ * 
+ * @example Success Response:
+ * {
+ *   "message": "List status updated successfully",
+ *   "list": {
+ *     "id": 1,
+ *     "review_status": "completed",
+ *     "updated_at": "2024-04-15T09:30:00Z"
+ *   }
+ * }
+ */
+router.put('/:id/status', protect, async (req, res) => {
+  try {
+    const listId = parseInt(req.params.id);
+    const { review_status } = req.body;
+
+    if (!['completed', 'pending'].includes(review_status)) {
+      return res.status(400).json({ message: 'Invalid status' });
+    }
+
+    const list = await prisma.eventDonorList.update({
+      where: { id: listId },
+      data: { reviewStatus: review_status }
+    });
+
+    res.json({
+      message: 'List status updated successfully',
+      list: {
+        id: list.id,
+        review_status: list.reviewStatus,
+        updated_at: list.updatedAt
+      }
+    });
+  } catch (error) {
+    if (error.code === 'P2025') {
+      return res.status(404).json({ message: 'List not found' });
+    }
+    console.error('Error updating list status:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+/**
  * Add donors to a list
  * 
  * @name POST /api/lists/:id/donors
  * @function
  * @memberof module:DonorListAPI
- * @inner
- * @param {string} req.params.id - Donor list ID
- * @param {Object} req.body
- * @param {Array} req.body.donors - Array of donor objects to add
+ * @param {number} req.params.id - Donor list ID
+ * @param {object} req.body - Request body
+ * @param {Array} req.body.donors - Array of donors
+ * @param {number} req.body.donors[].donor_id - Donor ID
+ * @param {string} req.body.donors[].status - Status ('Pending', 'Approved', 'Excluded', 'AutoExcluded')
+ * @param {number} [req.body.donors[].reviewer_id] - Reviewer ID (optional)
+ * @param {string} [req.body.donors[].comments] - Comments (optional)
  * @param {string} req.headers.authorization - Bearer token for authentication
- * @returns {Object} 201 - Success message with added donors
+ * @returns {object} 201 - Added donors information
+ * @returns {Error} 400 - Invalid request format
  * @returns {Error} 404 - List not found
  * @returns {Error} 500 - Server error
  * 
- * @example
- * // Request
+ * @example Request Example:
  * POST /api/lists/1/donors
  * Authorization: Bearer <token>
+ * Content-Type: application/json
+ * 
  * {
  *   "donors": [
  *     {
- *       "donor_id": "301",
+ *       "donor_id": 301,
  *       "status": "Pending",
- *       "comments": "Manually added donor"
+ *       "comments": "Potential major donor"
  *     },
  *     {
- *       "donor_id": "302",
+ *       "donor_id": 302,
  *       "status": "Approved",
- *       "reviewer_id": "42"
+ *       "comments": "Reliable donor"
  *     }
  *   ]
  * }
  * 
- * // Success Response
+ * @example Success Response:
  * {
  *   "message": "Donors added successfully.",
  *   "added_donors": [
  *     {
- *       "donor_id": "301",
- *       "status": "Pending"
+ *       "id": 201,
+ *       "donorListId": 1,
+ *       "donorId": 301,
+ *       "status": "Pending",
+ *       "comments": "Potential major donor",
+ *       "donor": {
+ *         "id": 301,
+ *         "firstName": "John",
+ *         "lastName": "Doe",
+ *         "totalDonations": 5000,
+ *         "largestGift": 2000
+ *       }
  *     },
  *     {
- *       "donor_id": "302",
- *       "status": "Approved"
+ *       "id": 202,
+ *       "donorListId": 1,
+ *       "donorId": 302,
+ *       "status": "Approved",
+ *       "comments": "Reliable donor",
+ *       "donor": {
+ *         "id": 302,
+ *         "firstName": "Jane",
+ *         "lastName": "Smith",
+ *         "totalDonations": 3000,
+ *         "largestGift": 1000
+ *       }
  *     }
  *   ]
  * }
  */
 router.post('/:id/donors', protect, async (req, res) => {
   try {
-    const listId = BigInt(req.params.id);
+    const listId = parseInt(req.params.id);
     const { donors } = req.body;
 
     if (!Array.isArray(donors)) {
@@ -316,7 +409,7 @@ router.post('/:id/donors', protect, async (req, res) => {
     }
 
     // Validate donor IDs exist
-    const donorIds = donors.map(d => BigInt(d.donor_id));
+    const donorIds = donors.map(d => parseInt(d.donor_id));
     const existingDonors = await prisma.donor.findMany({
       where: {
         id: {
@@ -334,9 +427,9 @@ router.post('/:id/donors', protect, async (req, res) => {
         prisma.eventDonor.create({
           data: {
             donorListId: listId,
-            donorId: BigInt(donor.donor_id),
+            donorId: parseInt(donor.donor_id),
             status: donor.status,
-            reviewerId: donor.reviewer_id ? BigInt(donor.reviewer_id) : null,
+            reviewerId: donor.reviewer_id ? parseInt(donor.reviewer_id) : null,
             comments: donor.comments
           },
           include: {
@@ -370,7 +463,7 @@ router.post('/:id/donors', protect, async (req, res) => {
 
     res.status(201).json({
       message: 'Donors added successfully.',
-      added_donors: JSON.parse(JSON.stringify(added_donors, bigIntSerializer))
+      added_donors: added_donors
     });
   } catch (error) {
     console.error('Error adding donors:', error);
@@ -392,127 +485,87 @@ router.post('/:id/donors', protect, async (req, res) => {
  * @name DELETE /api/lists/:id/donors/:donorId
  * @function
  * @memberof module:DonorListAPI
- * @inner
- * @param {string} req.params.id - Donor list ID
- * @param {string} req.params.donorId - Donor ID to remove
+ * @param {number} req.params.id - Donor list ID
+ * @param {number} req.params.donorId - Donor ID
  * @param {string} req.headers.authorization - Bearer token for authentication
- * @returns {Object} 200 - Success message
+ * @returns {object} 200 - Success message and updated list information
  * @returns {Error} 404 - List or donor not found
  * @returns {Error} 500 - Server error
  * 
- * @example
- * // Request
- * DELETE /api/lists/1/donors/201
+ * @example Request Example:
+ * DELETE /api/lists/1/donors/301
  * Authorization: Bearer <token>
  * 
- * // Success Response
+ * @example Success Response:
  * {
- *   "message": "Donor removed from list successfully."
+ *   "message": "Donor removed from list successfully",
+ *   "list": {
+ *     "id": 1,
+ *     "total_donors": 149,
+ *     "approved": 120,
+ *     "excluded": 14,
+ *     "pending": 15,
+ *     "auto_excluded": 5,
+ *     "review_status": "pending"
+ *   }
  * }
  */
 router.delete('/:id/donors/:donorId', protect, async (req, res) => {
   try {
-    const listId = BigInt(req.params.id);
-    const donorId = BigInt(req.params.donorId);
+    const listId = parseInt(req.params.id);
+    const donorId = parseInt(req.params.donorId);
 
-    const donor = await prisma.eventDonor.findFirst({
+    const list = await prisma.eventDonorList.findUnique({
+      where: { id: listId }
+    });
+
+    if (!list) {
+      return res.status(404).json({ message: 'Donor not found in list' });
+    }
+
+    const eventDonor = await prisma.eventDonor.findFirst({
       where: {
         donorListId: listId,
         donorId: donorId
       }
     });
 
-    if (!donor) {
+    if (!eventDonor) {
       return res.status(404).json({ message: 'Donor not found in list' });
     }
 
+    // Get the status to update list statistics
+    const donorStatus = eventDonor.status;
+
     await prisma.eventDonor.delete({
-      where: {
-        id: donor.id
-      }
+      where: { id: eventDonor.id }
     });
 
-    // update list statistics
+    // Update list statistics
     await prisma.eventDonorList.update({
       where: { id: listId },
       data: {
         totalDonors: {
           decrement: 1
         },
-        [donor.status.toLowerCase()]: {
-          decrement: 1
-        }
+        ...(donorStatus === 'Pending' && { pending: { decrement: 1 } }),
+        ...(donorStatus === 'Approved' && { approved: { decrement: 1 } }),
+        ...(donorStatus === 'Excluded' && { excluded: { decrement: 1 } }),
+        ...(donorStatus === 'AutoExcluded' && { autoExcluded: { decrement: 1 } }),
       }
     });
 
-    res.json({ message: 'Donor removed from list successfully' });
-  } catch (error) {
-    console.error('Error removing donor:', error);
-    res.status(500).json({ message: 'Internal server error' });
-  }
-});
-
-/**
- * Update list status
- * 
- * @name PUT /api/lists/:id/status
- * @function
- * @memberof module:DonorListAPI
- * @inner
- * @param {string} req.params.id - Donor list ID
- * @param {Object} req.body
- * @param {string} req.body.review_status - New review status ('completed' or 'pending')
- * @param {string} req.headers.authorization - Bearer token for authentication
- * @returns {Object} 200 - Success message with updated list info
- * @returns {Error} 400 - Invalid status
- * @returns {Error} 404 - List not found
- * @returns {Error} 500 - Server error
- * 
- * @example
- * // Request
- * PUT /api/lists/1/status
- * Authorization: Bearer <token>
- * {
- *   "review_status": "completed"
- * }
- * 
- * // Success Response
- * {
- *   "message": "List status updated successfully.",
- *   "list": {
- *     "id": "1",
- *     "review_status": "completed",
- *     "updated_at": "2024-03-02T15:45:00Z"
- *   }
- * }
- */
-router.put('/:id/status', protect, async (req, res) => {
-  try {
-    const listId = BigInt(req.params.id);
-    const { review_status } = req.body;
-
-    if (!['completed', 'pending'].includes(review_status)) {
-      return res.status(400).json({ message: 'Invalid status' });
-    }
-
-    const list = await prisma.eventDonorList.update({
-      where: { id: listId },
-      data: { reviewStatus: review_status }
+    // Get the updated list
+    const updatedList = await prisma.eventDonorList.findUnique({
+      where: { id: listId }
     });
 
     res.json({
-      message: 'List status updated successfully',
-      list: {
-        id: list.id.toString(),
-        review_status: list.reviewStatus,
-        updated_at: list.updatedAt
-      }
+      message: 'Donor removed from list successfully',
+      list: updatedList
     });
   } catch (error) {
-    if (error.code === 'P2025') {
-      return res.status(404).json({ message: 'List not found' });
-    }
-    console.error('Error updating list status:', error);
+    console.error('Error removing donor from list:', error);
     res.status(500).json({ message: 'Internal server error' });
   }
 });

@@ -23,7 +23,7 @@ export const protect = async (req, res, next) => {
 
       // get user info
       const user = await prisma.user.findUnique({
-        where: { id: BigInt(decoded.userId) }
+        where: { id: parseInt(decoded.userId) }
       });
 
       if (!user) {
@@ -32,7 +32,7 @@ export const protect = async (req, res, next) => {
 
       // add user info to request object
       req.user = {
-        id: user.id.toString(),
+        id: user.id,
         name: user.name,
         email: user.email,
         role: user.role

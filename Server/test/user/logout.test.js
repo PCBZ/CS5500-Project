@@ -12,7 +12,7 @@ jest.setTimeout(30000);
 describe('User Logout', () => {
   const testUser = {
     name: 'Test Logout User',
-    email: 'test_logout@example.com',
+    email: 'test.logout@example.com',
     password: 'password123',
     role: 'pmm'
   };
@@ -42,6 +42,8 @@ describe('User Logout', () => {
         }
       });
 
+      console.log('Test user created:', user.id);
+
       // Get auth token by logging in
       const loginResponse = await request(app)
         .post('/api/user/login')
@@ -50,7 +52,19 @@ describe('User Logout', () => {
           password: testUser.password
         });
 
+      console.log('Login response status:', loginResponse.status);
+      console.log('Login response body:', loginResponse.body);
+
       authToken = loginResponse.body.token;
+      console.log('Auth token:', authToken);
+
+      if (authToken) {
+        // Decode token to check payload
+        const decoded = jwt.decode(authToken);
+        console.log('Decoded token:', decoded);
+      } else {
+        console.log('No auth token received from login');
+      }
     } catch (error) {
       console.error('Setup error:', error);
       throw error;
@@ -77,6 +91,9 @@ describe('User Logout', () => {
       .post('/api/user/logout')
       .set('Authorization', `Bearer ${authToken}`);
 
+    console.log('Logout response status:', response.status);
+    console.log('Logout response body:', response.body);
+    
     expect(response.status).toBe(200);
     expect(response.body).toHaveProperty('message', 'Logout successful.');
   }, 10000);
