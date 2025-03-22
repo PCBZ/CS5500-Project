@@ -341,102 +341,62 @@ router.post('/import', protect, upload.single('file'), async (req, res) => {
       const donorData = donorsData[i];
       
       try {
-        // Validate required fields
-        if (!donorData.constituentId) {
-          errors.push({
-            row,
-            error: 'Missing required field: constituentId'
+        // Check if donor already exists by name
+        let existingDonor = null;
+        if (donorData.first_name && donorData.last_name) {
+          existingDonor = await prisma.donor.findFirst({
+            where: {
+              firstName: donorData.first_name,
+              lastName: donorData.last_name
+            }
           });
-          continue;
         }
 
-        // Check if donor already exists
-        const existingDonor = await prisma.donor.findUnique({
-          where: { constituentId: donorData.constituentId }
-        });
-
-        // Process tags if provided
-        let tags = [];
-        if (donorData.tags && typeof donorData.tags === 'string' && donorData.tags.trim() !== '') {
-          tags = donorData.tags.split(',').map(tag => tag.trim());
-        }
-
-        // Format donor data for database
+        // Format donor data for database - mapping CSV fields to database fields
         const donor = {
-          constituentId: donorData.constituentId,
           pmm: donorData.pmm || null,
           smm: donorData.smm || null,
           vmm: donorData.vmm || null,
-          excluded: donorData.excluded === 'true' || donorData.excluded === true || false,
-          deceased: donorData.deceased === 'true' || donorData.deceased === true || false,
-          first_name: donorData.first_name || null,
-          nick_name: donorData.nick_name || null,
-          last_name: donorData.last_name || null,
-          organization_name: donorData.organization_name || null,
-          total_donations: parseFloat(donorData.total_donations) || 0,
-          total_pledges: parseFloat(donorData.total_pledges) || 0,
-          largest_gift: parseFloat(donorData.largest_gift) || null,
-          largest_gift_appeal: donorData.largest_gift_appeal || null,
-          first_gift_date: donorData.first_gift_date ? new Date(donorData.first_gift_date) : null,
-          last_gift_date: donorData.last_gift_date ? new Date(donorData.last_gift_date) : null,
-          last_gift_amount: parseFloat(donorData.last_gift_amount) || null,
-          last_gift_request: donorData.last_gift_request || null,
-          last_gift_appeal: donorData.last_gift_appeal || null,
-          address_line1: donorData.address_line1 || null,
-          address_line2: donorData.address_line2 || null,
+          excluded: donorData.exclude === 'yes' || donorData.exclude === true || false,
+          deceased: donorData.deceased === 'yes' || donorData.deceased === true || false,
+          firstName: donorData.first_name || null,
+          nickName: donorData.nick_name || null,
+          lastName: donorData.last_name || null,
+          organizationName: donorData.organization_name || null,
+          totalDonations: parseFloat(donorData.total_donations) || 0,
+          totalPledges: parseFloat(donorData.total_pledge) || 0,
+          largestGift: parseFloat(donorData.largest_gift) || 0,
+          largestGiftAppeal: donorData.largest_gift_appeal || null,
+          firstGiftDate: donorData.first_gift_date ? new Date(parseInt(donorData.first_gift_date) * 1000) : null,
+          lastGiftDate: donorData.last_gift_date ? new Date(parseInt(donorData.last_gift_date) * 1000) : null,
+          lastGiftAmount: parseFloat(donorData.last_gift_amount) || 0,
+          lastGiftRequest: donorData.lastGiftRequest ? String(donorData.lastGiftRequest) : null,
+          lastGiftAppeal: donorData.last_gift_appeal || null,
+          addressLine1: donorData.address_line1 || null,
+          addressLine2: donorData.address_line2 || null,
           city: donorData.city || null,
-          contact_phone_type: donorData.contact_phone_type || null,
-          phone_restrictions: donorData.phone_restrictions || null,
-          email_restrictions: donorData.email_restrictions || null,
-          communication_restrictions: donorData.communication_restrictions || null,
-          subscription_events_in_person: donorData.subscription_events_in_person || null,
-          subscription_events_magazine: donorData.subscription_events_magazine || null,
-          communication_preference: donorData.communication_preference || null
+          contactPhoneType: donorData.contact_phone_type || null,
+          phoneRestrictions: donorData.phone_restrictions || null,
+          emailRestrictions: donorData.email_restrictions || null,
+          communicationRestrictions: donorData.communication_restrictions || null,
+          subscriptionEventsInPerson: donorData.subscription_events_in_person || null,
+          subscriptionEventsMagazine: donorData.subscription_events_magazine || null,
+          communicationPreference: donorData.communication_preference || null
         };
 
         if (existingDonor) {
           // Update existing donor
           await prisma.donor.update({
-            where: { constituentId: donorData.constituentId },
+            where: { id: existingDonor.id },
             data: donor
           });
-          
-          // Update tags if provided
-          if (tags.length > 0) {
-            // First, remove existing tags
-            await prisma.donorTag.deleteMany({
-              where: { donorId: existingDonor.id }
-            });
-            
-            // Then add new tags
-            for (const tagName of tags) {
-              await prisma.donorTag.create({
-                data: {
-                  donorId: existingDonor.id,
-                  name: tagName
-                }
-              });
-            }
-          }
           
           updated++;
         } else {
           // Create new donor
-          const newDonor = await prisma.donor.create({
+          await prisma.donor.create({
             data: donor
           });
-          
-          // Add tags if provided
-          if (tags.length > 0) {
-            for (const tagName of tags) {
-              await prisma.donorTag.create({
-                data: {
-                  donorId: newDonor.id,
-                  name: tagName
-                }
-              });
-            }
-          }
           
           imported++;
         }

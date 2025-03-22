@@ -4,7 +4,6 @@
  * Module dependencies.
  */
 const methods = require('methods');
-const http = require('http');
 let http2;
 try {
   http2 = require('http2'); // eslint-disable-line global-require
@@ -32,15 +31,12 @@ module.exports = function(app, options = {}) {
           'supertest: this version of Node.js does not support http2'
         );
       }
-      app = http2.createServer(app); // eslint-disable-line no-param-reassign
-    } else {
-      app = http.createServer(app); // eslint-disable-line no-param-reassign
     }
   }
 
   methods.forEach(function(method) {
     obj[method] = function(url) {
-      var test = new Test(app, method, url);
+      var test = new Test(app, method, url, options.http2);
       if (options.http2) {
         test.http2();
       }
