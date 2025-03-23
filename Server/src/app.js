@@ -2,6 +2,8 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import userRoutes from './routes/user.js';
+import donorRoutes from './routes/donor.js';
+
 
 // load environment variables
 dotenv.config();
@@ -14,6 +16,7 @@ app.use(express.json());
 
 // routes
 app.use('/api/user', userRoutes);
+app.use('/api/donor', donorRoutes);
 
 // error handling middleware
 app.use((err, req, res, next) => {
