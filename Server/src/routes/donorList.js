@@ -570,4 +570,167 @@ router.delete('/:id/donors/:donorId', protect, async (req, res) => {
   }
 });
 
+/**
+ * Get summary statistics for a specific donor list
+ * 
+ * @name GET /api/lists/:listId/stats
+ * @function
+ * @memberof module:DonorListAPI
+ * @param {string} req.params.listId - The ID of the donor list to retrieve stats for
+ * @param {string} req.headers.authorization - Bearer token for authentication
+ * @returns {object} 200 - Statistics about reviewed and pending donors
+ * @returns {Error} 404 - Donor list not found
+ * @returns {Error} 500 - Server error
+ * 
+ * @example Request Example:
+ * GET /api/lists/123/stats
+ * Authorization: Bearer <token>
+ * 
+ * @example Success Response:
+ * {
+ *   "list_id": 123,
+ *   "list_name": "Summer Gala 2024",
+ *   "total_donors": 150,
+ *   "reviewed": 135,
+ *   "pending_review": 15,
+ *   "approved": 120,
+ *   "excluded": 15,
+ *   "auto_excluded": 5,
+ *   "approval_rate": 80, // percentage
+ *   "review_status": "pending",
+ *   "event_name": "Summer Gala 2024"
+ * }
+ */
+router.get('/:listId/stats', protect, async (req, res) => {
+  try {
+    const listId = parseInt(req.params.listId);
+
+    // Get the donor list with its associated event
+    const donorList = await prisma.eventDonorList.findUnique({
+      where: { id: listId },
+      include: {
+        event: {
+          select: {
+            name: true
+          }
+        }
+      }
+    });
+
+    if (!donorList) {
+      return res.status(404).json({ message: 'Donor list not found' });
+    }
+
+    // Calculate review statistics
+    const approvalRate = donorList.totalDonors > 0 
+      ? Math.round((donorList.approved / donorList.totalDonors) * 100) 
+      : 0;
+
+    // Compile statistics
+    const stats = {
+      list_id: donorList.id,
+      list_name: donorList.name,
+      total_donors: donorList.totalDonors,
+      reviewed: donorList.approved + donorList.excluded,
+      pending_review: donorList.pending,
+      approved: donorList.approved,
+      excluded: donorList.excluded,
+      auto_excluded: donorList.autoExcluded,
+      approval_rate: approvalRate,
+      review_status: donorList.reviewStatus,
+      event_name: donorList.event?.name || 'Unknown Event'
+    };
+
+    res.status(200).json(stats);
+  } catch (error) {
+    console.error('Error fetching donor list statistics:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+/**
+ * Get summary statistics for all donor lists
+ * 
+ * @name GET /api/lists/stats/summary
+ * @function
+ * @memberof module:DonorListAPI
+ * @param {string} req.headers.authorization - Bearer token for authentication
+ * @returns {object} 200 - Overall statistics about all donor lists
+ * @returns {Error} 500 - Server error
+ * 
+ * @example Request Example:
+ * GET /api/lists/stats/summary
+ * Authorization: Bearer <token>
+ * 
+ * @example Success Response:
+ * {
+ *   "total_lists": 10,
+ *   "total_donors": 1500,
+ *   "total_reviewed": 1200,
+ *   "total_pending": 300,
+ *   "total_approved": 1000,
+ *   "total_excluded": 200,
+ *   "total_auto_excluded": 50,
+ *   "overall_approval_rate": 75, // percentage
+ *   "completed_lists": 7,
+ *   "pending_lists": 3
+ * }
+ */
+router.get('/stats/summary', protect, async (req, res) => {
+  try {
+    // Get all donor lists
+    const donorLists = await prisma.eventDonorList.findMany();
+    
+    if (donorLists.length === 0) {
+      return res.status(200).json({
+        total_lists: 0,
+        total_donors: 0,
+        total_reviewed: 0,
+        total_pending: 0,
+        total_approved: 0,
+        total_excluded: 0,
+        total_auto_excluded: 0,
+        overall_approval_rate: 0,
+        completed_lists: 0,
+        pending_lists: 0
+      });
+    }
+
+    // Calculate aggregated statistics
+    const totalLists = donorLists.length;
+    const totalDonors = donorLists.reduce((sum, list) => sum + list.totalDonors, 0);
+    const totalApproved = donorLists.reduce((sum, list) => sum + list.approved, 0);
+    const totalExcluded = donorLists.reduce((sum, list) => sum + list.excluded, 0);
+    const totalPending = donorLists.reduce((sum, list) => sum + list.pending, 0);
+    const totalAutoExcluded = donorLists.reduce((sum, list) => sum + list.autoExcluded, 0);
+    const totalReviewed = totalApproved + totalExcluded;
+    
+    const completedLists = donorLists.filter(list => list.reviewStatus === 'completed').length;
+    const pendingLists = donorLists.filter(list => list.reviewStatus === 'pending').length;
+    
+    const overallApprovalRate = totalDonors > 0 
+      ? Math.round((totalApproved / totalDonors) * 100) 
+      : 0;
+
+    // Compile summary statistics
+    const summary = {
+      total_lists: totalLists,
+      total_donors: totalDonors,
+      total_reviewed: totalReviewed,
+      total_pending: totalPending,
+      total_approved: totalApproved,
+      total_excluded: totalExcluded,
+      total_auto_excluded: totalAutoExcluded,
+      overall_approval_rate: overallApprovalRate,
+      completed_lists: completedLists,
+      pending_lists: pendingLists
+    };
+
+    res.status(200).json(summary);
+  } catch (error) {
+    console.error('Error fetching donor lists summary statistics:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
 export default router; 
