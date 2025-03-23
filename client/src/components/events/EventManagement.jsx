@@ -1,109 +1,172 @@
 import React, { useState } from 'react';
+import { FaCalendarAlt, FaMapMarkerAlt, FaUsers, FaClock, FaFilter, FaSearch } from 'react-icons/fa';
 import './EventManagement.css';
-import DonorCard from './DonorCard.jsx';
-import EventDetails from './EventDetails.jsx';
 
 const EventManagement = () => {
+  const [activeTab, setActiveTab] = useState('upcoming');
   const [searchQuery, setSearchQuery] = useState('');
   
-  // Sample data for the donor cards
-  const donors = [
+  // Mock event data
+  const events = [
     {
       id: 1,
-      name: 'John Smith',
-      priority: 'High Priority',
-      interests: ['Cancer Research Interest'],
-      relationships: 'Smith Corp. Smith Family Foundation',
-      previousEvents: ['Gala 2024', 'Research Symposium 2024'],
-      type: 'individual'
+      name: 'Spring Gala 2025',
+      type: 'Major Donor event',
+      date: 'March 15, 2025',
+      location: 'Vancouver',
+      capacity: 200,
+      status: 'PMM Review 3/5',
+      dueDate: 'Feb 20'
     },
     {
       id: 2,
-      name: 'Smith Corporation',
-      type: 'Corporate',
-      flag: 'Never Invite - Link to Individual',
-      relationships: 'John Smith',
-      autoExcluded: true
+      name: 'Research Symposium 2025',
+      type: 'Research Event',
+      date: 'May 20, 2025',
+      location: 'Victoria',
+      capacity: 50,
+      status: 'Planning'
     },
     {
       id: 3,
-      name: 'Emily Johnson',
-      interests: ['Patient Care Interest'],
-      previousEvents: ['Patient Care Roundape 2023'],
-      type: 'individual'
+      name: 'Donor Appreciation Event',
+      type: 'Cultural Event',
+      date: 'June 10, 2025',
+      location: 'Vancouver',
+      capacity: 100,
+      status: 'Ready for invitations'
     }
   ];
   
-  // Event statistics
-  const stats = {
-    pending: 45,
-    approved: 28,
-    excluded: 12
-  };
-  
-  // Event details
-  const eventDetails = {
-    name: 'Spring Gala 2025',
-    type: 'Major Donor Event',
-    date: 'March 15, 2025',
-    location: 'Vancouver Convention Center',
-    capacity: '200 attendees',
-    reviewDeadline: 'Feb 20, 2025'
-  };
-  
-  const handleSearch = (e) => {
+  // Handle search
+  const handleSearchChange = (e) => {
     setSearchQuery(e.target.value);
+  };
+
+  // Filter events based on active tab
+  const getFilteredEvents = () => {
+    // In a real app, you would filter based on date compared to current date
+    if (activeTab === 'upcoming') {
+      return events;
+    } else if (activeTab === 'past') {
+      return [];
+    } else {
+      return events;
+    }
+  };
+
+  // Handle create new event
+  const handleCreateEvent = () => {
+    alert('Create new event functionality will be implemented here');
   };
 
   return (
     <div className="event-management-container">
-      <div className="event-management-header">
-        <div className="header-left">
+      <header className="event-management-header">
+        <div>
           <h1>Event Management</h1>
           <p>Plan, organize and track fundraising events</p>
         </div>
-        <div className="header-right">
-          <button className="create-event-btn">Create New Event</button>
-        </div>
-      </div>
-      
-      <div className="event-management-content">
-        <div className="search-filter-container">
-          <input 
-            type="text" 
-            placeholder="Search Events" 
-            className="search-input"
-            value={searchQuery}
-            onChange={handleSearch}
-          />
-          <button className="filter-btn">
-            <i className="filter-icon"></i>
-            Filters
+        <button className="create-event-button" onClick={handleCreateEvent}>
+          Create New Event
+        </button>
+      </header>
+
+      <div className="event-tabs">
+        <button 
+          className={`event-tab ${activeTab === 'upcoming' ? 'active' : ''}`}
+          onClick={() => setActiveTab('upcoming')}
+        >
+          Upcoming Events
+        </button>
+        <button 
+          className={`event-tab ${activeTab === 'past' ? 'active' : ''}`}
+          onClick={() => setActiveTab('past')}
+        >
+          Past Events
+        </button>
+        <button 
+          className={`event-tab ${activeTab === 'all' ? 'active' : ''}`}
+          onClick={() => setActiveTab('all')}
+        >
+          All Events
+        </button>
+        
+        <div className="event-search-filter">
+          <div className="event-search">
+            <FaSearch className="search-icon" />
+            <input
+              type="text"
+              placeholder="Search Events"
+              value={searchQuery}
+              onChange={handleSearchChange}
+            />
+          </div>
+          
+          <button className="filter-button">
+            <FaFilter className="filter-icon" />
+            <span>Filters</span>
           </button>
         </div>
-        
-        <div className="event-stats">
-          <div className="stat-box">
-            <h2>{stats.pending}</h2>
-            <p>Pending Review</p>
-          </div>
-          <div className="stat-box">
-            <h2>{stats.approved}</h2>
-            <p>Approved</p>
-          </div>
-          <div className="stat-box">
-            <h2>{stats.excluded}</h2>
-            <p>Excluded</p>
-          </div>
-        </div>
-        
-        <div className="donors-list">
-          {donors.map(donor => (
-            <DonorCard key={donor.id} donor={donor} />
-          ))}
-        </div>
-        
-        <EventDetails event={eventDetails} />
+      </div>
+
+      <div className="events-table-container">
+        <table className="events-table">
+          <thead>
+            <tr>
+              <th>EVENT NAME</th>
+              <th>DATE</th>
+              <th>LOCATION</th>
+              <th>CAPACITY</th>
+              <th>STATUS</th>
+              <th>ACTION</th>
+            </tr>
+          </thead>
+          <tbody>
+            {getFilteredEvents().map(event => (
+              <tr key={event.id}>
+                <td className="event-name-cell">
+                  <div className="event-name">{event.name}</div>
+                  <div className="event-type">{event.type}</div>
+                </td>
+                <td>
+                  <div className="event-date">
+                    <FaCalendarAlt className="icon" />
+                    <span>{event.date}</span>
+                  </div>
+                </td>
+                <td>
+                  <div className="event-location">
+                    <FaMapMarkerAlt className="icon" />
+                    <span>{event.location}</span>
+                  </div>
+                </td>
+                <td>
+                  <div className="event-capacity">
+                    <FaUsers className="icon" />
+                    <span>{event.capacity}</span>
+                  </div>
+                </td>
+                <td>
+                  <div className="event-status">
+                    {event.status}
+                    {event.dueDate && (
+                      <div className="event-due-date">
+                        <FaClock className="icon" />
+                        <span>Due {event.dueDate}</span>
+                      </div>
+                    )}
+                  </div>
+                </td>
+                <td>
+                  <div className="event-actions">
+                    <button className="event-action-button">View</button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
     </div>
   );

@@ -80,10 +80,6 @@
   background-color: #FFFBEB;
 }
 
-.total-invitations {
-  background-color: #F3E8FF;
-}
-
 .stat-card-content {
   display: flex;
   flex-direction: column;
@@ -123,10 +119,6 @@
 
 .pending-review .stat-icon {
   color: #FBBF24;
-}
-
-.total-invitations .stat-icon {
-  color: #8B5CF6;
 }
 
 /* Recent activity styles */
