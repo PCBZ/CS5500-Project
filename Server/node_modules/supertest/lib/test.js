@@ -5,10 +5,17 @@
  */
 
 const { inspect } = require('util');
+const http = require('http');
 const { STATUS_CODES } = require('http');
 const { Server } = require('tls');
 const { deepStrictEqual } = require('assert');
 const { Request } = require('superagent');
+let http2;
+try {
+  http2 = require('http2'); // eslint-disable-line global-require
+} catch (_) {
+  // eslint-disable-line no-empty
+}
 
 /** @typedef {import('superagent').Response} Response */
 
@@ -22,8 +29,16 @@ class Test extends Request {
    * @param {String} path
    * @api public
    */
-  constructor (app, method, path) {
+  constructor (app, method, path, optHttp2) {
     super(method.toUpperCase(), path);
+
+    if (typeof app === 'function') {
+      if (optHttp2) {
+        app = http2.createServer(app); // eslint-disable-line no-param-reassign
+      } else {
+        app = http.createServer(app); // eslint-disable-line no-param-reassign
+      }
+    }
 
     this.redirects(0);
     this.buffer();
