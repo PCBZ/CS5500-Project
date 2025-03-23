@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { getCurrentUser, logout } from '../services/authService';
-import { FaCalendarAlt, FaCheckCircle, FaClock, FaUsers } from 'react-icons/fa';
+import { FaCalendarAlt, FaCheckCircle, FaClock } from 'react-icons/fa';
 import './Dashboard.css';
 
 const Dashboard = () => {
@@ -74,16 +74,6 @@ const Dashboard = () => {
             </div>
             <div className="stat-icon">
               <FaClock />
-            </div>
-          </div>
-
-          <div className="stat-card total-invitations">
-            <div className="stat-card-content">
-              <div className="stat-title">Total Invitations</div>
-              <div className="stat-number">285</div>
-            </div>
-            <div className="stat-icon">
-              <FaUsers />
             </div>
           </div>
         </div>

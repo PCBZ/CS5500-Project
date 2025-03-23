@@ -202,11 +202,6 @@ const Donors = () => {
               <span>Review deadline: {eventDetails.reviewDeadline}</span>
             </div>
           </div>
-
-          <div className="smart-filters">
-            <h2>Smart Filters</h2>
-            {/* Filter section can be added later */}
-          </div>
         </div>
       </div>
     </div>
