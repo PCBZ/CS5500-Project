@@ -1,0 +1,90 @@
+.donor-card {
+  margin-bottom: 15px;
+}
+
+.donor-info {
+  border-radius: 8px;
+  padding: 20px;
+  border-left: 4px solid #6c5ce7;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  background-color: white;
+}
+
+.donor-info.excluded {
+  border-left: 4px solid #aaa;
+}
+
+.donor-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.donor-name {
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+  margin: 0;
+}
+
+.auto-excluded {
+  background-color: #ddd;
+  color: #666;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.donor-type {
+  display: inline-block;
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 8px;
+}
+
+.priority-tag {
+  display: inline-block;
+  background-color: #e3f2fd;
+  color: #0c63e4;
+  padding: 6px 12px;
+  border-radius: 20px;
+  margin-right: 8px;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+.interest-tag {
+  display: inline-block;
+  background-color: #f0f2ff;
+  color: #4a5568;
+  padding: 6px 12px;
+  border-radius: 20px;
+  margin-right: 8px;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+.flag-tag {
+  display: inline-block;
+  background-color: #ffe6e6;
+  color: #e53e3e;
+  padding: 6px 12px;
+  border-radius: 20px;
+  margin-right: 8px;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+.relationships, .previous-events {
+  margin-top: 12px;
+  font-size: 14px;
+  color: #555;
+  display: flex;
+  align-items: flex-start;
+}
+
+.label {
+  font-weight: 500;
+  margin-right: 5px;
+} 
