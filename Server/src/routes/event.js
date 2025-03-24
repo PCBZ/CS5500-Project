@@ -1309,4 +1309,309 @@ router.delete('/:id/donors/:donorId', protect, async (req, res) => {
   }
 });
 
+/**
+ * Update event donor information
+ * @route PATCH /api/events/:eventId/donors/:donorId
+ * @param {string} req.params.eventId - Event ID
+ * @param {string} req.params.donorId - Event Donor ID
+ * @param {object} req.body - Fields to update (comments, exclude_reason, etc.)
+ * @returns {object} Updated event donor
+ */
+router.patch('/:eventId/donors/:donorId', protect, async (req, res) => {
+  try {
+    const { eventId, donorId } = req.params;
+    const updateData = req.body;
+    
+    console.log('Updating event donor:', { eventId, donorId, updateData });
+    console.log('Request params:', req.params);
+    console.log('Request body:', req.body);
+
+    // Create a valid update object with Prisma model field names
+    const validUpdateFields = {
+      status: updateData.status,
+      comments: updateData.comments,
+      excludeReason: updateData.exclude_reason, // Convert from snake_case to camelCase
+      autoExcluded: updateData.auto_excluded    // Convert from snake_case to camelCase
+    };
+    
+    // Add review_date and reviewer_id if we're updating status
+    if (updateData.status) {
+      validUpdateFields.reviewDate = new Date();  // Convert from snake_case to camelCase
+      validUpdateFields.reviewerId = req.user?.id; // Convert from snake_case to camelCase
+    }
+    
+    // Remove undefined fields
+    Object.keys(validUpdateFields).forEach(key => 
+      validUpdateFields[key] === undefined && delete validUpdateFields[key]
+    );
+    
+    // If no valid fields to update, return error
+    if (Object.keys(validUpdateFields).length === 0) {
+      return res.status(400).json({ message: 'No valid fields to update' });
+    }
+    
+    // Find the event donor record
+    let eventDonor;
+    try {
+      console.log(`Finding event donor with id = ${parseInt(donorId)}`);
+      eventDonor = await prisma.eventDonor.findUnique({
+        where: { id: parseInt(donorId) },
+        include: { donor: true }
+      });
+      console.log('Event donor search result:', eventDonor ? 'Found' : 'Not found', 
+        eventDonor ? { id: eventDonor.id, donorId: eventDonor.donorId, donorListId: eventDonor.donorListId } : null);
+    } catch (error) {
+      console.error('Error finding event donor:', error);
+      return res.status(500).json({ message: 'Failed to find event donor: ' + error.message });
+    }
+    
+    if (!eventDonor) {
+      console.log(`Event donor with id=${donorId} not found. Trying alternative lookup methods.`);
+      
+      // Try alternative lookup methods
+      try {
+        // Try finding by donorId and eventId through donorList
+        console.log(`Trying to find eventDonor by donor connection`);
+        const donorList = await prisma.eventDonorList.findFirst({
+          where: { eventId: parseInt(eventId) },
+          include: { eventDonors: true }
+        });
+        
+        if (donorList) {
+          console.log(`Found donor list with ${donorList.eventDonors.length} donors`);
+          eventDonor = donorList.eventDonors.find(ed => 
+            ed.donorId === parseInt(donorId) || ed.id === parseInt(donorId)
+          );
+          
+          if (eventDonor) {
+            console.log(`Found event donor using alternative lookup: ${eventDonor.id}`);
+            // Get full donor info
+            eventDonor = await prisma.eventDonor.findUnique({
+              where: { id: eventDonor.id },
+              include: { donor: true }
+            });
+          } else {
+            console.log(`No event donor found in donor list matching donorId=${donorId}`);
+          }
+        } else {
+          console.log(`No donor list found for eventId=${eventId}`);
+        }
+      } catch (altError) {
+        console.error('Error in alternative event donor lookup:', altError);
+      }
+      
+      // If still not found after alternative methods
+      if (!eventDonor) {
+        return res.status(404).json({ message: 'Event donor not found' });
+      }
+    }
+    
+    // Check if this eventDonor belongs to the specified event
+    if (eventDonor.donorListId) {
+      let donorList;
+      try {
+        console.log(`Finding donor list with id = ${eventDonor.donorListId}`);
+        donorList = await prisma.eventDonorList.findUnique({
+          where: { id: eventDonor.donorListId }
+        });
+        console.log('Donor list search result:', donorList ? 
+          { id: donorList.id, eventId: donorList.eventId, expectedEventId: parseInt(eventId) } : 'Not found');
+      } catch (error) {
+        console.error('Error finding donor list:', error);
+        return res.status(500).json({ message: 'Failed to find donor list: ' + error.message });
+      }
+      
+      if (!donorList || donorList.eventId !== parseInt(eventId)) {
+        return res.status(403).json({ message: 'Event donor does not belong to the specified event' });
+      }
+    }
+    
+    // If updating status, validate it
+    if (validUpdateFields.status && !['Pending', 'Approved', 'Excluded'].includes(validUpdateFields.status)) {
+      return res.status(400).json({ message: 'Invalid status. Must be one of: Pending, Approved, Excluded' });
+    }
+    
+    // If status is Excluded, we might want to ensure exclude_reason is provided
+    if (validUpdateFields.status === 'Excluded' && !validUpdateFields.excludeReason && !eventDonor.excludeReason) {
+      validUpdateFields.excludeReason = 'Excluded by user';
+    }
+    
+    console.log('Valid update fields:', validUpdateFields);
+    
+    // Update the event donor
+    let updatedEventDonor;
+    try {
+      updatedEventDonor = await prisma.eventDonor.update({
+        where: { id: parseInt(eventDonor.id) }, // Use the eventDonor.id we found
+        data: validUpdateFields,
+        include: { donor: true }
+      });
+      console.log('Updated event donor successfully:', { id: updatedEventDonor.id });
+    } catch (error) {
+      console.error('Error updating event donor:', error);
+      return res.status(500).json({ message: 'Failed to update event donor: ' + error.message });
+    }
+    
+    // Convert back to snake_case for API response
+    res.json({
+      id: updatedEventDonor.id,
+      status: updatedEventDonor.status,
+      comments: updatedEventDonor.comments,
+      exclude_reason: updatedEventDonor.excludeReason,
+      auto_excluded: updatedEventDonor.autoExcluded,
+      review_date: updatedEventDonor.reviewDate,
+      reviewer_id: updatedEventDonor.reviewerId,
+      donor: {
+        id: updatedEventDonor.donor.id,
+        firstName: updatedEventDonor.donor.firstName,
+        lastName: updatedEventDonor.donor.lastName,
+        organizationName: updatedEventDonor.donor.organizationName
+      }
+    });
+  } catch (error) {
+    console.error('Error updating event donor:', error);
+    res.status(500).json({ message: 'Failed to update event donor: ' + error.message });
+  }
+});
+
+/**
+ * Update event donor status
+ * @route PATCH /api/events/:eventId/donors/:donorId/status
+ * @param {string} req.params.eventId - Event ID
+ * @param {string} req.params.donorId - Event Donor ID
+ * @param {string} req.body.status - New status ('Pending', 'Approved', or 'Excluded')
+ * @returns {object} Updated event donor
+ */
+router.patch('/:eventId/donors/:donorId/status', protect, async (req, res) => {
+  try {
+    const { eventId, donorId } = req.params;
+    const { status } = req.body;
+    
+    console.log('Updating event donor status:', { eventId, donorId, status });
+    console.log('Request params:', req.params);
+    console.log('Request body:', req.body);
+    
+    // Validate status
+    if (!status || !['Pending', 'Approved', 'Excluded'].includes(status)) {
+      return res.status(400).json({ message: 'Invalid status. Must be one of: Pending, Approved, Excluded' });
+    }
+    
+    // Find the event donor record
+    let eventDonor;
+    try {
+      console.log(`Finding event donor with id = ${parseInt(donorId)}`);
+      eventDonor = await prisma.eventDonor.findUnique({
+        where: { id: parseInt(donorId) },
+        include: { donor: true }
+      });
+      console.log('Event donor search result:', eventDonor ? 'Found' : 'Not found',
+        eventDonor ? { id: eventDonor.id, donorId: eventDonor.donorId, donorListId: eventDonor.donorListId } : null);
+    } catch (error) {
+      console.error('Error finding event donor:', error);
+      return res.status(500).json({ message: 'Failed to find event donor: ' + error.message });
+    }
+    
+    if (!eventDonor) {
+      console.log(`Event donor with id=${donorId} not found. Trying alternative lookup methods.`);
+      
+      // Try alternative lookup methods
+      try {
+        // Try finding by donorId and eventId through donorList
+        console.log(`Trying to find eventDonor by donor connection`);
+        const donorList = await prisma.eventDonorList.findFirst({
+          where: { eventId: parseInt(eventId) },
+          include: { eventDonors: true }
+        });
+        
+        if (donorList) {
+          console.log(`Found donor list with ${donorList.eventDonors.length} donors`);
+          eventDonor = donorList.eventDonors.find(ed => 
+            ed.donorId === parseInt(donorId) || ed.id === parseInt(donorId)
+          );
+          
+          if (eventDonor) {
+            console.log(`Found event donor using alternative lookup: ${eventDonor.id}`);
+            // Get full donor info
+            eventDonor = await prisma.eventDonor.findUnique({
+              where: { id: eventDonor.id },
+              include: { donor: true }
+            });
+          } else {
+            console.log(`No event donor found in donor list matching donorId=${donorId}`);
+          }
+        } else {
+          console.log(`No donor list found for eventId=${eventId}`);
+        }
+      } catch (altError) {
+        console.error('Error in alternative event donor lookup:', altError);
+      }
+      
+      // If still not found after alternative methods
+      if (!eventDonor) {
+        return res.status(404).json({ message: 'Event donor not found' });
+      }
+    }
+    
+    // Check if this eventDonor belongs to the specified event
+    if (eventDonor.donorListId) {
+      let donorList;
+      try {
+        console.log(`Finding donor list with id = ${eventDonor.donorListId}`);
+        donorList = await prisma.eventDonorList.findUnique({
+          where: { id: eventDonor.donorListId }
+        });
+        console.log('Donor list search result:', donorList ? 
+          { id: donorList.id, eventId: donorList.eventId, expectedEventId: parseInt(eventId) } : 'Not found');
+      } catch (error) {
+        console.error('Error finding donor list:', error);
+        return res.status(500).json({ message: 'Failed to find donor list: ' + error.message });
+      }
+      
+      if (!donorList || donorList.eventId !== parseInt(eventId)) {
+        return res.status(403).json({ message: 'Event donor does not belong to the specified event' });
+      }
+    }
+    
+    // Update the event donor status - use correct Prisma field names
+    let updatedEventDonor;
+    try {
+      updatedEventDonor = await prisma.eventDonor.update({
+        where: { id: parseInt(eventDonor.id) }, // Use the eventDonor.id we found
+        data: { 
+          status,
+          // If status is Excluded, we might want to set autoExcluded to true as well
+          autoExcluded: status === 'Excluded' ? true : false,
+          // Set reviewDate to now
+          reviewDate: new Date(),
+          // Set reviewerId to current user if available
+          reviewerId: req.user?.id
+        },
+        include: { donor: true }
+      });
+      console.log('Updated event donor status successfully:', { id: updatedEventDonor.id, status: updatedEventDonor.status });
+    } catch (error) {
+      console.error('Error updating event donor status:', error);
+      return res.status(500).json({ message: 'Failed to update event donor status: ' + error.message });
+    }
+    
+    // Return response with snake_case for API consistency
+    res.json({
+      id: updatedEventDonor.id,
+      status: updatedEventDonor.status,
+      auto_excluded: updatedEventDonor.autoExcluded,
+      review_date: updatedEventDonor.reviewDate,
+      reviewer_id: updatedEventDonor.reviewerId,
+      donor: {
+        id: updatedEventDonor.donor.id,
+        firstName: updatedEventDonor.donor.firstName,
+        lastName: updatedEventDonor.donor.lastName,
+        organizationName: updatedEventDonor.donor.organizationName
+      }
+    });
+  } catch (error) {
+    console.error('Error updating event donor status:', error);
+    res.status(500).json({ message: 'Failed to update event donor status: ' + error.message });
+  }
+});
+
 export default router;

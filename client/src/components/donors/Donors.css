@@ -1003,45 +1003,405 @@ button {
   to { opacity: 0; transform: translateY(-10px); }
 }
 
-/* 错误消息 */
-.error-message {
-  background-color: #ffe8e8;
-  color: #d32f2f;
-  padding: 15px;
-  border-radius: 5px;
-  margin: 10px 0;
+/* Donor Comments and Exclude Reason */
+.donor-comments {
+  font-style: italic;
+  margin-top: 10px;
+  color: #666;
+  font-size: 14px;
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  border-left: 4px solid #d32f2f;
+  align-items: center;
 }
 
-.error-message p {
-  margin: 0 0 10px 0;
+.comment-icon {
+  margin-right: 5px;
+  font-size: 12px;
+  color: #888;
+}
+
+.donor-exclude-reason {
+  font-size: 14px;
+  margin-top: 5px;
+  color: #b91c1c;
+}
+
+/* Status Edit Modal Improvements */
+.status-section {
+  margin-bottom: 20px;
+}
+
+.status-section h4 {
+  margin-bottom: 10px;
+  font-size: 16px;
+}
+
+.exclude-reason-section {
+  margin-bottom: 24px;
+  background-color: #fff8f8;
+  padding: 20px;
+  border-radius: 8px;
+  border-left: 4px solid #dc3545;
+  transition: all 0.3s ease;
+  animation: fadeIn 0.4s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.exclude-reason-section label {
+  display: block;
+  margin-bottom: 10px;
+  color: #721c24;
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.input-with-icon {
+  position: relative;
+}
+
+.exclude-reason-input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid #ced4da;
+  border-radius: 6px;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);
+}
+
+.exclude-reason-input:focus {
+  border-color: #dc3545;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.25);
+}
+
+.input-hint {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 12px;
+  color: #6c757d;
+  pointer-events: none;
+  opacity: 0.7;
+  transition: opacity 0.2s ease;
+}
+
+.exclude-reason-input:focus + .input-hint {
+  opacity: 0.3;
+}
+
+.comments-section {
+  margin-bottom: 30px;
+}
+
+.comments-section label {
+  display: block;
+  margin-bottom: 10px;
+  color: #495057;
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.textarea-wrapper {
+  position: relative;
+}
+
+.comments-textarea {
+  width: 100%;
+  padding: 15px;
+  border: 1px solid #ced4da;
+  border-radius: 6px;
+  resize: vertical;
+  min-height: 120px;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);
+  line-height: 1.6;
+}
+
+.comments-textarea:focus {
+  border-color: #007bff;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
+}
+
+.textarea-footer {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 2px;
+  color: #6c757d;
+  font-size: 12px;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 16px;
+  margin-top: 30px;
+}
+
+.cancel-button, 
+.save-button {
+  padding: 12px 24px;
+  border-radius: 6px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cancel-button {
+  background-color: #f8f9fa;
+  color: #495057;
+  border: 1px solid #ced4da;
+}
+
+.cancel-button:hover {
+  background-color: #e9ecef;
+  transform: translateY(-2px);
+}
+
+.save-button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  box-shadow: 0 2px 4px rgba(0, 123, 255, 0.3);
+}
+
+.save-button:hover:not(:disabled) {
+  background-color: #0069d9;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 123, 255, 0.4);
+}
+
+.save-button:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 1px 2px rgba(0, 123, 255, 0.2);
+}
+
+.save-button:disabled {
+  background-color: #b6d4fe;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.status-modal h3 {
+  font-size: 22px;
+  font-weight: 600;
+  color: #343a40;
+}
+
+/* Enhance status labels in modal */
+.status-options {
+  margin-bottom: 15px;
+}
+
+.status-options label {
+  margin-bottom: 8px;
+  padding: 8px 12px;
+}
+
+/* 状态编辑模态窗口样式 */
+.status-modal {
+  width: 500px;
+  max-width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.donor-profile-simple {
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #eee;
+}
+
+.donor-profile-simple h4 {
+  margin: 0 0 5px 0;
+  font-size: 18px;
+  color: #333;
+}
+
+.donor-profile-simple .org-name {
+  margin: 0;
+  color: #666;
+  font-size: 14px;
+}
+
+.status-section {
+  margin: 20px 0;
+}
+
+.status-section h4 {
+  margin: 0 0 15px 0;
+  font-size: 16px;
+  color: #333;
+}
+
+.status-options {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.status-option {
+  flex: 1;
+  position: relative;
+}
+
+.status-option input[type="radio"] {
+  position: absolute;
+  opacity: 0;
+}
+
+.status-card {
+  padding: 15px 10px;
+  border-radius: 4px;
+  display: flex;
+  justify-content: center;
+  transition: all 0.2s;
+  border: 1px solid #ddd;
+  cursor: pointer;
+}
+
+.status-option.selected .status-card {
+  border-width: 2px;
+}
+
+.status-card.pending {
+  background-color: #fff9e6;
+  border-color: #ffd966;
+}
+
+.status-option.selected .status-card.pending {
+  background-color: #fff3cd;
+  border-color: #ffda6a;
+}
+
+.status-card.approved {
+  background-color: #e6fff0;
+  border-color: #66ffa3;
+}
+
+.status-option.selected .status-card.approved {
+  background-color: #d1fae5;
+  border-color: #34d399;
+}
+
+.status-card.excluded {
+  background-color: #ffebeb;
+  border-color: #ff9999;
+}
+
+.status-option.selected .status-card.excluded {
+  background-color: #fee2e2;
+  border-color: #f87171;
+}
+
+.status-card .status-label {
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.exclude-reason-section {
+  margin-bottom: 20px;
+  padding: 15px;
+  background-color: #fef2f2;
+  border-radius: 4px;
+  border-left: 3px solid #dc2626;
+}
+
+.exclude-reason-section label {
+  display: block;
+  margin-bottom: 8px;
+  color: #333;
+  font-size: 14px;
   font-weight: 500;
 }
 
-.error-hint {
-  font-size: 0.9rem;
-  color: #666;
-  margin-bottom: 10px;
+.exclude-reason-input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
 }
 
-.error-actions {
+.exclude-reason-input:focus {
+  outline: none;
+  border-color: #dc2626;
+}
+
+.comments-section {
+  margin-bottom: 20px;
+}
+
+.comments-section label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+}
+
+.comments-textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  resize: vertical;
+  font-size: 14px;
+  min-height: 100px;
+}
+
+.comments-textarea:focus {
+  outline: none;
+  border-color: #2563eb;
+}
+
+.modal-actions {
   display: flex;
+  justify-content: flex-end;
   gap: 10px;
+  margin-top: 20px;
 }
 
-.error-actions button {
-  background-color: #f5f5f5;
+.cancel-button,
+.save-button {
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.cancel-button {
+  background-color: #f3f4f6;
   color: #333;
   border: 1px solid #ddd;
-  padding: 5px 10px;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: all 0.2s;
 }
 
-.error-actions button:hover {
-  background-color: #e0e0e0;
+.cancel-button:hover {
+  background-color: #e5e7eb;
+}
+
+.save-button {
+  background-color: #2563eb;
+  color: white;
+  border: none;
+}
+
+.save-button:hover:not(:disabled) {
+  background-color: #1d4ed8;
+}
+
+.save-button:disabled {
+  background-color: #93c5fd;
+  cursor: not-allowed;
 } 
