@@ -252,7 +252,7 @@ export const removeDonorFromEvent = async (eventId, eventDonorId) => {
 };
 
 /**
- * Get event-specific donor statistics
+ * Get event-specific donor statistics by fetching and analyzing the donor list
  * @param {string} eventId - Event ID
  * @returns {Promise<Object>} Statistics data
  */
@@ -263,7 +263,8 @@ export const getEventDonorStats = async (eventId) => {
       throw new Error('No authentication token found');
     }
 
-    const response = await fetch(`${API_URL}/api/events/${eventId}/donor-stats`, {
+    // Fetch all donors for this event (with a high limit to get all records)
+    const donorsResponse = await fetch(`${API_URL}/api/events/${eventId}/donors?limit=1000`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -271,14 +272,56 @@ export const getEventDonorStats = async (eventId) => {
       }
     });
 
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+    if (!donorsResponse.ok) {
+      throw new Error(`HTTP error! status: ${donorsResponse.status}`);
     }
 
-    return await response.json();
+    const donorsData = await donorsResponse.json();
+    const donors = donorsData.donors || [];
+    
+    // Calculate statistics based on donor data
+    let pending = 0;
+    let approved = 0;
+    let excluded = 0;
+    
+    donors.forEach(donor => {
+      // Check status field
+      if (donor.status === 'Pending') {
+        pending++;
+      } else if (donor.status === 'Approved') {
+        approved++;
+      } else if (donor.status === 'Excluded' || donor.auto_excluded) {
+        excluded++;
+      }
+      // If status is missing, check auto_excluded field
+      else if (donor.auto_excluded) {
+        excluded++;
+      }
+    });
+    
+    // Calculate total and approval rate
+    const total = donors.length;
+    const approvalRate = total > 0 ? Math.round((approved / total) * 100) : 0;
+    
+    console.log('Calculated donor statistics:', {
+      total_donors: total,
+      pending_review: pending,
+      approved: approved,
+      excluded: excluded,
+      approval_rate: approvalRate
+    });
+    
+    return {
+      event_id: parseInt(eventId),
+      total_donors: total,
+      pending_review: pending,
+      approved: approved,
+      excluded: excluded,
+      approval_rate: approvalRate
+    };
   } catch (error) {
-    console.error('Error fetching event donor statistics:', error);
-    // Return a default empty stats object if API call fails
+    console.error('Error calculating event donor statistics:', error);
+    // Return a default empty stats object if calculation fails
     return {
       event_id: parseInt(eventId),
       total_donors: 0,
