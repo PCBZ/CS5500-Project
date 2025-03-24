@@ -406,16 +406,31 @@ const Donors = () => {
     }
   };
 
-  // Format date string
+  /**
+   * Format a date string for display
+   * @param {string} dateString - The date string to format
+   * @returns {string} Formatted date
+   */
   const formatDate = (dateString) => {
     if (!dateString) return '';
     
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
+    try {
+      const date = new Date(dateString);
+      // Check if date is valid
+      if (isNaN(date.getTime())) {
+        return 'Invalid date';
+      }
+      
+      // Format as MM/DD/YYYY
+      return date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+      });
+    } catch (error) {
+      console.error('Error formatting date:', error);
+      return 'Invalid date';
+    }
   };
 
   // Generate pagination array
@@ -609,36 +624,56 @@ const Donors = () => {
                   </div>
                 ) : (
                   <div className="donors-grid">
-                    {eventDonors.map(donor => (
-                      <div key={donor.id} className="donor-card">
-                        <div className="donor-card-header">
-                          <FaUser className="donor-icon" />
-                          <h3>{donor.firstName || donor.first_name} {donor.lastName || donor.last_name}</h3>
-                          <button 
-                            className="remove-donor-button"
-                            onClick={() => handleRemoveDonor(donor.id)}
-                            disabled={loading.donors}
-                            title="Remove this donor from the event"
-                          >
-                            <FaTrash />
-                          </button>
+                    {eventDonors.map(donor => {
+                      // Extract donor data handling both flat and nested structures
+                      const donorData = donor.donor || donor;
+                      const firstName = donorData.firstName || donorData.first_name;
+                      const lastName = donorData.lastName || donorData.last_name;
+                      const organizationName = donorData.organizationName || donorData.organization_name;
+                      const tags = donorData.tags || [];
+                      const totalDonations = donorData.totalDonations || donorData.total_donations || 0;
+                      const largestGift = donorData.largestGift || donorData.largest_gift || 0;
+                      const lastGiftAmount = donorData.lastGiftAmount || donorData.last_gift_amount || 0;
+                      const lastGiftDate = donorData.lastGiftDate || donorData.last_gift_date;
+                      
+                      // Get status and comment from the top-level donor object
+                      const status = donor.status || 'Pending';
+                      const comments = donor.comments;
+                      
+                      return (
+                        <div key={donor.id} className="donor-card">
+                          <div className="donor-card-header">
+                            <FaUser className="donor-icon" />
+                            <h3>{firstName} {lastName}</h3>
+                            <button 
+                              className="remove-donor-button"
+                              onClick={() => handleRemoveDonor(donor.id)}
+                              disabled={loading.donors}
+                              title="Remove this donor from the event"
+                            >
+                              <FaTrash />
+                            </button>
+                          </div>
+                          <div className="donor-card-body">
+                            {organizationName && <p><strong>Organization:</strong> {organizationName}</p>}
+                            {tags && <p><strong>Tags:</strong> {typeof tags === 'string' ? tags : tags.join(', ')}</p>}
+                            <p><strong>Total Donations:</strong> ${totalDonations.toLocaleString()}</p>
+                            <p><strong>Largest Gift:</strong> ${largestGift.toLocaleString()}</p>
+                            {lastGiftDate && (
+                              <p><strong>Last Gift:</strong> ${lastGiftAmount.toLocaleString()} ({formatDate(lastGiftDate)})</p>
+                            )}
+                            {status && (
+                              <p className={`donor-status ${status.toLowerCase()}`}>
+                                <strong>Status:</strong> {status}
+                              </p>
+                            )}
+                            {comments && (
+                              <p><strong>Comments:</strong> {comments}</p>
+                            )}
+                          </div>
                         </div>
-                        <div className="donor-card-body">
-                          {donor.organizationName && <p><strong>Organization:</strong> {donor.organizationName}</p>}
-                          {donor.tags && <p><strong>Tags:</strong> {donor.tags}</p>}
-                          <p><strong>Total Donations:</strong> ${donor.totalDonations?.toLocaleString() || 0}</p>
-                          <p><strong>Largest Gift:</strong> ${donor.largestGift?.toLocaleString() || 0}</p>
-                          {donor.lastGiftDate && (
-                            <p><strong>Last Gift:</strong> ${donor.lastGiftAmount?.toLocaleString() || 0} ({formatDate(donor.lastGiftDate)})</p>
-                          )}
-                          {donor.status && (
-                            <p className={`donor-status ${donor.status.toLowerCase()}`}>
-                              <strong>Status:</strong> {donor.status}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
               </>
