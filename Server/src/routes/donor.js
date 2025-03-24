@@ -70,7 +70,7 @@ const formatDonor = (donor) => {
  * @param {string} req.query.excluded - Filter by excluded status (true/false)
  * @param {string} req.query.deceased - Filter by deceased status (true/false)
  * @param {string} req.query.tags - Filter by tags (comma-separated)
- * @param {string} req.query.minDonation - Filter by minimum total donation amount
+ * @param {string} req.query.min_donation - Filter by minimum total donation amount
  * @param {string} req.query.search - Search term for name or organization
  * @param {string} req.headers.authorization - Bearer token for authentication
  * @returns {Object} 200 - List of donors with pagination info
@@ -79,7 +79,7 @@ const formatDonor = (donor) => {
  * 
  * @example
  * // Request
- * GET /api/donors?page=1&limit=20&city=Vancouver&minDonation=10000
+ * GET /api/donors?page=1&limit=20&city=Vancouver&min_donation=10000
  * Authorization: Bearer <token>
  * 
  * // Success Response
@@ -113,7 +113,7 @@ router.get('/', protect, async (req, res) => {
       excluded,
       deceased,
       tags,
-      minDonation,
+      min_donation,
       search
     } = req.query;
 
@@ -131,17 +131,17 @@ router.get('/', protect, async (req, res) => {
     if (deceased === 'true') where.deceased = true;
     if (deceased === 'false') where.deceased = false;
     
-    if (minDonation) {
-      where.total_donations = {
-        gte: parseFloat(minDonation)
+    if (min_donation) {
+      where.totalDonations = {
+        gte: parseFloat(min_donation)
       };
     }
 
     if (search) {
       where.OR = [
-        { first_name: { contains: search, mode: 'insensitive' } },
-        { last_name: { contains: search, mode: 'insensitive' } },
-        { organization_name: { contains: search, mode: 'insensitive' } }
+        { firstName: { contains: search, mode: 'insensitive' } },
+        { lastName: { contains: search, mode: 'insensitive' } },
+        { organizationName: { contains: search, mode: 'insensitive' } }
       ];
     }
 
@@ -156,28 +156,78 @@ router.get('/', protect, async (req, res) => {
     // Get total count for pagination
     const total = await prisma.donor.count({ where });
 
+    // 转换下划线格式的排序字段为驼峰命名
+    // 映射查询参数中的蛇形命名到数据库模型的驼峰命名
+    const sortMapping = {
+      'first_name': 'firstName',
+      'last_name': 'lastName',
+      'organization_name': 'organizationName',
+      'total_donations': 'totalDonations',
+      'largest_gift': 'largestGift',
+      'last_gift_date': 'lastGiftDate'
+    };
+
+    // 使用映射表或直接使用字段名（如果已经是驼峰命名）
+    const sortField = sortMapping[sort] || sort;
+
     // Get donors with pagination, sorting, and filtering
     const donors = await prisma.donor.findMany({
       where,
       skip,
       take: limitNum,
       orderBy: {
-        [sort]: order.toLowerCase()
+        [sortField]: order.toLowerCase()
       },
       include: {
-        tags: true
+        eventDonors: true
       }
     });
 
-    // Format the donors array to include tags as an array of strings
-    const formattedDonors = donors.map(donor => ({
-      ...donor,
-      tags: donor.tags.map(tag => tag.name)
-    }));
+    // Format the donors array to process tags if they exist
+    const formattedDonors = donors.map(donor => {
+      // Parse tags string to array if it exists and isn't empty
+      const parsedTags = donor.tags ? donor.tags.split(',').filter(tag => tag.trim() !== '') : [];
+      
+      // Convert camelCase field names to snake_case for API consistency
+      return {
+        id: donor.id,
+        pmm: donor.pmm,
+        smm: donor.smm,
+        vmm: donor.vmm,
+        excluded: donor.excluded,
+        deceased: donor.deceased,
+        first_name: donor.firstName,
+        nick_name: donor.nickName,
+        last_name: donor.lastName,
+        organization_name: donor.organizationName,
+        total_donations: donor.totalDonations,
+        total_pledges: donor.totalPledges,
+        largest_gift: donor.largestGift,
+        largest_gift_appeal: donor.largestGiftAppeal,
+        first_gift_date: donor.firstGiftDate,
+        last_gift_date: donor.lastGiftDate,
+        last_gift_amount: donor.lastGiftAmount,
+        last_gift_request: donor.lastGiftRequest,
+        last_gift_appeal: donor.lastGiftAppeal,
+        address_line1: donor.addressLine1,
+        address_line2: donor.addressLine2,
+        city: donor.city,
+        contact_phone_type: donor.contactPhoneType,
+        phone_restrictions: donor.phoneRestrictions,
+        email_restrictions: donor.emailRestrictions,
+        communication_restrictions: donor.communicationRestrictions,
+        subscription_events_in_person: donor.subscriptionEventsInPerson,
+        subscription_events_magazine: donor.subscriptionEventsMagazine,
+        communication_preference: donor.communicationPreference,
+        tags: parsedTags,
+        // Include event donors if needed by client
+        event_donors: donor.eventDonors
+      };
+    });
 
     res.json({
       donors: formatDonor(formattedDonors),
-      total,
+      total: total,
       page: pageNum,
       limit: limitNum,
       pages: Math.ceil(total / limitNum)
@@ -232,7 +282,7 @@ router.get('/:id', protect, async (req, res) => {
     const donor = await prisma.donor.findUnique({
       where: { id: donorId },
       include: {
-        tags: true
+        eventDonors: true
       }
     });
 
@@ -240,10 +290,43 @@ router.get('/:id', protect, async (req, res) => {
       return res.status(404).json({ message: 'Donor not found' });
     }
 
-    // Format the donor to include tags as an array of strings
+    // Format the donor with parsed tags
+    const parsedTags = donor.tags ? donor.tags.split(',').filter(tag => tag.trim() !== '') : [];
+    
+    // Convert camelCase field names to snake_case for API consistency
     const formattedDonor = {
-      ...donor,
-      tags: donor.tags.map(tag => tag.name)
+      id: donor.id,
+      pmm: donor.pmm,
+      smm: donor.smm,
+      vmm: donor.vmm,
+      excluded: donor.excluded,
+      deceased: donor.deceased,
+      first_name: donor.firstName,
+      nick_name: donor.nickName,
+      last_name: donor.lastName,
+      organization_name: donor.organizationName,
+      total_donations: donor.totalDonations,
+      total_pledges: donor.totalPledges,
+      largest_gift: donor.largestGift,
+      largest_gift_appeal: donor.largestGiftAppeal,
+      first_gift_date: donor.firstGiftDate,
+      last_gift_date: donor.lastGiftDate,
+      last_gift_amount: donor.lastGiftAmount,
+      last_gift_request: donor.lastGiftRequest,
+      last_gift_appeal: donor.lastGiftAppeal,
+      address_line1: donor.addressLine1,
+      address_line2: donor.addressLine2,
+      city: donor.city,
+      contact_phone_type: donor.contactPhoneType,
+      phone_restrictions: donor.phoneRestrictions,
+      email_restrictions: donor.emailRestrictions,
+      communication_restrictions: donor.communicationRestrictions,
+      subscription_events_in_person: donor.subscriptionEventsInPerson,
+      subscription_events_magazine: donor.subscriptionEventsMagazine,
+      communication_preference: donor.communicationPreference,
+      tags: parsedTags,
+      // Include event donors if needed by client
+      event_donors: donor.eventDonors
     };
 
     res.json(formatDonor(formattedDonor));
