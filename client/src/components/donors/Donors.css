@@ -1,231 +1,563 @@
+/* 主色调和变量 */
+:root {
+  --primary-color: #4a6bfd;
+  --primary-light: #eef1ff;
+  --primary-dark: #3a4cb1;
+  --secondary-color: #6c7293;
+  --success-color: #28c76f;
+  --warning-color: #ff9f43;
+  --danger-color: #ea5455;
+  --info-color: #00cfe8;
+  --dark-color: #4b4b4b;
+  --light-color: #f8f8f8;
+  --bg-color: #f9fafc;
+  --card-bg: #ffffff;
+  --card-shadow: 0 4px 24px 0 rgba(34, 41, 47, 0.1);
+  --card-radius: 10px;
+  --header-height: 64px;
+  --transition: all 0.3s ease;
+  --font-main: 'PingFang SC', 'Helvetica Neue', 'Microsoft YaHei', sans-serif;
+}
+
+/* 全局样式重置 */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-main);
+  background-color: var(--bg-color);
+  color: var(--dark-color);
+  line-height: 1.5;
+}
+
+button {
+  cursor: pointer;
+  font-family: var(--font-main);
+  font-weight: 500;
+  border: none;
+  outline: none;
+  transition: var(--transition);
+}
+
+/* 捐赠者容器 */
 .donors-container {
-  width: 100%;
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;
   padding: 20px;
 }
 
+/* 顶部标题栏 */
 .donors-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 30px;
+  background-color: var(--card-bg);
+  padding: 24px 30px;
+  border-radius: var(--card-radius);
+  box-shadow: var(--card-shadow);
 }
 
 .donors-header h1 {
+  color: var(--dark-color);
   font-size: 24px;
   font-weight: 600;
-  color: #333;
-  margin: 0 0 5px 0;
+  margin-bottom: 5px;
 }
 
 .donors-header p {
-  font-size: 14px;
-  color: #666;
-  margin: 0;
+  color: var(--secondary-color);
+  font-weight: 400;
 }
 
 .export-button {
-  background-color: #6366F1;
+  background-color: var(--primary-color);
   color: white;
-  border: none;
-  border-radius: 8px;
-  padding: 10px 20px;
+  border-radius: 30px;
+  padding: 10px 24px;
   font-size: 14px;
   font-weight: 500;
-  cursor: pointer;
-  transition: background-color 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: var(--transition);
 }
 
 .export-button:hover {
-  background-color: #4F46E5;
+  background-color: var(--primary-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(74, 107, 253, 0.25);
 }
 
+/* 内容布局 */
 .donors-content {
-  display: flex;
-  gap: 20px;
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  gap: 24px;
 }
 
+/* 捐赠者列表容器 */
 .donor-list-container {
-  flex: 1;
-  background-color: #fff;
-  border-radius: 8px;
-  border: 1px solid #E5E7EB;
+  background: var(--card-bg);
+  border-radius: var(--card-radius);
+  box-shadow: var(--card-shadow);
   overflow: hidden;
 }
 
+/* 列表标题栏 */
 .donor-list-header {
+  padding: 24px 30px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 15px 20px;
-  border-bottom: 1px solid #E5E7EB;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 .donor-list-title {
   display: flex;
   align-items: center;
-  gap: 10px;
-  font-size: 16px;
-  font-weight: 500;
+  gap: 16px;
 }
 
 .donor-list-title .icon {
-  color: #6366F1;
+  color: var(--primary-color);
+  font-size: 24px;
+}
+
+/* 事件选择器 */
+.event-selector {
+  position: relative;
+  width: 280px;
+}
+
+.selected-event {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 16px;
+  background-color: var(--light-color);
+  border-radius: 30px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: var(--transition);
+}
+
+.selected-event:hover {
+  background-color: var(--primary-light);
+}
+
+.selected-event span {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dropdown-icon {
+  color: var(--primary-color);
+  transition: transform 0.3s;
+}
+
+.event-dropdown {
+  position: absolute;
+  top: calc(100% + 5px);
+  left: 0;
+  width: 100%;
+  max-height: 300px;
+  overflow-y: auto;
+  background-color: var(--card-bg);
+  border-radius: 10px;
+  box-shadow: 0 5px 25px rgba(0, 0, 0, 0.1);
+  z-index: 10;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.event-option {
+  padding: 12px 16px;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.event-option:hover {
+  background-color: var(--primary-light);
+}
+
+.event-option.active {
+  background-color: var(--primary-light);
+  color: var(--primary-color);
+  font-weight: 500;
+}
+
+/* 捐赠者操作 */
+.donor-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.donor-search {
+  position: relative;
 }
 
 .donor-search input {
-  border: 1px solid #E5E7EB;
-  border-radius: 20px;
-  padding: 8px 15px 8px 35px;
-  width: 200px;
+  padding: 10px 16px;
+  padding-left: 40px;
+  border-radius: 30px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  width: 240px;
   font-size: 14px;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='16' height='16' fill='%236B7280'%3E%3Cpath d='M10 18a8 8 0 1 1 0-16 8 8 0 0 1 0 16zm0-2a6 6 0 1 0 0-12 6 6 0 0 0 0 12zm10 3l-4-4-1 1 4 4 1-1z'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: 10px center;
+  transition: var(--transition);
+  background-color: var(--light-color);
 }
 
 .donor-search input:focus {
   outline: none;
-  border-color: #6366F1;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(74, 107, 253, 0.2);
 }
 
-.donor-stats {
+.donor-search:before {
+  content: '🔍';
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--secondary-color);
+  font-size: 16px;
+}
+
+.add-donor-button {
+  background-color: var(--success-color);
+  color: white;
+  border-radius: 30px;
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: 500;
   display: flex;
-  background-color: #F3F4F6;
-  padding: 15px;
+  align-items: center;
+  gap: 8px;
+  transition: var(--transition);
+}
+
+.add-donor-button:hover {
+  background-color: #1aa053;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(40, 199, 111, 0.25);
+}
+
+.add-donor-button:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* 统计数据 */
+.donor-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  padding: 20px 30px;
+  background-color: var(--light-color);
 }
 
 .stat-item {
-  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  border-radius: 10px;
+  background-color: var(--card-bg);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
   text-align: center;
-  padding: 10px;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.stat-item:before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  transform: scaleX(0);
+  transition: transform 0.3s ease;
+}
+
+.stat-item.pending:before {
+  background-color: var(--warning-color);
+}
+
+.stat-item.approved:before {
+  background-color: var(--success-color);
+}
+
+.stat-item.excluded:before {
+  background-color: var(--danger-color);
+}
+
+.stat-item:hover:before {
+  transform: scaleX(1);
+}
+
+.stat-item:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
 }
 
 .stat-number {
-  font-size: 24px;
-  font-weight: 700;
+  font-size: 28px;
+  font-weight: 600;
   margin-bottom: 5px;
+  transition: all 0.3s ease;
+}
+
+.stat-item:hover .stat-number {
+  transform: scale(1.1);
 }
 
 .stat-label {
   font-size: 14px;
-  color: #6B7280;
+  color: var(--secondary-color);
 }
 
-.donor-cards {
-  padding: 15px;
+.stat-item.pending .stat-number {
+  color: var(--warning-color);
 }
 
+.stat-item.approved .stat-number {
+  color: var(--success-color);
+}
+
+.stat-item.excluded .stat-number {
+  color: var(--danger-color);
+}
+
+/* 捐赠者列表内容 */
+.donors-main-content {
+  padding: 30px;
+  min-height: 400px;
+}
+
+.donors-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 24px;
+}
+
+/* 捐赠者卡片 */
 .donor-card {
-  background-color: white;
-  border: 1px solid #E5E7EB;
-  border-radius: 8px;
-  padding: 15px;
-  margin-bottom: 15px;
+  background-color: var(--card-bg);
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  border: 1px solid rgba(0, 0, 0, 0.05);
   position: relative;
+  z-index: 1;
 }
 
-.donor-card.auto-excluded {
-  border-left: 4px solid #9CA3AF;
+.donor-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+}
+
+.donor-card:after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 0;
+  background: linear-gradient(to bottom, rgba(74, 107, 253, 0.1), transparent);
+  z-index: -1;
+  transition: height 0.3s ease;
+}
+
+.donor-card:hover:after {
+  height: 100%;
 }
 
 .donor-card-header {
+  padding: 16px;
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-bottom: 10px;
+  gap: 10px;
+  background-color: var(--primary-light);
+  position: relative;
+  transition: background-color 0.3s ease;
+}
+
+.donor-card:hover .donor-card-header {
+  background-color: rgba(74, 107, 253, 0.2);
+}
+
+.donor-icon {
+  color: var(--primary-color);
+  font-size: 20px;
 }
 
 .donor-card-header h3 {
   font-size: 16px;
   font-weight: 600;
+  color: var(--primary-dark);
   margin: 0;
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.approval-icon {
-  width: 24px;
-  height: 24px;
+.remove-donor-button {
+  background-color: transparent;
+  color: var(--danger-color);
+  font-size: 16px;
+  padding: 6px;
+  border-radius: 50%;
+  opacity: 0.7;
+  transition: var(--transition);
 }
 
-.donor-tags {
+.remove-donor-button:hover {
+  background-color: rgba(234, 84, 85, 0.1);
+  opacity: 1;
+}
+
+.remove-donor-button:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.donor-card-body {
+  padding: 16px;
+}
+
+.donor-card-body p {
+  margin-bottom: 10px;
+  font-size: 14px;
+}
+
+.donor-flags {
   display: flex;
   flex-wrap: wrap;
-  gap: 5px;
-  margin-bottom: 10px;
+  gap: 6px;
+  margin-top: 10px;
 }
 
-.tag {
-  display: inline-block;
-  padding: 4px 10px;
-  border-radius: 4px;
+.donor-flag {
+  background-color: var(--info-color);
+  color: white;
   font-size: 12px;
+  padding: 3px 8px;
+  border-radius: 20px;
+}
+
+.donor-status {
+  margin-top: 10px;
+  font-size: 14px;
+}
+
+.donor-status.approved {
+  color: var(--success-color);
+}
+
+.donor-status.pending {
+  color: var(--warning-color);
+}
+
+.donor-status.excluded {
+  color: var(--danger-color);
+}
+
+/* 加载和错误状态 */
+.loading-indicator, .error-message {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  text-align: center;
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
+  font-size: 28px;
+  color: var(--primary-color);
+  margin-bottom: 16px;
+  filter: drop-shadow(0 0 2px rgba(74, 107, 253, 0.3));
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.error-message p {
+  color: var(--danger-color);
+  margin-bottom: 16px;
+}
+
+.error-message button {
+  background-color: var(--primary-color);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 30px;
+  font-size: 14px;
   font-weight: 500;
 }
 
-.priority-tag {
-  background-color: #ECFDF5;
-  color: #059669;
+.error-message button:hover {
+  background-color: var(--primary-dark);
 }
 
-.type-tag {
-  background-color: #F3F4F6;
-  color: #4B5563;
+.no-donors-message {
+  text-align: center;
+  padding: 40px;
+  color: var(--secondary-color);
 }
 
-.interest-tag {
-  background-color: #EEF2FF;
-  color: #4F46E5;
-}
-
-.excluded-tag {
-  background-color: #F3F4F6;
-  color: #9CA3AF;
-}
-
-.flag-tag {
-  background-color: #FEF2F2;
-  color: #EF4444;
-}
-
-.donor-relationships, .donor-previous-events {
-  font-size: 14px;
-  color: #6B7280;
-  margin-bottom: 5px;
-}
-
+/* 分页 */
 .donor-pagination {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 15px;
-  border-top: 1px solid #E5E7EB;
+  padding: 20px 30px;
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 .pagination-info {
+  color: var(--secondary-color);
   font-size: 14px;
-  color: #6B7280;
 }
 
 .pagination-controls {
   display: flex;
-  gap: 5px;
+  align-items: center;
+  gap: 8px;
 }
 
 .pagination-button {
-  padding: 5px 10px;
-  border: 1px solid #E5E7EB;
-  border-radius: 4px;
-  background-color: white;
-  color: #4B5563;
+  padding: 8px 12px;
+  background-color: var(--light-color);
+  border-radius: 8px;
   font-size: 14px;
-  cursor: pointer;
+  color: var(--dark-color);
+  min-width: 36px;
+}
+
+.pagination-button:hover:not(:disabled) {
+  background-color: var(--primary-light);
+  color: var(--primary-color);
 }
 
 .pagination-button.active {
-  background-color: #6366F1;
+  background-color: var(--primary-color);
   color: white;
-  border-color: #6366F1;
 }
 
 .pagination-button:disabled {
@@ -233,64 +565,342 @@
   cursor: not-allowed;
 }
 
-/* Right details section */
+.pagination-ellipsis {
+  color: var(--secondary-color);
+}
+
+/* 事件详情侧边栏 */
 .donor-details-container {
-  width: 300px;
+  background-color: var(--card-bg);
+  border-radius: var(--card-radius);
+  box-shadow: var(--card-shadow);
+  overflow: hidden;
 }
 
 .event-details {
-  background-color: white;
-  border: 1px solid #E5E7EB;
-  border-radius: 8px;
-  padding: 15px;
-  margin-bottom: 20px;
+  padding: 24px;
 }
 
 .event-details h2 {
-  font-size: 16px;
-  font-weight: 600;
-  color: #374151;
-  margin-top: 0;
-  margin-bottom: 15px;
+  font-size: 18px;
+  margin-bottom: 20px;
+  color: var(--dark-color);
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
+.event-details h2 .icon {
+  color: var(--primary-color);
+}
+
 .event-details h3 {
-  font-size: 18px;
-  font-weight: 600;
-  color: #111827;
-  margin: 0 0 5px 0;
+  font-size: 20px;
+  margin-bottom: 8px;
+  color: var(--primary-color);
 }
 
 .event-type {
-  font-size: 14px;
-  color: #6B7280;
-  margin-bottom: 15px;
+  color: var(--secondary-color);
+  margin-bottom: 24px;
 }
 
 .event-detail-item {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-bottom: 10px;
-  font-size: 14px;
-  color: #4B5563;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding: 12px 16px;
+  background-color: var(--light-color);
+  border-radius: 10px;
 }
 
 .event-detail-item .icon {
-  color: #6B7280;
-  min-width: 16px;
+  color: var(--primary-color);
+  font-size: 18px;
 }
 
-/* Responsive layout */
-@media (max-width: 768px) {
+/* 添加捐赠者模态框 */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.3s ease;
+}
+
+.modal-content {
+  background-color: white;
+  border-radius: 8px;
+  padding: 20px;
+  width: 90%;
+  max-width: 600px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+  position: relative;
+  animation: slideIn 0.3s ease;
+}
+
+.modal-header-actions {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 15px;
+  gap: 10px;
+}
+
+.modal-header-actions .donor-search-input {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.modal-header-actions .refresh-button {
+  background-color: #f8f9fa;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 8px 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.modal-header-actions .refresh-button:hover {
+  background-color: #e9ecef;
+}
+
+.modal-header-actions .refresh-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.modal-close {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background-color: var(--light-color);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.modal-close:hover {
+  background-color: var(--primary-light);
+  color: var(--primary-color);
+}
+
+.available-donors-list {
+  max-height: 400px;
+  overflow-y: auto;
+  margin-bottom: 24px;
+  padding-right: 10px;
+}
+
+.available-donor-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px;
+  background-color: var(--light-color);
+  border-radius: 10px;
+  margin-bottom: 12px;
+  transition: var(--transition);
+}
+
+.available-donor-item:hover {
+  background-color: var(--primary-light);
+}
+
+.available-donor-item strong {
+  display: block;
+  font-size: 16px;
+  color: var(--dark-color);
+  margin-bottom: 4px;
+}
+
+.available-donor-item p {
+  font-size: 14px;
+  color: var(--secondary-color);
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 20px;
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.cancel-button {
+  background-color: var(--light-color);
+  color: var(--dark-color);
+  padding: 10px 20px;
+  border-radius: 30px;
+  font-size: 14px;
+  font-weight: 500;
+  transition: var(--transition);
+}
+
+.cancel-button:hover {
+  background-color: #e6e6e6;
+}
+
+/* 响应式设计 */
+@media (max-width: 992px) {
   .donors-content {
-    flex-direction: column;
+    grid-template-columns: 1fr;
   }
   
-  .donor-details-container {
+  .donor-grid {
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .donors-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+  
+  .export-button {
+    align-self: flex-start;
+  }
+  
+  .donor-list-header {
+    flex-direction: column;
+    gap: 16px;
+    align-items: flex-start;
+  }
+  
+  .donor-actions {
     width: 100%;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .donor-search {
+    width: 100%;
+  }
+  
+  .donor-search input {
+    width: 100%;
+  }
+  
+  .add-donor-button {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .donor-stats {
+    grid-template-columns: 1fr;
+  }
+  
+  .donor-pagination {
+    flex-direction: column;
+    gap: 16px;
+  }
+}
+
+/* 添加自定义滚动条 */
+.available-donors-list::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.available-donors-list::-webkit-scrollbar-track {
+  background: var(--light-color);
+  border-radius: 10px;
+}
+
+.available-donors-list::-webkit-scrollbar-thumb {
+  background: var(--secondary-color);
+  border-radius: 10px;
+}
+
+.available-donors-list::-webkit-scrollbar-thumb:hover {
+  background: var(--primary-color);
+}
+
+/* 添加按钮点击效果 */
+.add-donor-button, .export-button, .pagination-button {
+  position: relative;
+  overflow: hidden;
+}
+
+.add-donor-button:after, .export-button:after, .pagination-button:after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 5px;
+  height: 5px;
+  background: rgba(255, 255, 255, 0.5);
+  opacity: 0;
+  border-radius: 100%;
+  transform: scale(1, 1) translate(-50%, -50%);
+  transform-origin: 50% 50%;
+}
+
+.add-donor-button:focus:not(:active):after, 
+.export-button:focus:not(:active):after,
+.pagination-button:focus:not(:active):after {
+  animation: ripple 1s ease-out;
+}
+
+@keyframes ripple {
+  0% {
+    transform: scale(0, 0);
+    opacity: 0.5;
+  }
+  20% {
+    transform: scale(25, 25);
+    opacity: 0.3;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(40, 40);
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideIn {
+  from { 
+    opacity: 0;
+    transform: translateY(-30px); 
+  }
+  to { 
+    opacity: 1;
+    transform: translateY(0); 
+  }
+}
+
+@keyframes slideDown {
+  from { 
+    opacity: 0;
+    transform: translateY(-30px); 
+  }
+  to { 
+    opacity: 1;
+    transform: translateY(0); 
   }
 } 

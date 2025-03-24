@@ -1,0 +1,17 @@
+{
+  "name": "event-donor-scripts",
+  "version": "1.0.0",
+  "description": "Scripts for event and donor data generation and import",
+  "type": "module",
+  "scripts": {
+    "generate": "node generateTestData.js",
+    "upload": "node uploadTestData.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "main": "generateTestData.js",
+  "keywords": [],
+  "dependencies": {
+    "node-fetch": "^3.3.2"
+  }
+}
