@@ -186,10 +186,18 @@
 .activity-status {
   padding: 6px 12px;
   border-radius: 20px;
-  background-color: #EEF2FF;
-  color: #4F46E5;
   font-size: 14px;
   font-weight: 500;
+}
+
+.activity-status:not(.active) {
+  background-color: #EEF2FF;
+  color: #4F46E5;
+}
+
+.activity-status.active {
+  background-color: #DCFCE7;
+  color: #16A34A;
 }
 
 /* Loading animation */
@@ -247,4 +255,33 @@
 
 .retry-button:hover {
   background-color: #2563eb;
+}
+
+/* View all events link */
+.view-all-link {
+  display: block;
+  text-align: center;
+  padding: 12px;
+  margin-top: 10px;
+  text-decoration: none;
+  color: #4F46E5;
+  font-weight: 500;
+  border-radius: 8px;
+  transition: all 0.2s;
+  background-color: #F9FAFB;
+}
+
+.view-all-link:hover {
+  background-color: #EEF2FF;
+  color: #3730A3;
+}
+
+/* No events message */
+.no-events-message {
+  padding: 30px;
+  text-align: center;
+  color: #6B7280;
+  background-color: #F9FAFB;
+  border-radius: 8px;
+  font-size: 16px;
 } 
