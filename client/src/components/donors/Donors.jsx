@@ -95,8 +95,6 @@ const Donors = () => {
         search: searchQuery || undefined
       });
 
-      console.log('********', response.data);
-
       // 处理返回结果中的错误信息
       if (response.error && response.message) {
         setError(prev => ({ ...prev, donors: response.message }));
@@ -128,8 +126,6 @@ const Donors = () => {
             limit: itemsPerPage,
             search: searchQuery || undefined
           });
-          
-          console.log('updatedResponse', updatedResponse.data);
 
           setEventDonors(updatedResponse.data || []);
           setTotalPages(updatedResponse.total_pages || 1);
@@ -154,6 +150,7 @@ const Donors = () => {
         }
       }
 
+      console.log('$$$$$response.data$$$$$', response.data);
       // 正常处理捐赠者数据
       setEventDonors(response.data || []);
       setTotalPages(response.total_pages || 1);
@@ -235,7 +232,7 @@ const Donors = () => {
       });
     } catch (err) {
       console.error('Failed to fetch event statistics:', err);
-      setError(prev => ({ ...prev, stats: '加载统计信息失败: ' + (err.message || 'Unknown error') }));
+      setError(prev => ({ ...prev, stats: 'Failed to load statistics: ' + (err.message || 'Unknown error') }));
       // 设置默认的空统计信息
       setStats({ pending: 0, approved: 0, excluded: 0 });
     } finally {
@@ -254,12 +251,10 @@ const Donors = () => {
     setError(prev => ({ ...prev, availableDonors: null }));
     
     try {
-      // 使用更新后的getAvailableDonors函数获取未添加到事件的捐赠者
-      // 这个函数会通过donorList API过滤掉已经存在于列表中的捐赠者
+      // 获取未添加到事件的捐赠者
       const result = await getAvailableDonors(selectedEvent.id, {
         page: 1,
-        limit: 100,
-        search: searchQuery || undefined
+        limit: 100
       });
       
       setAvailableDonors(result.data || []);
@@ -267,14 +262,14 @@ const Donors = () => {
       if (result.data.length === 0) {
         setError(prev => ({ 
           ...prev, 
-          availableDonors: '没有找到可添加的捐赠者。所有捐赠者可能已被添加到此事件，或者尝试使用搜索功能查找特定捐赠者。' 
+          availableDonors: 'No donors available to add. All donors may have already been added to this event.' 
         }));
       }
     } catch (error) {
       console.error('Error fetching available donors:', error);
       setError(prev => ({ 
         ...prev, 
-        availableDonors: '获取可用捐赠者失败: ' + (error.message || 'Unknown error')
+        availableDonors: 'Failed to fetch available donors: ' + (error.message || 'Unknown error')
       }));
       
       // 重置可用捐赠者列表
@@ -343,15 +338,14 @@ const Donors = () => {
       }));
       
       // 显示成功消息
-      setSuccess('捐赠者添加成功');
+      setSuccess('Donor added successfully');
       setTimeout(() => setSuccess(''), 3000);
       
       // 刷新可用捐赠者列表
       try {
         const updatedAvailableDonors = await getAvailableDonors(selectedEvent.id, {
           page: 1,
-          limit: 100,
-          search: searchQuery || undefined
+          limit: 100
         });
         setAvailableDonors(updatedAvailableDonors.data || []);
       } catch (refreshError) {
@@ -363,9 +357,9 @@ const Donors = () => {
       
       // 特殊处理捐赠者已存在的情况
       if (error.message && error.message.includes('already in this event')) {
-        setError(prev => ({ ...prev, donors: '此捐赠者已添加到事件中' }));
+        setError(prev => ({ ...prev, donors: 'This donor is already in this event' }));
       } else {
-        setError(prev => ({ ...prev, donors: '添加捐赠者失败: ' + (error.message || 'Unknown error') }));
+        setError(prev => ({ ...prev, donors: 'Failed to add donor: ' + (error.message || 'Unknown error') }));
       }
       
       // 刷新捐赠者列表以确保UI一致性
@@ -381,10 +375,10 @@ const Donors = () => {
 
   /**
    * Remove a donor from the currently selected event
-   * @param {number} donorId - The ID of the donor to remove
+   * @param {number} eventDonorId - The ID of the event donor record to remove
    */
-  const handleRemoveDonor = async (donorId) => {
-    if (!selectedEvent || !donorId) return;
+  const handleRemoveDonor = async (eventDonorId) => {
+    if (!selectedEvent || !eventDonorId) return;
     
     // 确认是否移除捐赠者
     if (!window.confirm('Are you sure you want to remove this donor from the event?')) {
@@ -395,17 +389,18 @@ const Donors = () => {
       setLoading(prev => ({ ...prev, donors: true }));
       
       // 调用API从事件中移除捐赠者
-      await removeDonorFromEvent(selectedEvent.id, donorId);
+      await removeDonorFromEvent(selectedEvent.id, eventDonorId);
       
       // 更新数据
       fetchEventDonors();
       fetchEventStats();
       
-      // 显示成功消息（可选）
-      // toast.success('Donor removed successfully');
+      // 显示成功消息
+      setSuccess('Donor removed successfully');
+      setTimeout(() => setSuccess(''), 3000);
     } catch (error) {
       console.error('Error removing donor from event:', error);
-      setError(prev => ({ ...prev, donors: 'Failed to remove donor, please try again' }));
+      setError(prev => ({ ...prev, donors: 'Failed to remove donor: ' + (error.message || 'Unknown error') }));
     } finally {
       setLoading(prev => ({ ...prev, donors: false }));
     }
@@ -555,7 +550,7 @@ const Donors = () => {
               <>
                 <div className="stat-item pending">
                   <div className="stat-number">{stats.pending}</div>
-                  <div className="stat-label">Pending Review</div>
+                  <div className="stat-label">Pending</div>
                 </div>
                 <div className="stat-item approved">
                   <div className="stat-number">{stats.approved}</div>
@@ -618,7 +613,7 @@ const Donors = () => {
                       <div key={donor.id} className="donor-card">
                         <div className="donor-card-header">
                           <FaUser className="donor-icon" />
-                          <h3>{donor.first_name} {donor.last_name}</h3>
+                          <h3>{donor.firstName || donor.first_name} {donor.lastName || donor.last_name}</h3>
                           <button 
                             className="remove-donor-button"
                             onClick={() => handleRemoveDonor(donor.id)}
@@ -629,17 +624,15 @@ const Donors = () => {
                           </button>
                         </div>
                         <div className="donor-card-body">
-                          <p><strong>Type:</strong> {donor.type}</p>
-                          <p><strong>Priority:</strong> {donor.priority}</p>
-                          {donor.tags && donor.tags.length > 0 && (
-                            <div className="donor-flags">
-                              {donor.tags.map((tag, index) => (
-                                <span key={index} className="donor-flag">{tag}</span>
-                              ))}
-                            </div>
+                          {donor.organizationName && <p><strong>Organization:</strong> {donor.organizationName}</p>}
+                          {donor.tags && <p><strong>Tags:</strong> {donor.tags}</p>}
+                          <p><strong>Total Donations:</strong> ${donor.totalDonations?.toLocaleString() || 0}</p>
+                          <p><strong>Largest Gift:</strong> ${donor.largestGift?.toLocaleString() || 0}</p>
+                          {donor.lastGiftDate && (
+                            <p><strong>Last Gift:</strong> ${donor.lastGiftAmount?.toLocaleString() || 0} ({formatDate(donor.lastGiftDate)})</p>
                           )}
                           {donor.status && (
-                            <p className={`donor-status ${donor.status}`}>
+                            <p className={`donor-status ${donor.status.toLowerCase()}`}>
                               <strong>Status:</strong> {donor.status}
                             </p>
                           )}
@@ -741,18 +734,11 @@ const Donors = () => {
         <div className="modal-overlay">
           <div className="modal-content">
             <div className="modal-header">
-              <h3>Add Donor to Event</h3>
+              <h3>Add Donor</h3>
               <button className="close-button" onClick={handleCloseModal}>×</button>
             </div>
             <div className="modal-body">
-              <div className="search-container">
-                <input
-                  type="text"
-                  placeholder="Search donors..."
-                  value={searchQuery}
-                  onChange={handleSearch}
-                  className="search-input"
-                />
+              <div className="refresh-container">
                 <button 
                   className="refresh-button" 
                   onClick={async () => {
@@ -761,28 +747,26 @@ const Donors = () => {
                       // 使用donorList API刷新可用捐赠者列表
                       const refreshedDonors = await getAvailableDonors(selectedEvent.id, {
                         page: 1,
-                        limit: 100,
-                        search: searchQuery || undefined
+                        limit: 100
                       });
                       setAvailableDonors(refreshedDonors.data || []);
-                      console.log('refreshedDonors', refreshedDonors.data);
                     } catch (error) {
                       console.error('Error refreshing available donors:', error);
-                      setError(prev => ({ ...prev, availableDonors: 'Failed to refresh donors' }));
+                      setError(prev => ({ ...prev, availableDonors: 'Failed to refresh donor list' }));
                     } finally {
                       setLoading(prev => ({ ...prev, availableDonors: false }));
                     }
                   }}
                   disabled={loading.availableDonors}
                 >
-                  {loading.availableDonors ? <FaSpinner className="loading-spinner" /> : 'Refresh'}
+                  {loading.availableDonors ? <FaSpinner className="loading-spinner" /> : 'Refresh List'}
                 </button>
               </div>
               
               {error.availableDonors && (
                 <div className="error-message">
                   <p>{error.availableDonors}</p>
-                  <button onClick={() => setError(prev => ({ ...prev, availableDonors: null }))}>Dismiss</button>
+                  <button onClick={() => setError(prev => ({ ...prev, availableDonors: null }))}>Close</button>
                 </div>
               )}
               
@@ -793,7 +777,7 @@ const Donors = () => {
                 </div>
               ) : availableDonors.length === 0 ? (
                 <div className="no-donors-message">
-                  <p>No donors available to add to this event.</p>
+                  <p>No donors available to add</p>
                 </div>
               ) : (
                 <div className="available-donors-list">
@@ -814,7 +798,7 @@ const Donors = () => {
                         onClick={() => handleAddDonor(donor.id)}
                         disabled={loading.donors}
                       >
-                        {loading.donors ? <FaSpinner className="loading-spinner" /> : 'Add to Event'}
+                        {loading.donors ? <FaSpinner className="loading-spinner" /> : 'Add'}
                       </button>
                     </div>
                   ))}

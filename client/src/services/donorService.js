@@ -70,20 +70,20 @@ export const getAvailableDonors = async (eventId, params = {}) => {
       throw new Error('No authentication token found');
     }
 
-    console.log('获取事件ID为', eventId, '的可用捐赠者');
+    console.log('Getting available donors for event ID', eventId);
     
-    // 步骤1: 获取所有捐赠者
+    // Step 1: Get all donors
     const allDonorsUrl = new URL(`${API_URL}/api/donors`);
     
-    // 添加分页和搜索参数
+    // Add pagination and search parameters
     Object.keys(params).forEach(key => {
       if (params[key] !== undefined && params[key] !== '') {
         allDonorsUrl.searchParams.append(key, params[key]);
       }
     });
     
-    // 获取所有捐赠者列表
-    console.log('获取所有捐赠者:', allDonorsUrl.toString());
+    // Get all donors list
+    console.log('Fetching all donors:', allDonorsUrl.toString());
     const allDonorsResponse = await fetch(allDonorsUrl, {
       method: 'GET',
       headers: {
@@ -97,16 +97,16 @@ export const getAvailableDonors = async (eventId, params = {}) => {
     }
     
     const allDonorsData = await allDonorsResponse.json();
-    console.log('获取到所有捐赠者:', allDonorsData.donors.length);
+    console.log('Total donors fetched:', allDonorsData.donors.length);
     
-    // 步骤2: 获取事件中已存在的捐赠者ID
+    // Step 2: Get donor IDs already in the event
     let eventDonorIds = new Set();
     try {
-      // 直接使用 /api/events/:id/donors 端点获取事件已有的捐赠者
+      // Use /api/events/:id/donors endpoint to get event donors
       const eventDonorsUrl = new URL(`${API_URL}/api/events/${eventId}/donors?limit=1000`);
-      // 添加no_sort参数，避免服务器端排序错误
+      // Add no_sort parameter to avoid server-side sorting errors
       eventDonorsUrl.searchParams.set('no_sort', 'true');
-      console.log('获取事件捐赠者:', eventDonorsUrl.toString());
+      console.log('Fetching event donors:', eventDonorsUrl.toString());
       
       const eventDonorsResponse = await fetch(eventDonorsUrl, {
         method: 'GET',
@@ -118,38 +118,47 @@ export const getAvailableDonors = async (eventId, params = {}) => {
       
       if (eventDonorsResponse.ok) {
         const eventDonorsData = await eventDonorsResponse.json();
-        console.log('获取到事件捐赠者数据');
+        console.log('Event donors data received');
         
+        // Process event donors data to get all donor IDs that are already in the event
         if (eventDonorsData.donors && Array.isArray(eventDonorsData.donors)) {
-          eventDonorsData.donors.forEach(donor => {
-            // 处理不同的数据结构，确保我们能获取到donorId
-            if (donor.donorId) eventDonorIds.add(donor.donorId);
-            if (donor.donor_id) eventDonorIds.add(donor.donor_id);
-            if (donor.donor && donor.donor.id) eventDonorIds.add(donor.donor.id);
+          eventDonorsData.donors.forEach(ed => {
+            // Handle the nested structure for donor object
+            if (ed.donor && ed.donor.id) {
+              eventDonorIds.add(ed.donor.id.toString());
+            } 
+            // Handle the direct donor_id field
+            else if (ed.donor_id) {
+              eventDonorIds.add(ed.donor_id.toString());
+            }
+            // Handle the donorId field
+            else if (ed.donorId) {
+              eventDonorIds.add(ed.donorId.toString());
+            }
           });
-          console.log('事件中已有捐赠者数量:', eventDonorIds.size);
+          console.log('Donor IDs already in event:', Array.from(eventDonorIds));
         }
       } else if (eventDonorsResponse.status === 404) {
-        // 如果404，可能是列表不存在，尝试创建一个
-        console.log('事件捐赠者列表可能不存在，将返回空捐赠者列表');
-        // 在这里，我们不需要创建列表，因为当用户添加第一个捐赠者时会自动创建
+        // If 404, the list may not exist
+        console.log('Event donor list may not exist, will return all donors');
       } else {
-        console.error('获取事件捐赠者失败:', eventDonorsResponse.status);
+        console.error('Failed to get event donors:', eventDonorsResponse.status);
       }
     } catch (error) {
-      console.error('获取事件捐赠者时出错:', error);
-      console.log('忽略错误，继续处理');
+      console.error('Error getting event donors:', error);
+      console.log('Ignoring error and continuing');
     }
-    
-    // 步骤3: 过滤出未添加到事件的捐赠者
+
+    // Step 3: Filter out donors not in the event
     const availableDonors = allDonorsData.donors.filter(donor => {
-      const donorId = donor.id;
+      // Convert donor id to string for comparison
+      const donorId = donor.id.toString();
       return !eventDonorIds.has(donorId);
     });
     
-    console.log('过滤后的可用捐赠者数量:', availableDonors.length);
+    console.log('Number of available donors after filtering:', availableDonors.length);
     
-    // 返回过滤后的结果
+    // Return filtered results
     return {
       data: availableDonors || [],
       page: allDonorsData.page || 1,
@@ -159,7 +168,7 @@ export const getAvailableDonors = async (eventId, params = {}) => {
     };
   } catch (error) {
     console.error('Error fetching available donors:', error);
-    throw error; // 不再返回模拟数据，而是将错误传递给调用方
+    throw error;
   }
 };
 
@@ -176,9 +185,9 @@ export const addDonorToEvent = async (eventId, donorId) => {
       throw new Error('No authentication token found');
     }
 
-    console.log(`向事件 ${eventId} 添加捐赠者 ${donorId}`);
+    console.log(`Adding donor ${donorId} to event ${eventId}`);
     
-    // 使用/api/events/{eventId}/donors端点添加捐赠者
+    // Use /api/events/{eventId}/donors endpoint to add donor
     const response = await fetch(`${API_URL}/api/events/${eventId}/donors`, {
       method: 'POST',
       headers: {
@@ -190,36 +199,36 @@ export const addDonorToEvent = async (eventId, donorId) => {
 
     if (!response.ok) {
       const errorData = await response.json();
-      console.error('添加捐赠者失败:', errorData);
+      console.error('Failed to add donor:', errorData);
       throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
     }
 
     const result = await response.json();
-    console.log('添加捐赠者成功:', result);
+    console.log('Donor added successfully:', result);
     return result;
   } catch (error) {
     console.error('Error adding donor to event:', error);
-    throw error; // 将错误传递给调用方
+    throw error;
   }
 };
 
 /**
  * Remove a donor from an event
  * @param {string} eventId - Event ID
- * @param {string} donorId - Donor ID
+ * @param {string} eventDonorId - Event Donor ID (the ID of the donor-event relationship record)
  * @returns {Promise<Object>} Response data
  */
-export const removeDonorFromEvent = async (eventId, donorId) => {
+export const removeDonorFromEvent = async (eventId, eventDonorId) => {
   try {
     const token = localStorage.getItem('token');
     if (!token) {
       throw new Error('No authentication token found');
     }
 
-    console.log(`从事件 ${eventId} 移除捐赠者 ${donorId}`);
+    console.log(`Removing donor relationship ${eventDonorId} from event ${eventId}`);
     
-    // 使用/api/events/{eventId}/donors/{donorId}端点移除捐赠者
-    const response = await fetch(`${API_URL}/api/events/${eventId}/donors/${donorId}`, {
+    // Use /api/events/{eventId}/donors/{eventDonorId} endpoint to remove donor
+    const response = await fetch(`${API_URL}/api/events/${eventId}/donors/${eventDonorId}`, {
       method: 'DELETE',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -229,16 +238,16 @@ export const removeDonorFromEvent = async (eventId, donorId) => {
 
     if (!response.ok) {
       const errorData = await response.json();
-      console.error('移除捐赠者失败:', errorData);
+      console.error('Failed to remove donor:', errorData);
       throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
     }
 
     const result = await response.json();
-    console.log('移除捐赠者成功:', result);
+    console.log('Donor removed successfully:', result);
     return result;
   } catch (error) {
     console.error('Error removing donor from event:', error);
-    throw error; // 将错误传递给调用方
+    throw error; // Pass the error to the caller
   }
 };
 
@@ -269,7 +278,7 @@ export const getEventDonorStats = async (eventId) => {
     return await response.json();
   } catch (error) {
     console.error('Error fetching event donor statistics:', error);
-    // 如果API调用失败，返回一个默认的空统计对象
+    // Return a default empty stats object if API call fails
     return {
       event_id: parseInt(eventId),
       total_donors: 0,
