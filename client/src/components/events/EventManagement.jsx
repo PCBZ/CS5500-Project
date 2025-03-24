@@ -1,51 +1,106 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FaCalendarAlt, FaMapMarkerAlt, FaUsers, FaClock, FaFilter, FaSearch } from 'react-icons/fa';
+import { useHistory } from 'react-router-dom';
 import './EventManagement.css';
+import eventAPI from '../../services/eventAPI.js';
+import authService from '../../services/authService.js';
 
 const EventManagement = () => {
   const [activeTab, setActiveTab] = useState('upcoming');
   const [searchQuery, setSearchQuery] = useState('');
-  
-  // Mock event data
-  const events = [
-    {
-      id: 1,
-      name: 'Spring Gala 2025',
-      type: 'Major Donor event',
-      date: 'March 15, 2025',
-      location: 'Vancouver',
-      capacity: 200,
-      status: 'PMM Review 3/5',
-      dueDate: 'Feb 20'
-    },
-    {
-      id: 2,
-      name: 'Research Symposium 2025',
-      type: 'Research Event',
-      date: 'May 20, 2025',
-      location: 'Victoria',
-      capacity: 50,
-      status: 'Planning'
-    },
-    {
-      id: 3,
-      name: 'Donor Appreciation Event',
-      type: 'Cultural Event',
-      date: 'June 10, 2025',
-      location: 'Vancouver',
-      capacity: 100,
-      status: 'Ready for invitations'
-    }
-  ];
+  const [events, setEvents] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const history = useHistory();
+  const [filters, setFilters] = useState({
+    status: '',
+    location: '',
+    type: '',
+    dateRange: ''
+  });
+
+  const [eventTypes, setEventTypes] = useState([]);
+  const [locations, setLocations] = useState([]);
+  const [originalEvents, setOriginalEvents] = useState([]);
+
+  const handleFilterChange = (e) => {
+    const { name, value } = e.target;
+    setFilters({
+      ...filters,
+      [name]: value
+    });
+  };
+
+  useEffect(() => {
+    const fetchEvents = async () => {
+      setLoading(true);
+      setError(null);
+
+      try {
+        if (authService.isAuthenticated()) {
+          console.log('Token exists:', localStorage.getItem('token'));
+          const eventsData  = await eventAPI.getEvents();
+          console.log('Events fetched successfully:', eventsData); 
+          if (eventsData && eventsData.events) {
+            setEvents(eventsData.events);
+            setOriginalEvents(eventsData.events); 
+          } else {
+            setEvents([]);
+            setOriginalEvents([]); 
+            console.warn('No events data found in response');
+          }
+        } else {
+          setError('User not authenticated'); 
+        }
+      } catch (error) {
+        console.error('Error fetching events:', error);
+        setError(error.message || 'Failed to fetch events');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    const fetchFilterOptions = async () => {
+      try {
+        // 并行获取筛选选项
+        const [typesData, locationsData] = await Promise.all([
+          eventAPI.getEventTypes(),
+          eventAPI.getEventLocations()
+        ]);
+        
+        setEventTypes(typesData);
+        setLocations(locationsData);
+      } catch (error) {
+        console.error('Error fetching filter options:', error);
+      }
+    };
+
+    fetchEvents();
+    fetchFilterOptions();
+
+  }, []);
   
   // Handle search
   const handleSearchChange = (e) => {
     setSearchQuery(e.target.value);
   };
 
+  // Format date display
+  const formatDate = (dateString) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  };
+
+
   // Filter events based on active tab
   const getFilteredEvents = () => {
     // In a real app, you would filter based on date compared to current date
+
     if (activeTab === 'upcoming') {
       return events;
     } else if (activeTab === 'past') {
@@ -53,6 +108,89 @@ const EventManagement = () => {
     } else {
       return events;
     }
+  };
+
+const handleSearch = () => {
+  if (!searchQuery.trim()) {
+    setEvents(originalEvents); //
+    return;
+  }
+  
+  const filteredEvents = originalEvents.filter(event => 
+    event.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+  
+  setEvents(filteredEvents);
+};
+
+const handleKeyPress = (e) => {
+  if (e.key === 'Enter') {
+    handleSearch();
+  }
+};
+
+  const applyFilters = async () => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      // 创建一个包含所有已设置筛选条件的对象
+      const filterParams = {};
+      
+      if (filters.status) filterParams.status = filters.status;
+      if (filters.location) filterParams.location = filters.location;
+      if (filters.type) filterParams.type = filters.type;
+      
+      // 处理日期范围筛选
+      if (filters.dateRange) {
+        const now = new Date();
+        
+        if (filters.dateRange === '30days') {
+          const thirtyDaysLater = new Date();
+          thirtyDaysLater.setDate(now.getDate() + 30);
+          filterParams.startDate = now.toISOString().split('T')[0]; // YYYY-MM-DD
+          filterParams.endDate = thirtyDaysLater.toISOString().split('T')[0];
+        } else if (filters.dateRange === '90days') {
+          const ninetyDaysLater = new Date();
+          ninetyDaysLater.setDate(now.getDate() + 90);
+          filterParams.startDate = now.toISOString().split('T')[0];
+          filterParams.endDate = ninetyDaysLater.toISOString().split('T')[0];
+        } else if (filters.dateRange === 'thisYear') {
+          const yearEnd = new Date(now.getFullYear(), 11, 31);
+          filterParams.startDate = now.toISOString().split('T')[0];
+          filterParams.endDate = yearEnd.toISOString().split('T')[0];
+        }
+      }
+      
+      // 添加搜索查询参数（如果有）
+      if (searchQuery) {
+        filterParams.search = searchQuery;
+      }
+      
+      console.log('Applying filters with params:', filterParams);
+      
+      // 调用API获取过滤后的事件
+      const eventsData = await eventAPI.getEvents(filterParams);
+      
+      if (eventsData && eventsData.events) {
+        setEvents(eventsData.events);
+      } else {
+        setEvents([]);
+        console.warn('No events found with the applied filters');
+      }
+    } catch (error) {
+      console.error('Error applying filters:', error);
+      setError(error.message || 'Failed to filter events');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleViewEvent = (eventId) => {
+    // Navigate to event details page
+    history.push(`/events/${eventId}`);
+    // OR if you're not using React Router:
+    // window.location.href = `/events/${eventId}`;
   };
 
   // Handle create new event
@@ -100,76 +238,167 @@ const EventManagement = () => {
               placeholder="Search Events"
               value={searchQuery}
               onChange={handleSearchChange}
+              onKeyPress={handleKeyPress}
             />
+
+            <button className="search-button" onClick={handleSearch}>
+                Search
+              </button>
           </div>
-          
-          <button className="filter-button">
+        </div>
+        </div>
+
+        <div className="filter-sidebar">
+          <div className="filter-header">
             <FaFilter className="filter-icon" />
             <span>Filters</span>
-          </button>
+          </div>
+          <div className="filter-content">
+            <div className="filter-item">
+              <label>Event Type</label>
+              <select 
+                name="type" 
+                value={filters.type} 
+                onChange={handleFilterChange}
+              >
+                <option value="">All Types</option>
+                {eventTypes.map(type => (
+                  <option key={type} value={type}>{type}</option>
+                ))}
+              </select>
+            </div>
+            
+            <div className="filter-item">
+              <label>Location</label>
+              <select 
+                name="location" 
+                value={filters.location} 
+                onChange={handleFilterChange}
+              >
+                <option value="">All Locations</option>
+                {locations.map(location => (
+                  <option key={location} value={location}>{location}</option>
+                ))}
+              </select>
+            </div>
+            
+            <div className="filter-item">
+              <label>Status</label>
+              <select 
+                name="status" 
+                value={filters.status} 
+                onChange={handleFilterChange}
+              >
+                <option value="">All Status</option>
+                <option value="Planning">Planning</option>
+                <option value="ListGeneration">List Generation</option>
+                <option value="Review">Review</option>
+                <option value="Ready">Ready</option>
+                <option value="Complete">Complete</option>
+              </select>
+            </div>
+            
+            <div className="filter-item">
+              <label>Date Range</label>
+              <select 
+                name="dateRange" 
+                value={filters.dateRange} 
+                onChange={handleFilterChange}
+              >
+                <option value="">Any Date</option>
+                <option value="30days">Next 30 Days</option>
+                <option value="90days">Next 90 Days</option>
+                <option value="thisYear">This Year</option>
+              </select>
+            </div>
+            
+            <button 
+              className="apply-filters-button" 
+              onClick={applyFilters}
+            >
+              Apply Filters
+            </button>
+          </div>
         </div>
-      </div>
 
-      <div className="events-table-container">
-        <table className="events-table">
-          <thead>
-            <tr>
-              <th>EVENT NAME</th>
-              <th>DATE</th>
-              <th>LOCATION</th>
-              <th>CAPACITY</th>
-              <th>STATUS</th>
-              <th>ACTION</th>
-            </tr>
-          </thead>
-          <tbody>
-            {getFilteredEvents().map(event => (
-              <tr key={event.id}>
-                <td className="event-name-cell">
-                  <div className="event-name">{event.name}</div>
-                  <div className="event-type">{event.type}</div>
-                </td>
-                <td>
-                  <div className="event-date">
-                    <FaCalendarAlt className="icon" />
-                    <span>{event.date}</span>
-                  </div>
-                </td>
-                <td>
-                  <div className="event-location">
-                    <FaMapMarkerAlt className="icon" />
-                    <span>{event.location}</span>
-                  </div>
-                </td>
-                <td>
-                  <div className="event-capacity">
-                    <FaUsers className="icon" />
-                    <span>{event.capacity}</span>
-                  </div>
-                </td>
-                <td>
-                  <div className="event-status">
-                    {event.status}
-                    {event.dueDate && (
-                      <div className="event-due-date">
-                        <FaClock className="icon" />
-                        <span>Due {event.dueDate}</span>
-                      </div>
-                    )}
-                  </div>
-                </td>
-                <td>
-                  <div className="event-actions">
-                    <button className="event-action-button">View</button>
-                  </div>
-                </td>
+      {/* Loading state */}
+      {loading && <div className="loading-message">Loading events...</div>}
+      
+      {/* Error state */}
+      {error && <div className="error-message">{error}</div>}
+
+      {/* Events table */}
+      {!loading && !error && (
+        <div className="events-table-container">
+          <table className="events-table">
+            <thead>
+              <tr>
+                <th>EVENT NAME</th>
+                <th>DATE</th>
+                <th>LOCATION</th>
+                <th>CAPACITY</th>
+                <th>STATUS</th>
+                <th>ACTION</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody>
+              {getFilteredEvents().length > 0 ? (
+                getFilteredEvents().map(event => (
+                  <tr key={event.id}>
+                    <td className="event-name-cell">
+                      <div className="event-name">{event.name}</div>
+                      <div className="event-type">{event.type}</div>
+                    </td>
+                    <td>
+                      <div className="event-date">
+                        <FaCalendarAlt className="icon" />
+                        <span>{formatDate(event.date)}</span>
+                      </div>
+                    </td>
+                    <td>
+                      <div className="event-location">
+                        <FaMapMarkerAlt className="icon" />
+                        <span>{event.location}</span>
+                      </div>
+                    </td>
+                    <td>
+                      <div className="event-capacity">
+                        <FaUsers className="icon" />
+                        <span>{event.capacity}</span>
+                      </div>
+                    </td>
+                    <td>
+                      <div className="event-status">
+                        {event.status}
+                        {event.timelineReviewDeadline && (
+                          <div className="event-due-date">
+                            <FaClock className="icon" />
+                            <span>Due {formatDate(event.timelineReviewDeadline)}</span>
+                          </div>
+                        )}
+                      </div>
+                    </td>
+                    <td>
+                      <div className="event-actions"   onClick={() => handleViewEvent(event.id)}
+                      >
+                        <button className="event-action-button">View</button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="6" className="no-events-message">
+                    No events found
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 };
 
-export default EventManagement; 
+export default EventManagement;
