@@ -1,4 +1,4 @@
-// 从mockData模块导入模拟数据
+// Import mock data from mockData module
 import { MOCK_DONORS, MOCK_EVENT_DONORS, MOCK_EVENT_STATS } from './mockData';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000';
@@ -103,15 +103,19 @@ export const getAvailableDonors = async (eventId, params = {}) => {
       throw new Error('No authentication token found');
     }
 
-    // Get all donors - using snake_case parameters directly
-    const allDonorsUrl = new URL(`${API_URL}/api/donors`);
+    // Directly get available donors from API, using not_in_event parameter
+    const availableDonorsUrl = new URL(`${API_URL}/api/donors`);
+    // Add not_in_event parameter
+    availableDonorsUrl.searchParams.append('not_in_event', eventId);
+    
+    // Add other parameters
     Object.keys(params).forEach(key => {
       if (params[key] !== undefined && params[key] !== '') {
-        allDonorsUrl.searchParams.append(key, params[key]);
+        availableDonorsUrl.searchParams.append(key, params[key]);
       }
     });
     
-    const allDonorsResponse = await fetch(allDonorsUrl, {
+    const response = await fetch(availableDonorsUrl, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -119,45 +123,19 @@ export const getAvailableDonors = async (eventId, params = {}) => {
       }
     });
     
-    if (!allDonorsResponse.ok) {
-      throw new Error(`Failed to get all donors: ${allDonorsResponse.status}`);
+    if (!response.ok) {
+      throw new Error(`Failed to get available donors: ${response.status}`);
     }
     
-    const allDonorsData = await allDonorsResponse.json();
-
-    console.log('allDonorsData', allDonorsData);
+    const data = await response.json();
     
-    // Get current event donors to filter them out
-    const eventDonorsUrl = new URL(`${API_URL}/api/events/${eventId}/donors`);
-    eventDonorsUrl.searchParams.append('limit', '1000'); // Get a large number to ensure we have all donors
-    
-    const eventDonorsResponse = await fetch(eventDonorsUrl, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      }
-    });
-    
-    if (!eventDonorsResponse.ok) {
-      throw new Error(`Failed to get event donors: ${eventDonorsResponse.status}`);
-    }
-    
-    const eventDonorsData = await eventDonorsResponse.json();
-    
-    // Create a set of donor IDs that are already in the event for faster lookup
-    const eventDonorIds = new Set(eventDonorsData.data.map(donor => donor.id));
-    
-    // Filter out donors that are already in the event
-    const availableDonors = allDonorsData.donors.filter(donor => !eventDonorIds.has(donor.id));
-    
-    // Return filtered data with updated count
+    // Return formatted response
     return {
-      data: availableDonors,
-      page: allDonorsData.page || 1,
-      limit: allDonorsData.limit || 10,
-      total_count: availableDonors.length,
-      total_pages: Math.ceil(availableDonors.length / allDonorsData.limit || 10)
+      data: data.donors || [],
+      page: data.page || 1,
+      limit: data.limit || 10,
+      total_count: data.total || 0,
+      total_pages: data.pages || 1
     };
   } catch (error) {
     console.error('Error fetching available donors:', error);

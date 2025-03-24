@@ -120,7 +120,7 @@ const Donors = () => {
         excluded: response.excluded || 0
       });
     } catch (err) {
-      console.error('Failed to fetch event stats:', err);
+      console.error('Failed to fetch event statistics:', err);
       setError(prev => ({ ...prev, stats: 'Failed to load statistics' }));
     } finally {
       setLoading(prev => ({ ...prev, stats: false }));
@@ -572,8 +572,15 @@ const Donors = () => {
                     {availableDonors.map(donor => (
                       <div key={donor.id} className="available-donor-item">
                         <div>
-                          <strong>{donor.first_name} {donor.last_name}</strong>
-                          <p>{donor.type} - Priority: {donor.priority}</p>
+                          <strong>{donor.firstName || donor.first_name} {donor.lastName || donor.last_name}</strong>
+                          <p>
+                            {donor.type || 'Individual'} 
+                            {donor.priority && <span> - Priority: {donor.priority}</span>}
+                            {donor.city && <span> - {donor.city}</span>}
+                          </p>
+                          {donor.totalDonations || donor.total_donations ? 
+                            <p>Total Donations: ${(donor.totalDonations || donor.total_donations).toLocaleString()}</p> : null
+                          }
                         </div>
                         <button 
                           className="add-donor-button" 

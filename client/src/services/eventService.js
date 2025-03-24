@@ -1,4 +1,4 @@
-// 从mockData模块导入模拟数据
+// Import mock data from mockData module
 import { MOCK_EVENTS, MOCK_DONORS, MOCK_EVENT_DONORS } from './mockData';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000';
@@ -19,12 +19,12 @@ export const getEvents = async (params = {}) => {
       throw new Error('No authentication token found');
     }
 
-    // 创建参数副本，以便可以修改它而不影响原始对象
+    // Create a copy of params to modify without affecting original object
     const modifiedParams = { ...params };
     
-    // 处理status参数
+    // Handle status parameter
     if (modifiedParams.status === 'active') {
-      // 前端使用'active'，但后端需要有效的枚举值
+      // Frontend uses 'active', but backend needs valid enum value
       modifiedParams.status = 'Ready';
     }
 
@@ -48,17 +48,17 @@ export const getEvents = async (params = {}) => {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    // 获取API响应
+    // Get API response
     const responseData = await response.json();
     
-    // 适配返回格式为前端期望的格式
+    // Adapt response format to frontend expectations
     return {
       data: Array.isArray(responseData.events) ? responseData.events.map(event => ({
         ...event,
-        // 确保字段格式一致，服务器返回的可能是下划线格式
+        // Ensure consistent field formats, server might return snake_case
         reviewDeadline: event.review_deadline || event.timelineReviewDeadline,
         donorsCount: event.donors_count || 0,
-        // 将服务器返回的状态值映射回前端使用的状态值
+        // Map server status values back to frontend status values
         status: event.status === 'Ready' ? 'active' : event.status
       })) : [],
       page: responseData.page || 1,
@@ -76,7 +76,7 @@ export const getEvents = async (params = {}) => {
     
     // Filter by status if provided
     if (params.status) {
-      // 将前端使用的'active'映射到适当的模拟数据状态
+      // Map frontend 'active' to appropriate mock data status
       if (params.status === 'active' || params.status === 'Ready') {
         filteredEvents = filteredEvents.filter(event => 
           event.status === 'active' || 
@@ -86,7 +86,7 @@ export const getEvents = async (params = {}) => {
           event.status === 'Review'
         );
       } else {
-        // 直接按提供的状态过滤
+        // Filter directly by provided status
         filteredEvents = filteredEvents.filter(event => event.status === params.status);
       }
     }
@@ -142,19 +142,19 @@ export const getEventById = async (eventId) => {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    // 获取API响应并直接返回，保持数据格式一致
+    // Get API response and return directly, maintaining consistent data format
     const responseData = await response.json();
     
-    // 适配返回格式
+    // Adapt response format
     const eventData = responseData.event || responseData;
     
     return { 
       data: {
         ...eventData,
-        // 确保字段格式一致
+        // Ensure consistent field formats
         reviewDeadline: eventData.review_deadline || eventData.timelineReviewDeadline,
         donorsCount: eventData.donors_count || 0,
-        // 将服务器返回的状态值映射回前端使用的状态值
+        // Map server status values back to frontend status values
         status: eventData.status === 'Ready' ? 'active' : eventData.status
       }
     };
@@ -209,14 +209,14 @@ export const getEventDonors = async (eventId, params = {}) => {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    // 获取API响应
+    // Get API response
     const responseData = await response.json();
     
-    // 适配返回格式为前端期望的格式
+    // Adapt response format to frontend expectations
     return {
       data: Array.isArray(responseData.donors) ? responseData.donors.map(donor => ({
         ...donor,
-        // 确保字段格式一致，转换下划线格式为驼峰格式
+        // Ensure consistent field formats, convert snake_case to camelCase
         firstName: donor.first_name || donor.firstName,
         lastName: donor.last_name || donor.lastName,
         nickName: donor.nick_name || donor.nickName,
@@ -226,8 +226,8 @@ export const getEventDonors = async (eventId, params = {}) => {
         firstGiftDate: donor.first_gift_date || donor.firstGiftDate,
         lastGiftDate: donor.last_gift_date || donor.lastGiftDate,
         lastGiftAmount: donor.last_gift_amount || donor.lastGiftAmount || 0,
-        // 构建完整名称供显示
-        name: `${donor.first_name || donor.firstName || ''} ${donor.last_name || donor.lastName || ''}`.trim() || donor.organization_name || donor.organizationName || '未命名'
+        // Build full name for display
+        name: `${donor.first_name || donor.firstName || ''} ${donor.last_name || donor.lastName || ''}`.trim() || donor.organization_name || donor.organizationName || 'Unnamed'
       })) : [],
       page: responseData.page || 1,
       limit: responseData.limit || 10,
