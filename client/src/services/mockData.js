@@ -1,6 +1,6 @@
-// 临时模拟数据 - 仅用于开发
+// Temporary mock data - for development only
 
-// 模拟事件数据
+// Mock event data
 export const MOCK_EVENTS = [
   {
     id: 1,
@@ -59,10 +59,10 @@ export const MOCK_EVENTS = [
   },
   {
     id: 6,
-    name: '医疗创新研讨会2025',
+    name: 'Medical Innovation Symposium 2025',
     type: 'Scientific Event',
     date: '2025-07-12',
-    location: '北京国际会议中心',
+    location: 'Beijing International Convention Center',
     capacity: '180 attendees',
     review_deadline: '2025-06-20',
     status: 'active',
@@ -70,10 +70,10 @@ export const MOCK_EVENTS = [
   },
   {
     id: 7,
-    name: '儿童健康慈善晚宴',
+    name: 'Children\'s Health Charity Dinner',
     type: 'Major Donor Event',
     date: '2025-09-05',
-    location: '上海四季酒店',
+    location: 'Shanghai Four Seasons Hotel',
     capacity: '220 attendees',
     review_deadline: '2025-08-10',
     status: 'active',
@@ -81,10 +81,10 @@ export const MOCK_EVENTS = [
   },
   {
     id: 8,
-    name: '医院设备捐赠活动',
+    name: 'Hospital Equipment Donation Event',
     type: 'Business Event',
     date: '2025-08-18',
-    location: '广州医科大学附属医院',
+    location: 'Guangzhou Medical University Hospital',
     capacity: '120 attendees',
     review_deadline: '2025-07-25',
     status: 'active',
@@ -92,10 +92,10 @@ export const MOCK_EVENTS = [
   },
   {
     id: 9,
-    name: '健康科技展览会',
+    name: 'Health Technology Exhibition',
     type: 'Community Event',
     date: '2025-10-20',
-    location: '深圳会展中心',
+    location: 'Shenzhen Convention Center',
     capacity: '350 attendees',
     review_deadline: '2025-09-30',
     status: 'active',
@@ -103,10 +103,10 @@ export const MOCK_EVENTS = [
   },
   {
     id: 10,
-    name: '老年健康关爱计划启动仪式',
+    name: 'Elderly Care Initiative Launch Ceremony',
     type: 'Community Event',
     date: '2025-11-15',
-    location: '成都世纪城国际会议中心',
+    location: 'Chengdu Century City International Convention Center',
     capacity: '200 attendees',
     review_deadline: '2025-10-25',
     status: 'active',
@@ -114,80 +114,94 @@ export const MOCK_EVENTS = [
   }
 ];
 
-// 模拟捐赠者数据
+// Mock donor data
 export const MOCK_DONORS = [
   {
     id: 101,
-    name: '林志明',
-    type: '主要捐赠者',
-    priority: '高',
-    interests: ['癌症研究', '儿童健康'],
+    name: 'Lin Zhiming',
+    first_name: 'Zhiming',
+    last_name: 'Lin',
+    type: 'Major Donor',
+    priority: 'High',
+    interests: ['Cancer Research', 'Children\'s Health'],
     flags: [],
     status: 'approved',
-    previous_events: ['春季晚会2023', '慈善拍卖会2024'],
-    relationships: '董事会成员'
+    previous_events: ['Spring Gala 2023', 'Charity Auction 2024'],
+    relationships: 'Board Member'
   },
   {
     id: 102,
-    name: '王丽丽',
-    type: '企业捐赠者',
-    priority: '中',
-    interests: ['医疗创新'],
+    name: 'Wang Lili',
+    first_name: 'Lili',
+    last_name: 'Wang',
+    type: 'Corporate Donor',
+    priority: 'Medium',
+    interests: ['Medical Innovation'],
     flags: [],
     status: 'pending',
-    previous_events: ['企业合作伙伴峰会2024'],
-    relationships: 'ABC科技公司副总裁'
+    previous_events: ['Corporate Partners Summit 2024'],
+    relationships: 'ABC Technology Co. VP'
   },
   {
     id: 103,
-    name: '张伟健',
-    type: '个人捐赠者',
-    priority: '低',
-    interests: ['长期护理', '医疗教育'],
+    name: 'Zhang Weijian',
+    first_name: 'Weijian',
+    last_name: 'Zhang',
+    type: 'Individual Donor',
+    priority: 'Low',
+    interests: ['Long-term Care', 'Medical Education'],
     flags: [],
     status: 'approved',
-    previous_events: ['研究研讨会2024'],
+    previous_events: ['Research Symposium 2024'],
     relationships: ''
   },
   {
     id: 104,
-    name: '刘美玲',
-    type: '主要捐赠者',
-    priority: '高',
-    interests: ['紧急医疗服务'],
-    flags: ['需关注'],
+    name: 'Liu Meiling',
+    first_name: 'Meiling',
+    last_name: 'Liu',
+    type: 'Major Donor',
+    priority: 'High',
+    interests: ['Emergency Medical Services'],
+    flags: ['Needs Attention'],
     status: 'pending',
-    previous_events: ['冬季慈善舞会2023'],
-    relationships: '基金会联络人'
+    previous_events: ['Winter Charity Ball 2023'],
+    relationships: 'Foundation Liaison'
   },
   {
     id: 105,
-    name: '陈大卫',
-    type: '社区捐赠者',
-    priority: '中',
-    interests: ['社区健康项目', '老年人关怀'],
+    name: 'Chen David',
+    first_name: 'David',
+    last_name: 'Chen',
+    type: 'Community Donor',
+    priority: 'Medium',
+    interests: ['Community Health Programs', 'Elderly Care'],
     flags: [],
     status: 'approved',
-    previous_events: ['社区健康日2024'],
-    relationships: '社区领袖'
+    previous_events: ['Community Health Day 2024'],
+    relationships: 'Community Leader'
   },
   {
     id: 106,
-    name: '黄志强',
-    type: '企业捐赠者',
-    priority: '高',
-    interests: ['医疗技术'],
+    name: 'Huang Zhiqiang',
+    first_name: 'Zhiqiang',
+    last_name: 'Huang',
+    type: 'Corporate Donor',
+    priority: 'High',
+    interests: ['Medical Technology'],
     flags: [],
     status: 'pending',
-    previous_events: ['企业合作伙伴峰会2024'],
-    relationships: 'XYZ医疗设备公司CEO'
+    previous_events: ['Corporate Partners Summit 2024'],
+    relationships: 'XYZ Medical Equipment Co. CEO'
   },
   {
     id: 107,
-    name: '吴淑芳',
-    type: '个人捐赠者',
-    priority: '低',
-    interests: ['癌症研究'],
+    name: 'Wu Shufang',
+    first_name: 'Shufang',
+    last_name: 'Wu',
+    type: 'Individual Donor',
+    priority: 'Low',
+    interests: ['Cancer Research'],
     flags: [],
     status: 'approved',
     previous_events: [],
@@ -195,21 +209,25 @@ export const MOCK_DONORS = [
   },
   {
     id: 108,
-    name: '赵明明',
-    type: '主要捐赠者',
-    priority: '高',
-    interests: ['医院发展', '医疗设备'],
+    name: 'Zhao Mingming',
+    first_name: 'Mingming',
+    last_name: 'Zhao',
+    type: 'Major Donor',
+    priority: 'High',
+    interests: ['Hospital Development', 'Medical Equipment'],
     flags: [],
     status: 'approved',
-    previous_events: ['春季晚会2023', '冬季慈善舞会2023'],
-    relationships: '长期支持者'
+    previous_events: ['Spring Gala 2023', 'Winter Charity Ball 2023'],
+    relationships: 'Long-term Supporter'
   },
   {
     id: 109,
-    name: '李小红',
-    type: '个人捐赠者',
-    priority: '中',
-    interests: ['儿童健康'],
+    name: 'Li Xiaohong',
+    first_name: 'Xiaohong',
+    last_name: 'Li',
+    type: 'Individual Donor',
+    priority: 'Medium',
+    interests: ['Children\'s Health'],
     flags: [],
     status: 'excluded',
     previous_events: [],
@@ -218,39 +236,41 @@ export const MOCK_DONORS = [
   },
   {
     id: 110,
-    name: '孙建华',
-    type: '企业捐赠者',
-    priority: '高',
-    interests: ['医疗研究', '设备捐赠'],
+    name: 'Sun Jianhua',
+    first_name: 'Jianhua',
+    last_name: 'Sun',
+    type: 'Corporate Donor',
+    priority: 'High',
+    interests: ['Medical Research', 'Equipment Donation'],
     flags: ['VIP'],
     status: 'approved',
-    previous_events: ['研究研讨会2023', '研究研讨会2024'],
-    relationships: '123医疗集团主席'
+    previous_events: ['Research Symposium 2023', 'Research Symposium 2024'],
+    relationships: '123 Medical Group Chairman'
   }
 ];
 
-// 事件和捐赠者映射关系
+// Event and donor mapping relationships
 export const MOCK_EVENT_DONORS = {
   1: [101, 103, 105, 108, 110], // Spring Gala 2025
   2: [102, 104, 106, 107],      // Research Symposium 2025
   3: [103, 105, 107, 109],      // Patient Care Fundraiser
   4: [102, 106, 110],           // Corporate Partners Summit
   5: [101, 104, 108, 109, 110], // Winter Charity Ball
-  6: [102, 103, 106, 108, 110], // 医疗创新研讨会2025
-  7: [101, 104, 105, 107, 108, 109], // 儿童健康慈善晚宴
-  8: [102, 106, 110],           // 医院设备捐赠活动
-  9: [101, 103, 105, 107, 109], // 健康科技展览会
-  10: [104, 105, 107, 108]      // 老年健康关爱计划启动仪式
+  6: [102, 103, 106, 108, 110], // Medical Innovation Symposium 2025
+  7: [101, 104, 105, 107, 108, 109], // Children's Health Charity Dinner
+  8: [102, 106, 110],           // Hospital Equipment Donation Event
+  9: [101, 103, 105, 107, 109], // Health Technology Exhibition
+  10: [104, 105, 107, 108]      // Elderly Care Initiative Launch Ceremony
 };
 
-// 事件捐赠者统计数据
+// Event donor statistics data
 export const MOCK_EVENT_STATS = {
   1: { pending: 0, approved: 5, excluded: 0 },
   2: { pending: 2, approved: 2, excluded: 0 },
   3: { pending: 0, approved: 3, excluded: 1 },
-  4: { pending: 2, approved: 1, excluded: 0 },
+  4: { pending: 1, approved: 2, excluded: 0 },
   5: { pending: 1, approved: 3, excluded: 1 },
-  6: { pending: 2, approved: 3, excluded: 0 },
+  6: { pending: 1, approved: 4, excluded: 0 },
   7: { pending: 1, approved: 4, excluded: 1 },
   8: { pending: 1, approved: 2, excluded: 0 },
   9: { pending: 0, approved: 4, excluded: 1 },
