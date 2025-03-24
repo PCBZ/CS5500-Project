@@ -733,4 +733,152 @@ router.get('/stats/summary', protect, async (req, res) => {
   }
 });
 
+/**
+ * Get donors from a specific donor list with pagination and filtering
+ * 
+ * @name GET /api/donor-lists/:id/donors
+ * @function
+ * @memberof module:DonorListAPI
+ * @param {number} req.params.id - Donor list ID
+ * @param {number} [req.query.page=1] - Page number for pagination
+ * @param {number} [req.query.limit=20] - Number of results per page
+ * @param {string} [req.query.search] - Search term for donor name
+ * @param {string} [req.query.status] - Filter by donor status
+ * @param {string} req.headers.authorization - Bearer token for authentication
+ * @returns {object} 200 - Donors in the specified list with pagination info
+ * @returns {Error} 404 - List not found
+ * @returns {Error} 500 - Server error
+ * 
+ * @example Request Example:
+ * GET /api/donor-lists/1/donors?page=1&limit=10&search=john
+ * Authorization: Bearer <token>
+ * 
+ * @example Success Response:
+ * {
+ *   "donors": [
+ *     {
+ *       "id": 201,
+ *       "donor_id": 301,
+ *       "status": "Approved",
+ *       "comments": "Important donor",
+ *       "donor": {
+ *         "id": 301,
+ *         "first_name": "John",
+ *         "last_name": "Doe",
+ *         "organization_name": null,
+ *         "total_donations": 5000
+ *       }
+ *     }
+ *   ],
+ *   "total": 1,
+ *   "page": 1,
+ *   "limit": 10,
+ *   "pages": 1
+ * }
+ */
+router.get('/:id/donors', protect, async (req, res) => {
+  try {
+    const listId = parseInt(req.params.id);
+    const {
+      page = '1',
+      limit = '20',
+      search = '',
+      status = ''
+    } = req.query;
+
+    const pageNum = parseInt(page);
+    const limitNum = parseInt(limit);
+    const skip = (pageNum - 1) * limitNum;
+
+    // 验证捐赠者列表是否存在
+    const list = await prisma.eventDonorList.findUnique({
+      where: { id: listId }
+    });
+
+    if (!list) {
+      return res.status(404).json({ message: 'Donor list not found' });
+    }
+
+    // 构建查询条件
+    const where = {
+      donorListId: listId
+    };
+
+    // 添加状态过滤
+    if (status) {
+      where.status = status;
+    }
+
+    // 添加名称搜索过滤（搜索关联的捐赠者的名称）
+    if (search) {
+      const searchLower = search.toLowerCase();
+      where.donor = {
+        OR: [
+          { firstName: { contains: searchLower } },
+          { lastName: { contains: searchLower } },
+          { organizationName: { contains: searchLower } }
+        ]
+      };
+    }
+
+    // 获取总记录数
+    const total = await prisma.eventDonor.count({ where });
+
+    // 获取捐赠者数据
+    const eventDonors = await prisma.eventDonor.findMany({
+      where,
+      skip,
+      take: limitNum,
+      orderBy: { createdAt: 'desc' },
+      include: {
+        donor: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            organizationName: true,
+            totalDonations: true,
+            city: true,
+            tags: true
+          }
+        }
+      }
+    });
+
+    // 转换数据为API期望的格式
+    const formattedDonors = eventDonors.map(ed => ({
+      id: ed.id,
+      donor_id: ed.donorId,
+      status: ed.status,
+      exclude_reason: ed.excludeReason,
+      reviewer_id: ed.reviewerId,
+      review_date: ed.reviewDate,
+      comments: ed.comments,
+      auto_excluded: ed.autoExcluded,
+      created_at: ed.createdAt,
+      updated_at: ed.updatedAt,
+      donor: {
+        id: ed.donor.id,
+        first_name: ed.donor.firstName,
+        last_name: ed.donor.lastName,
+        organization_name: ed.donor.organizationName,
+        total_donations: ed.donor.totalDonations,
+        city: ed.donor.city,
+        tags: ed.donor.tags
+      }
+    }));
+
+    res.json({
+      donors: formattedDonors,
+      total,
+      page: pageNum,
+      limit: limitNum,
+      pages: Math.ceil(total / limitNum)
+    });
+  } catch (error) {
+    console.error('Error fetching donors from list:', error);
+    res.status(500).json({ message: 'Internal server error', error: error.message });
+  }
+});
+
 export default router; 

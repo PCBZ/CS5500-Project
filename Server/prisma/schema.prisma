@@ -42,6 +42,7 @@ model User {
   role            Role             @default(pmm)
   generatedLists  EventDonorList[]
   createdEvents   Event[]
+  reviewedDonors  EventDonor[]     @relation("Reviewer")
 
   @@map("users")
 }
@@ -67,18 +68,24 @@ model EventDonorList {
 }
 
 model EventDonor {
-  id             Int         @id @default(autoincrement())
-  donorListId    Int
-  donorId        Int
-  status         DonorStatus
-  excludeReason  String?     @db.VarChar(255)
-  reviewerId     Int?
-  reviewDate     DateTime?
-  comments       String?     @db.Text
-  autoExcluded   Boolean     @default(false)
-  donorList      EventDonorList @relation(fields: [donorListId], references: [id])
-  donor          Donor       @relation(fields: [donorId], references: [id])
+  id            Int         @id @default(autoincrement())
+  donorListId   Int
+  donorId       Int
+  status        DonorStatus @default(Pending)
+  excludeReason String?     @db.VarChar(255)
+  reviewerId    Int?
+  reviewDate    DateTime?
+  comments      String?     @db.Text
+  autoExcluded  Boolean     @default(false)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  donorList     EventDonorList @relation(fields: [donorListId], references: [id])
+  donor         Donor          @relation(fields: [donorId], references: [id])
+  reviewer      User?          @relation("Reviewer", fields: [reviewerId], references: [id])
 
+  @@index([donorListId])
+  @@index([donorId])
+  @@index([reviewerId])
   @@map("event_donors")
 }
 

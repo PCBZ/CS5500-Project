@@ -249,38 +249,63 @@ router.post('/', protect, async (req, res) => {
     // Get user ID from auth middleware
     const userId = req.user.id;
 
-    // Create event
-    const event = await prisma.event.create({
-      data: {
-        name,
-        type,
-        date: new Date(date),
-        location,
-        capacity: capacity ? parseInt(capacity) : 0,
-        focus,
-        criteriaMinGivingLevel: criteriaMinGivingLevel ? parseFloat(criteriaMinGivingLevel) : 0,
-        timelineListGenerationDate: timelineListGenerationDate ? new Date(timelineListGenerationDate) : null,
-        timelineReviewDeadline: timelineReviewDeadline ? new Date(timelineReviewDeadline) : null,
-        timelineInvitationDate: timelineInvitationDate ? new Date(timelineInvitationDate) : null,
-        status,
-        creator: {
-          connect: { id: userId }
-        }
-      },
-      include: {
-        creator: {
-          select: {
-            id: true,
-            name: true,
-            email: true
+    // Create event with a donor list in a transaction
+    const result = await prisma.$transaction(async (prisma) => {
+      // Create event
+      const event = await prisma.event.create({
+        data: {
+          name,
+          type,
+          date: new Date(date),
+          location,
+          capacity: capacity ? parseInt(capacity) : 0,
+          focus,
+          criteriaMinGivingLevel: criteriaMinGivingLevel ? parseFloat(criteriaMinGivingLevel) : 0,
+          timelineListGenerationDate: timelineListGenerationDate ? new Date(timelineListGenerationDate) : null,
+          timelineReviewDeadline: timelineReviewDeadline ? new Date(timelineReviewDeadline) : null,
+          timelineInvitationDate: timelineInvitationDate ? new Date(timelineInvitationDate) : null,
+          status,
+          creator: {
+            connect: { id: userId }
+          }
+        },
+        include: {
+          creator: {
+            select: {
+              id: true,
+              name: true,
+              email: true
+            }
           }
         }
-      }
+      });
+
+      // Create donor list for this event
+      const donorList = await prisma.eventDonorList.create({
+        data: {
+          eventId: event.id,
+          name: `${event.name} - 捐赠者名单`,
+          totalDonors: 0,
+          approved: 0,
+          excluded: 0,
+          pending: 0,
+          autoExcluded: 0,
+          reviewStatus: 'pending',
+          generatedBy: userId
+        }
+      });
+
+      return { event, donorList };
     });
 
     res.status(201).json({
       message: 'Event created successfully',
-      event: formatEvent(event)
+      event: formatEvent(result.event),
+      donorList: {
+        id: result.donorList.id,
+        name: result.donorList.name,
+        totalDonors: result.donorList.totalDonors
+      }
     });
   } catch (error) {
     console.error('Error creating event:', error);
@@ -763,6 +788,523 @@ router.get('/status/:status', protect, async (req, res) => {
     });
   } catch (error) {
     console.error('Error fetching events by status:', error);
+    res.status(500).json({ message: 'Internal server error', error: error.message });
+  }
+});
+
+/**
+ * Get donors for a specific event with pagination and filtering
+ * 
+ * @name GET /api/events/:id/donors
+ * @function
+ * @memberof module:EventAPI
+ * @inner
+ * @param {string} req.params.id - Event ID
+ * @param {string} [req.query.page=1] - Page number for pagination
+ * @param {string} [req.query.limit=20] - Number of items per page
+ * @param {string} [req.query.search] - Search term for donor name or attributes
+ * @param {string} [req.query.status] - Filter by donor status (approved, pending, excluded, etc.)
+ * @param {string} req.headers.authorization - Bearer token for authentication
+ * @returns {Object} 200 - Donors associated with the event with pagination info
+ * @returns {Error} 400 - Invalid event ID format
+ * @returns {Error} 401 - Unauthorized access
+ * @returns {Error} 404 - Event not found
+ * @returns {Error} 500 - Server error
+ * 
+ * @example
+ * // Request
+ * GET /api/events/1/donors?page=1&limit=10&status=Approved
+ * Authorization: Bearer <token>
+ * 
+ * // Success Response
+ * {
+ *   "donors": [
+ *     {
+ *       "id": 201,
+ *       "donor_id": 301,
+ *       "status": "Approved",
+ *       "comments": "Important donor",
+ *       "donor": {
+ *         "id": 301,
+ *         "first_name": "John",
+ *         "last_name": "Doe",
+ *         "organization_name": null,
+ *         "total_donations": 5000
+ *       }
+ *     }
+ *   ],
+ *   "total": 1,
+ *   "page": 1,
+ *   "limit": 10,
+ *   "pages": 1
+ * }
+ */
+router.get('/:id/donors', protect, async (req, res) => {
+  try {
+    let eventId;
+    try {
+      eventId = parseInt(req.params.id); 
+      if (isNaN(eventId)) {
+        return res.status(400).json({ message: 'Invalid event ID format' });
+      }
+    } catch (error) {
+      return res.status(400).json({ message: 'Invalid event ID format' });
+    }
+
+    // 验证事件是否存在
+    const event = await prisma.event.findUnique({
+      where: { id: eventId },
+      include: {
+        donorLists: {
+          select: {
+            id: true
+          }
+        }
+      }
+    });
+
+    if (!event) {
+      return res.status(404).json({ message: 'Event not found' });
+    }
+    
+    // 设置分页参数
+    const {
+      page = '1',
+      limit = '20',
+      search = '',
+      status = ''
+    } = req.query;
+
+    const pageNum = parseInt(page);
+    const limitNum = parseInt(limit);
+    const skip = (pageNum - 1) * limitNum;
+
+    // 如果事件没有捐赠者列表，返回空结果
+    if (!event.donorLists || event.donorLists.length === 0) {
+      return res.json({
+        donors: [],
+        total: 0,
+        page: pageNum,
+        limit: limitNum,
+        pages: 0,
+        message: 'Event has no donor list',
+        needsListCreation: true
+      });
+    }
+
+    // 获取事件的第一个捐赠者列表ID
+    const donorListId = event.donorLists[0].id;
+    
+    // 构建查询条件
+    const where = {
+      donorListId: donorListId
+    };
+    
+    // 添加状态过滤
+    if (status) {
+      where.status = status;
+    }
+    
+    // 添加名称搜索过滤
+    if (search) {
+      const searchLower = search.toLowerCase();
+      where.donor = {
+        OR: [
+          { firstName: { contains: searchLower } },
+          { lastName: { contains: searchLower } },
+          { organizationName: { contains: searchLower } }
+        ]
+      };
+    }
+
+    // 获取总记录数
+    const total = await prisma.eventDonor.count({ where });
+
+    // 获取捐赠者数据
+    const eventDonors = await prisma.eventDonor.findMany({
+      where,
+      skip,
+      take: limitNum,
+      orderBy: { createdAt: 'desc' },
+      include: {
+        donor: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            organizationName: true,
+            totalDonations: true,
+            largestGift: true,
+            firstGiftDate: true,
+            lastGiftDate: true,
+            lastGiftAmount: true,
+            city: true,
+            tags: true
+          }
+        }
+      }
+    });
+
+    // 格式化数据响应
+    const formattedDonors = eventDonors.map(ed => ({
+      id: ed.id,
+      donor_id: ed.donorId,
+      status: ed.status,
+      exclude_reason: ed.excludeReason,
+      reviewer_id: ed.reviewerId,
+      review_date: ed.reviewDate,
+      comments: ed.comments,
+      auto_excluded: ed.autoExcluded,
+      created_at: ed.createdAt,
+      updated_at: ed.updatedAt,
+      donor: {
+        id: ed.donor.id,
+        first_name: ed.donor.firstName,
+        last_name: ed.donor.lastName,
+        organization_name: ed.donor.organizationName,
+        total_donations: ed.donor.totalDonations,
+        largest_gift: ed.donor.largestGift,
+        first_gift_date: ed.donor.firstGiftDate,
+        last_gift_date: ed.donor.lastGiftDate,
+        last_gift_amount: ed.donor.lastGiftAmount,
+        city: ed.donor.city,
+        tags: ed.donor.tags
+      }
+    }));
+
+    res.json({
+      donors: formattedDonors,
+      total,
+      page: pageNum,
+      limit: limitNum,
+      pages: Math.ceil(total / limitNum)
+    });
+  } catch (error) {
+    console.error('Error fetching event donors:', error);
+    res.status(500).json({ message: 'Internal server error', error: error.message });
+  }
+});
+
+/**
+ * Add a donor to an event
+ * 
+ * @name POST /api/events/:id/donors
+ * @function
+ * @memberof module:EventAPI
+ * @inner
+ * @param {string} req.params.id - Event ID
+ * @param {Object} req.body - Donor data
+ * @param {string} req.body.donorId - ID of the donor to add
+ * @param {string} req.headers.authorization - Bearer token for authentication
+ * @returns {Object} 200 - Success message and donor list info
+ * @returns {Error} 400 - Invalid event ID format or missing donor ID
+ * @returns {Error} 401 - Unauthorized access
+ * @returns {Error} 404 - Event or donor not found
+ * @returns {Error} 500 - Server error
+ * 
+ * @example
+ * // Request
+ * POST /api/events/1/donors
+ * Authorization: Bearer <token>
+ * {
+ *   "donorId": "123"
+ * }
+ * 
+ * // Success Response
+ * {
+ *   "message": "Donor added to event successfully",
+ *   "donorList": {
+ *     "id": 45,
+ *     "name": "Spring Gala 2025 - Donor List",
+ *     "totalDonors": 86
+ *   },
+ *   "eventDonor": {
+ *     "id": 345,
+ *     "donorId": 123,
+ *     "status": "Pending"
+ *   }
+ * }
+ */
+router.post('/:id/donors', protect, async (req, res) => {
+  try {
+    // 验证事件ID
+    let eventId;
+    try {
+      eventId = parseInt(req.params.id); 
+      if (isNaN(eventId)) {
+        return res.status(400).json({ message: 'Invalid event ID format' });
+      }
+    } catch (error) {
+      return res.status(400).json({ message: 'Invalid event ID format' });
+    }
+
+    // 验证捐赠者ID
+    const { donorId } = req.body;
+    if (!donorId) {
+      return res.status(400).json({ message: 'Donor ID is required' });
+    }
+
+    const donorIdInt = parseInt(donorId);
+    if (isNaN(donorIdInt)) {
+      return res.status(400).json({ message: 'Invalid donor ID format' });
+    }
+
+    // 验证事件是否存在
+    const event = await prisma.event.findUnique({
+      where: { id: eventId },
+      include: {
+        donorLists: {
+          select: {
+            id: true,
+            name: true,
+            totalDonors: true
+          }
+        }
+      }
+    });
+
+    if (!event) {
+      return res.status(404).json({ message: 'Event not found' });
+    }
+
+    // 验证捐赠者是否存在
+    const donor = await prisma.donor.findUnique({
+      where: { id: donorIdInt }
+    });
+
+    if (!donor) {
+      return res.status(404).json({ message: 'Donor not found' });
+    }
+
+    // 获取或创建事件的捐赠者列表
+    let donorList = event.donorLists && event.donorLists.length > 0 
+      ? event.donorLists[0] 
+      : null;
+
+    if (!donorList) {
+      // 创建捐赠者列表
+      donorList = await prisma.eventDonorList.create({
+        data: {
+          name: `${event.name} - Donor List`,
+          eventId: eventId,
+          generatedBy: req.user.id,
+          totalDonors: 0,
+          pending: 0,
+          approved: 0,
+          excluded: 0,
+          autoExcluded: 0,
+          reviewStatus: 'Pending'
+        }
+      });
+    }
+
+    // 检查捐赠者是否已在列表中
+    const existingEventDonor = await prisma.eventDonor.findFirst({
+      where: {
+        donorListId: donorList.id,
+        donorId: donorIdInt
+      }
+    });
+
+    if (existingEventDonor) {
+      return res.status(400).json({ 
+        message: 'Donor is already in this event',
+        donorList,
+        eventDonor: existingEventDonor
+      });
+    }
+
+    // 添加捐赠者到列表
+    const eventDonor = await prisma.eventDonor.create({
+      data: {
+        donorListId: donorList.id,
+        donorId: donorIdInt,
+        status: 'Pending',
+        comments: 'Added via API'
+      }
+    });
+
+    // 更新列表统计数据
+    await prisma.eventDonorList.update({
+      where: { id: donorList.id },
+      data: {
+        totalDonors: { increment: 1 },
+        pending: { increment: 1 }
+      }
+    });
+
+    // 获取更新后的捐赠者列表
+    const updatedDonorList = await prisma.eventDonorList.findUnique({
+      where: { id: donorList.id },
+      select: {
+        id: true,
+        name: true,
+        totalDonors: true,
+        pending: true,
+        approved: true,
+        excluded: true
+      }
+    });
+
+    res.json({
+      message: 'Donor added to event successfully',
+      donorList: updatedDonorList,
+      eventDonor: {
+        id: eventDonor.id,
+        donorId: eventDonor.donorId,
+        status: eventDonor.status
+      }
+    });
+  } catch (error) {
+    console.error('Error adding donor to event:', error);
+    res.status(500).json({ message: 'Internal server error', error: error.message });
+  }
+});
+
+/**
+ * Remove a donor from an event
+ * 
+ * @name DELETE /api/events/:id/donors/:donorId
+ * @function
+ * @memberof module:EventAPI
+ * @inner
+ * @param {string} req.params.id - Event ID
+ * @param {string} req.params.donorId - Donor ID to remove
+ * @param {string} req.headers.authorization - Bearer token for authentication
+ * @returns {Object} 200 - Success message
+ * @returns {Error} 400 - Invalid event ID or donor ID format
+ * @returns {Error} 401 - Unauthorized access
+ * @returns {Error} 404 - Event, donor list or donor not found
+ * @returns {Error} 500 - Server error
+ * 
+ * @example
+ * // Request
+ * DELETE /api/events/1/donors/123
+ * Authorization: Bearer <token>
+ * 
+ * // Success Response
+ * {
+ *   "message": "Donor removed from event successfully",
+ *   "donorList": {
+ *     "id": 45,
+ *     "name": "Spring Gala 2025 - Donor List",
+ *     "totalDonors": 85
+ *   }
+ * }
+ */
+router.delete('/:id/donors/:donorId', protect, async (req, res) => {
+  try {
+    // 验证事件ID
+    let eventId;
+    try {
+      eventId = parseInt(req.params.id); 
+      if (isNaN(eventId)) {
+        return res.status(400).json({ message: 'Invalid event ID format' });
+      }
+    } catch (error) {
+      return res.status(400).json({ message: 'Invalid event ID format' });
+    }
+
+    // 验证捐赠者ID
+    let donorId;
+    try {
+      donorId = parseInt(req.params.donorId);
+      if (isNaN(donorId)) {
+        return res.status(400).json({ message: 'Invalid donor ID format' });
+      }
+    } catch (error) {
+      return res.status(400).json({ message: 'Invalid donor ID format' });
+    }
+
+    // 验证事件是否存在并获取捐赠者列表ID
+    const event = await prisma.event.findUnique({
+      where: { id: eventId },
+      include: {
+        donorLists: {
+          select: {
+            id: true,
+            name: true,
+            totalDonors: true
+          }
+        }
+      }
+    });
+
+    if (!event) {
+      return res.status(404).json({ message: 'Event not found' });
+    }
+
+    // 检查事件是否有捐赠者列表
+    if (!event.donorLists || event.donorLists.length === 0) {
+      return res.status(404).json({ message: 'Event has no donor list' });
+    }
+
+    const donorListId = event.donorLists[0].id;
+
+    // 查找捐赠者在列表中的记录
+    const eventDonor = await prisma.eventDonor.findFirst({
+      where: {
+        donorListId: donorListId,
+        donorId: donorId
+      }
+    });
+
+    if (!eventDonor) {
+      return res.status(404).json({ message: 'Donor not found in this event' });
+    }
+
+    // 获取捐赠者状态，用于更新统计信息
+    const donorStatus = eventDonor.status;
+
+    // 删除捐赠者记录
+    await prisma.eventDonor.delete({
+      where: {
+        id: eventDonor.id
+      }
+    });
+
+    // 更新列表统计信息
+    const updateData = {
+      totalDonors: { decrement: 1 }
+    };
+
+    // 根据捐赠者状态更新对应的计数
+    if (donorStatus === 'Pending') {
+      updateData.pending = { decrement: 1 };
+    } else if (donorStatus === 'Approved') {
+      updateData.approved = { decrement: 1 };
+    } else if (donorStatus === 'Excluded') {
+      updateData.excluded = { decrement: 1 };
+    } else if (donorStatus === 'AutoExcluded') {
+      updateData.autoExcluded = { decrement: 1 };
+    }
+
+    // 更新捐赠者列表统计数据
+    await prisma.eventDonorList.update({
+      where: { id: donorListId },
+      data: updateData
+    });
+
+    // 获取更新后的捐赠者列表
+    const updatedDonorList = await prisma.eventDonorList.findUnique({
+      where: { id: donorListId },
+      select: {
+        id: true,
+        name: true,
+        totalDonors: true,
+        pending: true,
+        approved: true,
+        excluded: true,
+        autoExcluded: true
+      }
+    });
+
+    res.json({
+      message: 'Donor removed from event successfully',
+      donorList: updatedDonorList
+    });
+  } catch (error) {
+    console.error('Error removing donor from event:', error);
     res.status(500).json({ message: 'Internal server error', error: error.message });
   }
 });

@@ -1,5 +1,6 @@
 // Import mock data from mockData module
-import { MOCK_DONORS, MOCK_EVENT_DONORS, MOCK_EVENT_STATS } from './mockData';
+// import { MOCK_DONORS, MOCK_EVENT_DONORS, MOCK_EVENT_STATS } from './mockData';
+import { getEventDonors } from './eventService';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000';
 
@@ -52,41 +53,7 @@ export const getDonors = async (params = {}) => {
     };
   } catch (error) {
     console.error('Error fetching donors:', error);
-    console.warn('Returning mock data due to API failure');
-    
-    // Return mock data if API call fails
-    let filteredDonors = [...MOCK_DONORS];
-    
-    // Filter by event id if provided
-    if (params.eventId) {
-      const eventDonorIds = MOCK_EVENT_DONORS[params.eventId] || [];
-      filteredDonors = filteredDonors.filter(donor => eventDonorIds.includes(donor.id));
-    }
-    
-    // Filter by search term if provided
-    if (params.search) {
-      const searchLower = params.search.toLowerCase();
-      filteredDonors = filteredDonors.filter(donor => 
-        (donor.first_name + ' ' + donor.last_name).toLowerCase().includes(searchLower) || 
-        (donor.organization_name || '').toLowerCase().includes(searchLower) ||
-        (donor.type || '').toLowerCase().includes(searchLower)
-      );
-    }
-    
-    // Apply pagination
-    const page = params.page || 1;
-    const limit = params.limit || 10;
-    const startIndex = (page - 1) * limit;
-    const endIndex = startIndex + limit;
-    const paginatedDonors = filteredDonors.slice(startIndex, endIndex);
-    
-    return {
-      data: paginatedDonors,
-      page: parseInt(page),
-      limit: parseInt(limit),
-      total_count: filteredDonors.length,
-      total_pages: Math.ceil(filteredDonors.length / limit)
-    };
+    throw error; // 不再返回模拟数据，而是将错误传递给调用方
   }
 };
 
@@ -103,19 +70,21 @@ export const getAvailableDonors = async (eventId, params = {}) => {
       throw new Error('No authentication token found');
     }
 
-    // Directly get available donors from API, using not_in_event parameter
-    const availableDonorsUrl = new URL(`${API_URL}/api/donors`);
-    // Add not_in_event parameter
-    availableDonorsUrl.searchParams.append('not_in_event', eventId);
+    console.log('获取事件ID为', eventId, '的可用捐赠者');
     
-    // Add other parameters
+    // 步骤1: 获取所有捐赠者
+    const allDonorsUrl = new URL(`${API_URL}/api/donors`);
+    
+    // 添加分页和搜索参数
     Object.keys(params).forEach(key => {
       if (params[key] !== undefined && params[key] !== '') {
-        availableDonorsUrl.searchParams.append(key, params[key]);
+        allDonorsUrl.searchParams.append(key, params[key]);
       }
     });
     
-    const response = await fetch(availableDonorsUrl, {
+    // 获取所有捐赠者列表
+    console.log('获取所有捐赠者:', allDonorsUrl.toString());
+    const allDonorsResponse = await fetch(allDonorsUrl, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -123,42 +92,74 @@ export const getAvailableDonors = async (eventId, params = {}) => {
       }
     });
     
-    if (!response.ok) {
-      throw new Error(`Failed to get available donors: ${response.status}`);
+    if (!allDonorsResponse.ok) {
+      throw new Error(`Failed to get all donors: ${allDonorsResponse.status}`);
     }
     
-    const data = await response.json();
+    const allDonorsData = await allDonorsResponse.json();
+    console.log('获取到所有捐赠者:', allDonorsData.donors.length);
     
-    // Return formatted response
+    // 步骤2: 获取事件中已存在的捐赠者ID
+    let eventDonorIds = new Set();
+    try {
+      // 直接使用 /api/events/:id/donors 端点获取事件已有的捐赠者
+      const eventDonorsUrl = new URL(`${API_URL}/api/events/${eventId}/donors?limit=1000`);
+      // 添加no_sort参数，避免服务器端排序错误
+      eventDonorsUrl.searchParams.set('no_sort', 'true');
+      console.log('获取事件捐赠者:', eventDonorsUrl.toString());
+      
+      const eventDonorsResponse = await fetch(eventDonorsUrl, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (eventDonorsResponse.ok) {
+        const eventDonorsData = await eventDonorsResponse.json();
+        console.log('获取到事件捐赠者数据');
+        
+        if (eventDonorsData.donors && Array.isArray(eventDonorsData.donors)) {
+          eventDonorsData.donors.forEach(donor => {
+            // 处理不同的数据结构，确保我们能获取到donorId
+            if (donor.donorId) eventDonorIds.add(donor.donorId);
+            if (donor.donor_id) eventDonorIds.add(donor.donor_id);
+            if (donor.donor && donor.donor.id) eventDonorIds.add(donor.donor.id);
+          });
+          console.log('事件中已有捐赠者数量:', eventDonorIds.size);
+        }
+      } else if (eventDonorsResponse.status === 404) {
+        // 如果404，可能是列表不存在，尝试创建一个
+        console.log('事件捐赠者列表可能不存在，将返回空捐赠者列表');
+        // 在这里，我们不需要创建列表，因为当用户添加第一个捐赠者时会自动创建
+      } else {
+        console.error('获取事件捐赠者失败:', eventDonorsResponse.status);
+      }
+    } catch (error) {
+      console.error('获取事件捐赠者时出错:', error);
+      console.log('忽略错误，继续处理');
+    }
+    
+    // 步骤3: 过滤出未添加到事件的捐赠者
+    const availableDonors = allDonorsData.donors.filter(donor => {
+      const donorId = donor.id;
+      return !eventDonorIds.has(donorId);
+    });
+    
+    console.log('过滤后的可用捐赠者数量:', availableDonors.length);
+    
+    // 返回过滤后的结果
     return {
-      data: data.donors || [],
-      page: data.page || 1,
-      limit: data.limit || 10,
-      total_count: data.total || 0,
-      total_pages: data.pages || 1
+      data: availableDonors || [],
+      page: allDonorsData.page || 1,
+      limit: allDonorsData.limit || 10,
+      total_count: availableDonors.length,
+      total_pages: Math.ceil(availableDonors.length / (allDonorsData.limit || 10))
     };
   } catch (error) {
     console.error('Error fetching available donors:', error);
-    console.warn('Returning mock data due to API failure');
-    
-    // Return mock data for available donors (donors not in this event)
-    const eventDonorIds = MOCK_EVENT_DONORS[eventId] || [];
-    const availableDonors = MOCK_DONORS.filter(donor => !eventDonorIds.includes(donor.id));
-    
-    // Apply pagination
-    const page = params.page || 1;
-    const limit = params.limit || 10;
-    const startIndex = (page - 1) * limit;
-    const endIndex = startIndex + limit;
-    const paginatedDonors = availableDonors.slice(startIndex, endIndex);
-    
-    return {
-      data: paginatedDonors,
-      page: parseInt(page),
-      limit: parseInt(limit),
-      total_count: availableDonors.length,
-      total_pages: Math.ceil(availableDonors.length / limit)
-    };
+    throw error; // 不再返回模拟数据，而是将错误传递给调用方
   }
 };
 
@@ -175,6 +176,9 @@ export const addDonorToEvent = async (eventId, donorId) => {
       throw new Error('No authentication token found');
     }
 
+    console.log(`向事件 ${eventId} 添加捐赠者 ${donorId}`);
+    
+    // 使用/api/events/{eventId}/donors端点添加捐赠者
     const response = await fetch(`${API_URL}/api/events/${eventId}/donors`, {
       method: 'POST',
       headers: {
@@ -185,37 +189,17 @@ export const addDonorToEvent = async (eventId, donorId) => {
     });
 
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      const errorData = await response.json();
+      console.error('添加捐赠者失败:', errorData);
+      throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
     }
 
-    return await response.json();
+    const result = await response.json();
+    console.log('添加捐赠者成功:', result);
+    return result;
   } catch (error) {
     console.error('Error adding donor to event:', error);
-    console.warn('Using mock data due to API failure');
-    
-    // Update mock data
-    if (!MOCK_EVENT_DONORS[eventId]) {
-      MOCK_EVENT_DONORS[eventId] = [];
-    }
-    
-    // Check if donor already exists in event
-    if (!MOCK_EVENT_DONORS[eventId].includes(parseInt(donorId))) {
-      MOCK_EVENT_DONORS[eventId].push(parseInt(donorId));
-      
-      // Update stats
-      if (!MOCK_EVENT_STATS[eventId]) {
-        MOCK_EVENT_STATS[eventId] = { pending: 0, approved: 0, excluded: 0 };
-      }
-      
-      const donor = MOCK_DONORS.find(d => d.id === parseInt(donorId));
-      if (donor) {
-        if (donor.status === 'approved') MOCK_EVENT_STATS[eventId].approved += 1;
-        else if (donor.status === 'pending') MOCK_EVENT_STATS[eventId].pending += 1;
-        else if (donor.status === 'excluded') MOCK_EVENT_STATS[eventId].excluded += 1;
-      }
-    }
-    
-    return { success: true, message: 'Donor added to event' };
+    throw error; // 将错误传递给调用方
   }
 };
 
@@ -232,6 +216,9 @@ export const removeDonorFromEvent = async (eventId, donorId) => {
       throw new Error('No authentication token found');
     }
 
+    console.log(`从事件 ${eventId} 移除捐赠者 ${donorId}`);
+    
+    // 使用/api/events/{eventId}/donors/{donorId}端点移除捐赠者
     const response = await fetch(`${API_URL}/api/events/${eventId}/donors/${donorId}`, {
       method: 'DELETE',
       headers: {
@@ -241,33 +228,17 @@ export const removeDonorFromEvent = async (eventId, donorId) => {
     });
 
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      const errorData = await response.json();
+      console.error('移除捐赠者失败:', errorData);
+      throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
     }
 
-    return await response.json();
+    const result = await response.json();
+    console.log('移除捐赠者成功:', result);
+    return result;
   } catch (error) {
     console.error('Error removing donor from event:', error);
-    console.warn('Using mock data due to API failure');
-    
-    // Update mock data
-    if (MOCK_EVENT_DONORS[eventId]) {
-      const donorIdInt = parseInt(donorId);
-      
-      // Find donor to update stats correctly
-      const donor = MOCK_DONORS.find(d => d.id === donorIdInt);
-      
-      // Remove donor from event
-      MOCK_EVENT_DONORS[eventId] = MOCK_EVENT_DONORS[eventId].filter(id => id !== donorIdInt);
-      
-      // Update stats
-      if (MOCK_EVENT_STATS[eventId] && donor) {
-        if (donor.status === 'approved') MOCK_EVENT_STATS[eventId].approved -= 1;
-        else if (donor.status === 'pending') MOCK_EVENT_STATS[eventId].pending -= 1;
-        else if (donor.status === 'excluded') MOCK_EVENT_STATS[eventId].excluded -= 1;
-      }
-    }
-    
-    return { success: true, message: 'Donor removed from event' };
+    throw error; // 将错误传递给调用方
   }
 };
 
@@ -298,18 +269,14 @@ export const getEventDonorStats = async (eventId) => {
     return await response.json();
   } catch (error) {
     console.error('Error fetching event donor statistics:', error);
-    console.warn('Returning mock data due to API failure');
-    
-    // Return mock stats for this event
-    const stats = MOCK_EVENT_STATS[eventId] || { pending: 0, approved: 0, excluded: 0 };
-    
+    // 如果API调用失败，返回一个默认的空统计对象
     return {
       event_id: parseInt(eventId),
-      total_donors: (MOCK_EVENT_DONORS[eventId] || []).length,
-      pending_review: stats.pending,
-      approved: stats.approved,
-      excluded: stats.excluded,
-      approval_rate: stats.approved / (stats.approved + stats.excluded + stats.pending) * 100 || 0
+      total_donors: 0,
+      pending_review: 0,
+      approved: 0,
+      excluded: 0,
+      approval_rate: 0
     };
   }
 }; 
