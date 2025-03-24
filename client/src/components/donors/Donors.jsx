@@ -38,6 +38,7 @@ const Donors = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [totalDonors, setTotalDonors] = useState(0);
   const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [success, setSuccess] = useState('');
 
   // Set up mock token for development
   useEffect(() => {
@@ -94,12 +95,125 @@ const Donors = () => {
         search: searchQuery || undefined
       });
 
+      console.log('********', response.data);
+
+      // 处理返回结果中的错误信息
+      if (response.error && response.message) {
+        setError(prev => ({ ...prev, donors: response.message }));
+        setEventDonors([]);
+        setTotalPages(1);
+        setTotalDonors(0);
+        return;
+      }
+
+      // 如果服务器表示需要创建捐赠者列表，尝试自动创建
+      if (response.needsListCreation) {
+        try {
+          console.log('需要为事件创建捐赠者列表，尝试自动创建...');
+          setError(prev => ({ 
+            ...prev, 
+            donors: '正在为此事件创建捐赠者列表...' 
+          }));
+          
+          // 从eventService中导入函数
+          const { createEventDonorList } = await import('../../services/eventService');
+          
+          // 尝试创建列表
+          const listResult = await createEventDonorList(selectedEvent.id);
+          console.log('捐赠者列表创建成功:', listResult);
+          
+          // 创建列表成功后重新获取捐赠者
+          const updatedResponse = await getEventDonors(selectedEvent.id, {
+            page: currentPage,
+            limit: itemsPerPage,
+            search: searchQuery || undefined
+          });
+          
+          console.log('updatedResponse', updatedResponse.data);
+
+          setEventDonors(updatedResponse.data || []);
+          setTotalPages(updatedResponse.total_pages || 1);
+          setTotalDonors(updatedResponse.total_count || 0);
+          
+          // 清除错误并显示成功消息
+          setError(prev => ({ ...prev, donors: null }));
+          setSuccess('捐赠者列表创建成功！');
+          setTimeout(() => setSuccess(''), 3000);
+          
+          return; // 提前退出
+        } catch (createErr) {
+          console.error('自动创建捐赠者列表失败:', createErr);
+          setError(prev => ({ 
+            ...prev, 
+            donors: `无法创建捐赠者列表: ${createErr.message || 'Unknown error'}。请联系管理员。` 
+          }));
+          setEventDonors([]);
+          setTotalPages(1);
+          setTotalDonors(0);
+          return; // 提前退出
+        }
+      }
+
+      // 正常处理捐赠者数据
       setEventDonors(response.data || []);
       setTotalPages(response.total_pages || 1);
       setTotalDonors(response.total_count || 0);
     } catch (err) {
       console.error('Failed to fetch event donors:', err);
-      setError(prev => ({ ...prev, donors: 'Failed to load donors' }));
+      
+      // 针对不同错误类型提供不同的用户提示
+      let errorMessage = '加载捐赠者失败: ';
+      
+      if (err.message.includes('服务器内部错误')) {
+        // 对于服务器内部错误，尝试自动创建捐赠者列表
+        try {
+          console.log('服务器内部错误，尝试创建捐赠者列表作为可能的解决方案...');
+          setError(prev => ({ 
+            ...prev, 
+            donors: '服务器错误：尝试创建捐赠者列表...' 
+          }));
+          
+          // 从eventService中导入函数
+          const { createEventDonorList } = await import('../../services/eventService');
+          
+          // 尝试创建列表
+          const listResult = await createEventDonorList(selectedEvent.id);
+          console.log('捐赠者列表创建成功:', listResult);
+          
+          // 列表创建后重新获取捐赠者
+          const updatedResponse = await getEventDonors(selectedEvent.id, {
+            page: currentPage,
+            limit: itemsPerPage,
+            search: searchQuery || undefined
+          });
+          
+          setEventDonors(updatedResponse.data || []);
+          setTotalPages(updatedResponse.total_pages || 1);
+          setTotalDonors(updatedResponse.total_count || 0);
+          
+          // 清除错误并显示成功消息
+          setError(prev => ({ ...prev, donors: null }));
+          setSuccess('捐赠者列表创建成功！问题已解决。');
+          setTimeout(() => setSuccess(''), 5000);
+          
+          return; // 提前退出
+        } catch (createErr) {
+          console.error('尝试创建捐赠者列表失败:', createErr);
+          errorMessage += '服务器内部错误，自动修复失败。请联系管理员查看服务器日志。';
+        }
+      } else if (err.message.includes('网络连接错误')) {
+        errorMessage += '网络连接问题，请检查您的网络连接后重试';
+      } else if (err.message.includes('No authentication token found')) {
+        errorMessage += '会话已过期，请重新登录';
+        // 可以在这里添加重定向到登录页的逻辑
+      } else {
+        errorMessage += (err.message || 'Unknown error');
+      }
+      
+      setError(prev => ({ ...prev, donors: errorMessage }));
+      setEventDonors([]);
+      setTotalPages(1);
+      setTotalDonors(0);
     } finally {
       setLoading(prev => ({ ...prev, donors: false }));
     }
@@ -121,7 +235,9 @@ const Donors = () => {
       });
     } catch (err) {
       console.error('Failed to fetch event statistics:', err);
-      setError(prev => ({ ...prev, stats: 'Failed to load statistics' }));
+      setError(prev => ({ ...prev, stats: '加载统计信息失败: ' + (err.message || 'Unknown error') }));
+      // 设置默认的空统计信息
+      setStats({ pending: 0, approved: 0, excluded: 0 });
     } finally {
       setLoading(prev => ({ ...prev, stats: false }));
     }
@@ -133,22 +249,36 @@ const Donors = () => {
   const handleOpenAddDonorModal = async () => {
     if (!selectedEvent) return;
     
+    setShowAddDonorModal(true); // 立即显示模态窗口，同时加载数据
+    setLoading(prev => ({ ...prev, availableDonors: true }));
+    setError(prev => ({ ...prev, availableDonors: null }));
+    
     try {
-      setLoading(prev => ({ ...prev, availableDonors: true }));
-      setError(prev => ({ ...prev, availableDonors: null }));
-      
-      // Get available donors using the service function that now properly filters
-      // donors not already in the event
+      // 使用更新后的getAvailableDonors函数获取未添加到事件的捐赠者
+      // 这个函数会通过donorList API过滤掉已经存在于列表中的捐赠者
       const result = await getAvailableDonors(selectedEvent.id, {
         page: 1,
-        limit: 100
+        limit: 100,
+        search: searchQuery || undefined
       });
       
       setAvailableDonors(result.data || []);
-      setShowAddDonorModal(true);
+      
+      if (result.data.length === 0) {
+        setError(prev => ({ 
+          ...prev, 
+          availableDonors: '没有找到可添加的捐赠者。所有捐赠者可能已被添加到此事件，或者尝试使用搜索功能查找特定捐赠者。' 
+        }));
+      }
     } catch (error) {
       console.error('Error fetching available donors:', error);
-      setError(prev => ({ ...prev, availableDonors: 'Failed to fetch available donors, please try again' }));
+      setError(prev => ({ 
+        ...prev, 
+        availableDonors: '获取可用捐赠者失败: ' + (error.message || 'Unknown error')
+      }));
+      
+      // 重置可用捐赠者列表
+      setAvailableDonors([]);
     } finally {
       setLoading(prev => ({ ...prev, availableDonors: false }));
     }
@@ -194,21 +324,56 @@ const Donors = () => {
     try {
       setLoading(prev => ({ ...prev, donors: true }));
       
-      // Call API to add donor to event
-      await addDonorToEvent(selectedEvent.id, donorId);
+      // 调用API将捐赠者添加到事件
+      const result = await addDonorToEvent(selectedEvent.id, donorId);
       
-      // Update data
-      fetchEventDonors();
-      fetchEventStats();
+      // 如果响应中包含新创建的列表信息，可以在UI中进行相应更新
+      if (result.donorList) {
+        console.log('Donor list created or updated:', result.donorList);
+      }
       
-      // Remove this donor from the available donors list
-      setAvailableDonors(prev => prev.filter(donor => donor.id !== donorId));
+      // 更新事件捐赠者数据
+      await fetchEventDonors();
+      await fetchEventStats();
       
-      // Show success message (optional)
-      // toast.success('Donor added successfully');
+      // 从可用捐赠者列表中移除此捐赠者
+      setAvailableDonors(prev => prev.filter(donor => {
+        const id = donor.id || donor.donor_id || donor.donorId;
+        return id !== donorId;
+      }));
+      
+      // 显示成功消息
+      setSuccess('捐赠者添加成功');
+      setTimeout(() => setSuccess(''), 3000);
+      
+      // 刷新可用捐赠者列表
+      try {
+        const updatedAvailableDonors = await getAvailableDonors(selectedEvent.id, {
+          page: 1,
+          limit: 100,
+          search: searchQuery || undefined
+        });
+        setAvailableDonors(updatedAvailableDonors.data || []);
+      } catch (refreshError) {
+        console.error('Error refreshing available donors:', refreshError);
+        // 错误已经处理，但不影响主流程
+      }
     } catch (error) {
       console.error('Error adding donor to event:', error);
-      setError(prev => ({ ...prev, donors: 'Failed to add donor, please try again' }));
+      
+      // 特殊处理捐赠者已存在的情况
+      if (error.message && error.message.includes('already in this event')) {
+        setError(prev => ({ ...prev, donors: '此捐赠者已添加到事件中' }));
+      } else {
+        setError(prev => ({ ...prev, donors: '添加捐赠者失败: ' + (error.message || 'Unknown error') }));
+      }
+      
+      // 刷新捐赠者列表以确保UI一致性
+      try {
+        await fetchEventDonors();
+      } catch (fetchError) {
+        console.error('Failed to refresh donors after error:', fetchError);
+      }
     } finally {
       setLoading(prev => ({ ...prev, donors: false }));
     }
@@ -221,7 +386,7 @@ const Donors = () => {
   const handleRemoveDonor = async (donorId) => {
     if (!selectedEvent || !donorId) return;
     
-    // Confirm before removing donor
+    // 确认是否移除捐赠者
     if (!window.confirm('Are you sure you want to remove this donor from the event?')) {
       return;
     }
@@ -229,14 +394,14 @@ const Donors = () => {
     try {
       setLoading(prev => ({ ...prev, donors: true }));
       
-      // Call API to remove donor from event
+      // 调用API从事件中移除捐赠者
       await removeDonorFromEvent(selectedEvent.id, donorId);
       
-      // Update data
+      // 更新数据
       fetchEventDonors();
       fetchEventStats();
       
-      // Show success message (optional)
+      // 显示成功消息（可选）
       // toast.success('Donor removed successfully');
     } catch (error) {
       console.error('Error removing donor from event:', error);
@@ -295,6 +460,13 @@ const Donors = () => {
     }
     
     return pages;
+  };
+
+  // 添加一个重试功能的函数
+  const handleRetryFetchDonors = () => {
+    // 可以添加延迟重试或其他逻辑
+    console.log('Retrying to fetch donors...');
+    fetchEventDonors();
   };
 
   return (
@@ -405,10 +577,26 @@ const Donors = () => {
               </div>
             )}
             
+            {/* 错误消息显示 */}
             {error.donors && (
               <div className="error-message">
                 <p>{error.donors}</p>
-                <button onClick={fetchEventDonors}>Retry</button>
+                <p className="error-hint">
+                  {error.donors.includes('无法创建捐赠者列表') || error.donors.includes('服务器内部错误') ? 
+                    '提示：服务器端可能存在数据库字段问题。您可以尝试点击重试按钮，或者联系系统管理员修复服务器端代码中的排序字段错误。' : 
+                    '请尝试刷新页面或者稍后再试。'}
+                </p>
+                <div className="error-actions">
+                  <button onClick={handleRetryFetchDonors}>重试</button>
+                  <button onClick={() => window.location.reload()}>刷新页面</button>
+                </div>
+              </div>
+            )}
+            
+            {/* 成功消息显示 */}
+            {success && (
+              <div className="success-message">
+                <p>{success}</p>
               </div>
             )}
             
@@ -416,7 +604,13 @@ const Donors = () => {
               <>
                 {eventDonors.length === 0 ? (
                   <div className="no-donors-message">
-                    <p>No donors found for this event. Click the "Add Donor" button to add donors.</p>
+                    <button 
+                      className="add-donor-button-large"
+                      onClick={handleOpenAddDonorModal}
+                      disabled={!selectedEvent}
+                    >
+                      <FaPlus /> Add Your First Donor
+                    </button>
                   </div>
                 ) : (
                   <div className="donors-grid">
@@ -546,63 +740,86 @@ const Donors = () => {
       {showAddDonorModal && (
         <div className="modal-overlay">
           <div className="modal-content">
-            <h3>Add Donor to {selectedEvent?.name}</h3>
-            <div className="modal-close" onClick={handleCloseModal}>&times;</div>
-            
-            {loading.availableDonors && (
-              <div className="loading-indicator">
-                <FaSpinner className="spinner" />
-                <p>Loading available donors...</p>
+            <div className="modal-header">
+              <h3>Add Donor to Event</h3>
+              <button className="close-button" onClick={handleCloseModal}>×</button>
+            </div>
+            <div className="modal-body">
+              <div className="search-container">
+                <input
+                  type="text"
+                  placeholder="Search donors..."
+                  value={searchQuery}
+                  onChange={handleSearch}
+                  className="search-input"
+                />
+                <button 
+                  className="refresh-button" 
+                  onClick={async () => {
+                    try {
+                      setLoading(prev => ({ ...prev, availableDonors: true }));
+                      // 使用donorList API刷新可用捐赠者列表
+                      const refreshedDonors = await getAvailableDonors(selectedEvent.id, {
+                        page: 1,
+                        limit: 100,
+                        search: searchQuery || undefined
+                      });
+                      setAvailableDonors(refreshedDonors.data || []);
+                      console.log('refreshedDonors', refreshedDonors.data);
+                    } catch (error) {
+                      console.error('Error refreshing available donors:', error);
+                      setError(prev => ({ ...prev, availableDonors: 'Failed to refresh donors' }));
+                    } finally {
+                      setLoading(prev => ({ ...prev, availableDonors: false }));
+                    }
+                  }}
+                  disabled={loading.availableDonors}
+                >
+                  {loading.availableDonors ? <FaSpinner className="loading-spinner" /> : 'Refresh'}
+                </button>
               </div>
-            )}
-            
-            {error.availableDonors && (
-              <div className="error-message">
-                <p>{error.availableDonors}</p>
-                <button onClick={handleOpenAddDonorModal}>Retry</button>
-              </div>
-            )}
-            
-            {!loading.availableDonors && !error.availableDonors && (
-              <>
-                {availableDonors.length === 0 ? (
-                  <p>No donors available to add</p>
-                ) : (
-                  <div className="available-donors-list">
-                    {availableDonors.map(donor => (
-                      <div key={donor.id} className="available-donor-item">
-                        <div>
-                          <strong>{donor.firstName || donor.first_name} {donor.lastName || donor.last_name}</strong>
-                          <p>
-                            {donor.type || 'Individual'} 
-                            {donor.priority && <span> - Priority: {donor.priority}</span>}
-                            {donor.city && <span> - {donor.city}</span>}
-                          </p>
-                          {donor.totalDonations || donor.total_donations ? 
-                            <p>Total Donations: ${(donor.totalDonations || donor.total_donations).toLocaleString()}</p> : null
-                          }
-                        </div>
-                        <button 
-                          className="add-donor-button" 
-                          onClick={() => handleAddDonor(donor.id)}
-                          disabled={loading.donors}
-                        >
-                          Add
-                        </button>
+              
+              {error.availableDonors && (
+                <div className="error-message">
+                  <p>{error.availableDonors}</p>
+                  <button onClick={() => setError(prev => ({ ...prev, availableDonors: null }))}>Dismiss</button>
+                </div>
+              )}
+              
+              {loading.availableDonors ? (
+                <div className="loading-indicator">
+                  <FaSpinner className="loading-spinner" />
+                  <p>Loading available donors...</p>
+                </div>
+              ) : availableDonors.length === 0 ? (
+                <div className="no-donors-message">
+                  <p>No donors available to add to this event.</p>
+                </div>
+              ) : (
+                <div className="available-donors-list">
+                  {availableDonors.map(donor => (
+                    <div key={donor.id} className="donor-item">
+                      <div className="donor-info">
+                        <p className="donor-name">
+                          {donor.firstName} {donor.lastName}
+                          {donor.organizationName && <span> ({donor.organizationName})</span>}
+                        </p>
+                        <p className="donor-details">
+                          <span>Total Donations: ${donor.totalDonations?.toLocaleString() || 0}</span>
+                          {donor.city && <span> | {donor.city}</span>}
+                        </p>
                       </div>
-                    ))}
-                  </div>
-                )}
-              </>
-            )}
-            
-            <div className="modal-footer">
-              <button 
-                onClick={handleCloseModal}
-                className="cancel-button"
-              >
-                Close
-              </button>
+                      <button 
+                        className="add-button" 
+                        onClick={() => handleAddDonor(donor.id)}
+                        disabled={loading.donors}
+                      >
+                        {loading.donors ? <FaSpinner className="loading-spinner" /> : 'Add to Event'}
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </div>

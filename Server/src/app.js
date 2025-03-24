@@ -4,7 +4,7 @@ import dotenv from 'dotenv';
 import userRoutes from './routes/user.js';
 import donorRoutes from './routes/donor.js';
 import eventRoutes from './routes/event.js';
-
+import donorListRoutes from './routes/donorList.js';
 
 // load environment variables
 dotenv.config();
@@ -19,6 +19,7 @@ app.use(express.json());
 app.use('/api/user', userRoutes);
 app.use('/api/donor', donorRoutes);
 app.use('/api/event', eventRoutes);
+app.use('/api/donorList', donorListRoutes);
 
 // error handling middleware
 app.use((err, req, res, next) => {

@@ -229,29 +229,60 @@ button {
 }
 
 .add-donor-button {
-  background-color: var(--success-color);
+  background-color: #4caf50;
   color: white;
-  border-radius: 30px;
-  padding: 10px 20px;
-  font-size: 14px;
-  font-weight: 500;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 4px;
   display: flex;
   align-items: center;
   gap: 8px;
-  transition: var(--transition);
+  cursor: pointer;
+  transition: background-color 0.3s;
 }
 
 .add-donor-button:hover {
-  background-color: #1aa053;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 10px rgba(40, 199, 111, 0.25);
+  background-color: #45a049;
 }
 
 .add-donor-button:disabled {
   background-color: #cccccc;
   cursor: not-allowed;
+}
+
+/* 大尺寸添加捐赠者按钮，用于空状态 */
+.add-donor-button-large {
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 1.1rem;
+  margin: 20px auto;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.add-donor-button-large:hover {
+  background-color: #45a049;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 8px rgba(0,0,0,0.15);
+}
+
+.add-donor-button-large:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
   transform: none;
   box-shadow: none;
+}
+
+.add-donor-button-large svg {
+  font-size: 1.3rem;
 }
 
 /* 统计数据 */
@@ -627,137 +658,176 @@ button {
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: rgba(0, 0, 0, 0.6);
   display: flex;
-  align-items: center;
   justify-content: center;
+  align-items: center;
   z-index: 1000;
-  animation: fadeIn 0.3s ease;
 }
 
 .modal-content {
   background-color: white;
   border-radius: 8px;
-  padding: 20px;
+  max-width: 800px;
   width: 90%;
-  max-width: 600px;
   max-height: 90vh;
-  overflow-y: auto;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-  position: relative;
-  animation: slideIn 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  animation: slideIn 0.3s ease-out;
 }
 
-.modal-header-actions {
+.modal-header {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 15px;
-  gap: 10px;
+  align-items: center;
+  padding: 15px 20px;
+  border-bottom: 1px solid #e0e0e0;
 }
 
-.modal-header-actions .donor-search-input {
+.modal-header h3 {
+  margin: 0;
+  color: #333;
+}
+
+.close-button {
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: #666;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.close-button:hover {
+  color: #ff4d4d;
+}
+
+.modal-body {
+  padding: 20px;
+  overflow-y: auto;
   flex: 1;
-  padding: 8px 12px;
-  border: 1px solid #ddd;
+}
+
+/* 搜索和刷新按钮 */
+.search-container {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.search-input {
+  flex: 1;
+  padding: 10px;
+  border: 1px solid #ccc;
   border-radius: 4px;
   font-size: 14px;
 }
 
-.modal-header-actions .refresh-button {
-  background-color: #f8f9fa;
-  border: 1px solid #ddd;
+.refresh-button {
+  padding: 10px 15px;
+  background-color: #4caf50;
+  color: white;
+  border: none;
   border-radius: 4px;
-  padding: 8px 12px;
   cursor: pointer;
   display: flex;
   align-items: center;
-  justify-content: center;
-  transition: all 0.2s;
+  gap: 5px;
+  transition: background-color 0.3s;
 }
 
-.modal-header-actions .refresh-button:hover {
-  background-color: #e9ecef;
+.refresh-button:hover {
+  background-color: #45a049;
 }
 
-.modal-header-actions .refresh-button:disabled {
-  opacity: 0.5;
+.refresh-button:disabled {
+  background-color: #cccccc;
   cursor: not-allowed;
 }
 
-.modal-close {
-  position: absolute;
-  top: 20px;
-  right: 20px;
-  background-color: var(--light-color);
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 20px;
-  cursor: pointer;
-  transition: var(--transition);
-}
-
-.modal-close:hover {
-  background-color: var(--primary-light);
-  color: var(--primary-color);
-}
-
+/* 可用捐赠者列表 */
 .available-donors-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
   max-height: 400px;
   overflow-y: auto;
-  margin-bottom: 24px;
-  padding-right: 10px;
+  padding-right: 5px;
 }
 
-.available-donor-item {
+.donor-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 14px;
-  background-color: var(--light-color);
-  border-radius: 10px;
-  margin-bottom: 12px;
-  transition: var(--transition);
+  padding: 10px 15px;
+  background-color: #f9f9f9;
+  border-radius: 4px;
+  transition: background-color 0.2s;
 }
 
-.available-donor-item:hover {
-  background-color: var(--primary-light);
+.donor-item:hover {
+  background-color: #f0f0f0;
 }
 
-.available-donor-item strong {
-  display: block;
-  font-size: 16px;
-  color: var(--dark-color);
-  margin-bottom: 4px;
+.donor-info {
+  flex: 1;
 }
 
-.available-donor-item p {
-  font-size: 14px;
-  color: var(--secondary-color);
+.donor-name {
+  font-weight: bold;
+  margin: 0 0 5px 0;
+  color: #333;
 }
 
-.modal-footer {
+.donor-details {
+  margin: 0;
+  font-size: 13px;
+  color: #666;
+}
+
+.add-button {
+  padding: 8px 12px;
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  min-width: 100px;
   display: flex;
-  justify-content: flex-end;
-  padding-top: 20px;
-  border-top: 1px solid rgba(0, 0, 0, 0.05);
+  justify-content: center;
+  align-items: center;
 }
 
-.cancel-button {
-  background-color: var(--light-color);
-  color: var(--dark-color);
-  padding: 10px 20px;
-  border-radius: 30px;
-  font-size: 14px;
-  font-weight: 500;
-  transition: var(--transition);
+.add-button:hover {
+  background-color: #45a049;
 }
 
-.cancel-button:hover {
-  background-color: #e6e6e6;
+.add-button:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+/* 加载状态 */
+.loading-spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes slideIn {
+  0% {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }
 
 /* 响应式设计 */
@@ -903,4 +973,75 @@ button {
     opacity: 1;
     transform: translateY(0); 
   }
+}
+
+/* 成功消息 */
+.success-message {
+  background-color: #d4edda;
+  color: #155724;
+  padding: 10px 15px;
+  border-radius: 5px;
+  margin: 10px 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  animation: fadeIn 0.3s ease-in-out, fadeOut 0.5s ease-in-out 2.5s forwards;
+}
+
+.success-message p {
+  margin: 0;
+  font-weight: 500;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeOut {
+  from { opacity: 1; transform: translateY(0); }
+  to { opacity: 0; transform: translateY(-10px); }
+}
+
+/* 错误消息 */
+.error-message {
+  background-color: #ffe8e8;
+  color: #d32f2f;
+  padding: 15px;
+  border-radius: 5px;
+  margin: 10px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  border-left: 4px solid #d32f2f;
+}
+
+.error-message p {
+  margin: 0 0 10px 0;
+  font-weight: 500;
+}
+
+.error-hint {
+  font-size: 0.9rem;
+  color: #666;
+  margin-bottom: 10px;
+}
+
+.error-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.error-actions button {
+  background-color: #f5f5f5;
+  color: #333;
+  border: 1px solid #ddd;
+  padding: 5px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.error-actions button:hover {
+  background-color: #e0e0e0;
 } 
