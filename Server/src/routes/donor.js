@@ -63,7 +63,7 @@ const formatDonor = (donor) => {
  * @inner
  * @param {string} req.query.page - Page number for pagination (default: 1)
  * @param {string} req.query.limit - Number of donors per page (default: 20)
- * @param {string} req.query.sort - Field to sort by (e.g., "last_name", "total_donations")
+ * @param {string} req.query.sort - Field to sort by (e.g., "lastName", "totalDonations")
  * @param {string} req.query.order - Sort order ("asc" or "desc")
  * @param {string} req.query.pmm - Filter by Prospect Move Manager
  * @param {string} req.query.city - Filter by city
@@ -88,9 +88,9 @@ const formatDonor = (donor) => {
  *     {
  *       "id": "1",
  *       "pmm": "Parvati Patel",
- *       "first_name": "Mei",
- *       "last_name": "Lee",
- *       "total_donations": 89267,
+ *       "firstName": "Mei",
+ *       "lastName": "Lee",
+ *       "totalDonations": 89267,
  *       "tags": ["High Priority", "Cancer Research Interest"]
  *     },
  *     ...
@@ -106,7 +106,7 @@ router.get('/', protect, async (req, res) => {
     const {
       page = '1',
       limit = '20',
-      sort = 'last_name',
+      sort = 'lastName',
       order = 'asc',
       pmm,
       city,
@@ -132,16 +132,16 @@ router.get('/', protect, async (req, res) => {
     if (deceased === 'false') where.deceased = false;
     
     if (minDonation) {
-      where.total_donations = {
+      where.totalDonations = {
         gte: parseFloat(minDonation)
       };
     }
 
     if (search) {
       where.OR = [
-        { first_name: { contains: search, mode: 'insensitive' } },
-        { last_name: { contains: search, mode: 'insensitive' } },
-        { organization_name: { contains: search, mode: 'insensitive' } }
+        { firstName: { contains: search } },
+        { lastName: { contains: search } },
+        { organizationName: { contains: search } }
       ];
     }
 
@@ -164,15 +164,13 @@ router.get('/', protect, async (req, res) => {
       orderBy: {
         [sort]: order.toLowerCase()
       },
-      include: {
-        tags: true
-      }
+      include: { eventDonors: true }
     });
 
     // Format the donors array to include tags as an array of strings
     const formattedDonors = donors.map(donor => ({
       ...donor,
-      tags: donor.tags.map(tag => tag.name)
+      tags: donor.tags && Array.isArray(donor.tags) ? donor.tags.map(tag => tag.name) : []
     }));
 
     res.json({
@@ -183,7 +181,8 @@ router.get('/', protect, async (req, res) => {
       pages: Math.ceil(total / limitNum)
     });
   } catch (error) {
-    console.error('Error fetching donors:', error);
+    console.error('Error fetching donor (DETAILED):', error);
+    console.error('Error stack:', error.stack);
     res.status(500).json({ message: 'Internal server error', error: error.message });
   }
 });
@@ -213,9 +212,9 @@ router.get('/', protect, async (req, res) => {
  *   "id": "123",
  *   "constituentId": "D-10023",
  *   "pmm": "Parvati Patel",
- *   "first_name": "Mei",
- *   "last_name": "Lee",
- *   "total_donations": 89267,
+ *   "firstName": "Mei",
+ *   "lastName": "Lee",
+ *   "totalDonations": 89267,
  *   "tags": ["High Priority", "Cancer Research Interest"],
  *   ...
  * }
@@ -224,16 +223,17 @@ router.get('/:id', protect, async (req, res) => {
   try {
     let donorId;
     try {
-      donorId = BigInt(req.params.id);
+      donorId = parseInt(req.params.id); 
+      if (isNaN(donorId)) {
+        return res.status(400).json({ message: 'Invalid donor ID format' });
+      }
     } catch (error) {
       return res.status(400).json({ message: 'Invalid donor ID format' });
     }
 
     const donor = await prisma.donor.findUnique({
       where: { id: donorId },
-      include: {
-        tags: true
-      }
+      include: { eventDonors: true }
     });
 
     if (!donor) {
@@ -243,12 +243,13 @@ router.get('/:id', protect, async (req, res) => {
     // Format the donor to include tags as an array of strings
     const formattedDonor = {
       ...donor,
-      tags: donor.tags.map(tag => tag.name)
+      tags: donor.tags && Array.isArray(donor.tags) ? donor.tags.map(tag => tag.name) : []
     };
 
     res.json(formatDonor(formattedDonor));
-  } catch (error) {
-    console.error('Error fetching donor:', error);
+  }  catch (error) {
+    console.error('Error fetching donor (DETAILED):', error);
+    console.error('Error stack:', error.stack);
     res.status(500).json({ message: 'Internal server error', error: error.message });
   }
 });
@@ -281,7 +282,7 @@ router.get('/:id', protect, async (req, res) => {
  *   "errors": [
  *     {
  *       "row": 15,
- *       "error": "Missing required field: last_name"
+ *       "error": "Missing required field: lastName"
  *     }
  *   ],
  *   "message": "Donor import completed with 1 error"
@@ -343,11 +344,11 @@ router.post('/import', protect, upload.single('file'), async (req, res) => {
       try {
         // Check if donor already exists by name
         let existingDonor = null;
-        if (donorData.first_name && donorData.last_name) {
+        if (donorData.firstName && donorData.lastName) {
           existingDonor = await prisma.donor.findFirst({
             where: {
-              firstName: donorData.first_name,
-              lastName: donorData.last_name
+              firstName: donorData.firstName,
+              lastName: donorData.lastName
             }
           });
         }
@@ -359,29 +360,29 @@ router.post('/import', protect, upload.single('file'), async (req, res) => {
           vmm: donorData.vmm || null,
           excluded: donorData.exclude === 'yes' || donorData.exclude === true || false,
           deceased: donorData.deceased === 'yes' || donorData.deceased === true || false,
-          firstName: donorData.first_name || null,
-          nickName: donorData.nick_name || null,
-          lastName: donorData.last_name || null,
-          organizationName: donorData.organization_name || null,
-          totalDonations: parseFloat(donorData.total_donations) || 0,
-          totalPledges: parseFloat(donorData.total_pledge) || 0,
-          largestGift: parseFloat(donorData.largest_gift) || 0,
-          largestGiftAppeal: donorData.largest_gift_appeal || null,
-          firstGiftDate: donorData.first_gift_date ? new Date(parseInt(donorData.first_gift_date) * 1000) : null,
-          lastGiftDate: donorData.last_gift_date ? new Date(parseInt(donorData.last_gift_date) * 1000) : null,
-          lastGiftAmount: parseFloat(donorData.last_gift_amount) || 0,
+          firstName: donorData.firstName || null,
+          nickName: donorData.nickName || null,
+          lastName: donorData.lastName || null,
+          organizationName: donorData.organizationName || null,
+          totalDonations: parseFloat(donorData.totalDonations) || 0,
+          totalPledges: parseFloat(donorData.totalPledge) || 0,
+          largestGift: parseFloat(donorData.largestGift) || 0,
+          largestGiftAppeal: donorData.largestGiftAppeal || null,
+          firstGiftDate: donorData.firstGiftDate ? new Date(parseInt(donorData.firstGiftDate) * 1000) : null,
+          lastGiftDate: donorData.lastGiftDate ? new Date(parseInt(donorData.lastGiftDate) * 1000) : null,
+          lastGiftAmount: parseFloat(donorData.lastGiftAmount) || 0,
           lastGiftRequest: donorData.lastGiftRequest ? String(donorData.lastGiftRequest) : null,
-          lastGiftAppeal: donorData.last_gift_appeal || null,
-          addressLine1: donorData.address_line1 || null,
-          addressLine2: donorData.address_line2 || null,
+          lastGiftAppeal: donorData.lastGiftAppeal || null,
+          addressLine1: donorData.addressLine1 || null,
+          addressLine2: donorData.addressLine2 || null,
           city: donorData.city || null,
-          contactPhoneType: donorData.contact_phone_type || null,
-          phoneRestrictions: donorData.phone_restrictions || null,
-          emailRestrictions: donorData.email_restrictions || null,
-          communicationRestrictions: donorData.communication_restrictions || null,
-          subscriptionEventsInPerson: donorData.subscription_events_in_person || null,
-          subscriptionEventsMagazine: donorData.subscription_events_magazine || null,
-          communicationPreference: donorData.communication_preference || null
+          contactPhoneType: donorData.contactPhoneType || null,
+          phoneRestrictions: donorData.phoneRestrictions || null,
+          emailRestrictions: donorData.emailRestrictions || null,
+          communicationRestrictions: donorData.communicationRestrictions || null,
+          subscriptionEventsInPerson: donorData.subscriptionEventsInPerson || null,
+          subscriptionEventsMagazine: donorData.subscriptionEventsMagazine || null,
+          communicationPreference: donorData.communicationPreference || null
         };
 
         if (existingDonor) {
