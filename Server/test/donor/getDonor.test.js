@@ -21,13 +21,13 @@ const generateToken = () => {
   return jwt.sign(
     { userId: testUser.id, role: testUser.role },
     process.env.JWT_SECRET || 'your_jwt_secret_key',
-    { expiresIn: '24h' }
+    { expiresIn: '1h' }
   );
 };
 
 // Test donor data
 const testDonor = {
-  firstName: 'John',
+  firstName: 'Lee',
   lastName: 'Doe',
   pmm: 'Test PMM',
   totalDonations: 5000,
