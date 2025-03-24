@@ -63,14 +63,14 @@ const formatDonor = (donor) => {
  * @inner
  * @param {string} req.query.page - Page number for pagination (default: 1)
  * @param {string} req.query.limit - Number of donors per page (default: 20)
- * @param {string} req.query.sort - Field to sort by (e.g., "last_name", "total_donations")
+ * @param {string} req.query.sort - Field to sort by (e.g., "lastName", "totalDonations")
  * @param {string} req.query.order - Sort order ("asc" or "desc")
  * @param {string} req.query.pmm - Filter by Prospect Move Manager
  * @param {string} req.query.city - Filter by city
  * @param {string} req.query.excluded - Filter by excluded status (true/false)
  * @param {string} req.query.deceased - Filter by deceased status (true/false)
  * @param {string} req.query.tags - Filter by tags (comma-separated)
- * @param {string} req.query.minDonation - Filter by minimum total donation amount
+ * @param {string} req.query.min_donation - Filter by minimum total donation amount
  * @param {string} req.query.search - Search term for name or organization
  * @param {string} req.headers.authorization - Bearer token for authentication
  * @returns {Object} 200 - List of donors with pagination info
@@ -79,7 +79,7 @@ const formatDonor = (donor) => {
  * 
  * @example
  * // Request
- * GET /api/donors?page=1&limit=20&city=Vancouver&minDonation=10000
+ * GET /api/donors?page=1&limit=20&city=Vancouver&min_donation=10000
  * Authorization: Bearer <token>
  * 
  * // Success Response
@@ -88,9 +88,9 @@ const formatDonor = (donor) => {
  *     {
  *       "id": "1",
  *       "pmm": "Parvati Patel",
- *       "first_name": "Mei",
- *       "last_name": "Lee",
- *       "total_donations": 89267,
+ *       "firstName": "Mei",
+ *       "lastName": "Lee",
+ *       "totalDonations": 89267,
  *       "tags": ["High Priority", "Cancer Research Interest"]
  *     },
  *     ...
@@ -106,14 +106,14 @@ router.get('/', protect, async (req, res) => {
     const {
       page = '1',
       limit = '20',
-      sort = 'last_name',
+      sort = 'lastName',
       order = 'asc',
       pmm,
       city,
       excluded,
       deceased,
       tags,
-      minDonation,
+      min_donation,
       search
     } = req.query;
 
@@ -131,17 +131,17 @@ router.get('/', protect, async (req, res) => {
     if (deceased === 'true') where.deceased = true;
     if (deceased === 'false') where.deceased = false;
     
-    if (minDonation) {
-      where.total_donations = {
-        gte: parseFloat(minDonation)
+    if (min_donation) {
+      where.totalDonations = {
+        gte: parseFloat(min_donation)
       };
     }
 
     if (search) {
       where.OR = [
-        { first_name: { contains: search, mode: 'insensitive' } },
-        { last_name: { contains: search, mode: 'insensitive' } },
-        { organization_name: { contains: search, mode: 'insensitive' } }
+        { firstName: { contains: search } },
+        { lastName: { contains: search } },
+        { organizationName: { contains: search } }
       ];
     }
 
@@ -156,34 +156,47 @@ router.get('/', protect, async (req, res) => {
     // Get total count for pagination
     const total = await prisma.donor.count({ where });
 
+    // 转换下划线格式的排序字段为驼峰命名
+    // 映射查询参数中的蛇形命名到数据库模型的驼峰命名
+    const sortMapping = {
+      'first_name': 'firstName',
+      'last_name': 'lastName',
+      'organization_name': 'organizationName',
+      'total_donations': 'totalDonations',
+      'largest_gift': 'largestGift',
+      'last_gift_date': 'lastGiftDate'
+    };
+
+    // 使用映射表或直接使用字段名（如果已经是驼峰命名）
+    const sortField = sortMapping[sort] || sort;
+
     // Get donors with pagination, sorting, and filtering
     const donors = await prisma.donor.findMany({
       where,
       skip,
       take: limitNum,
       orderBy: {
-        [sort]: order.toLowerCase()
+        [sortField]: order.toLowerCase()
       },
-      include: {
-        tags: true
-      }
+      include: { eventDonors: true }
     });
 
     // Format the donors array to include tags as an array of strings
     const formattedDonors = donors.map(donor => ({
       ...donor,
-      tags: donor.tags.map(tag => tag.name)
+      tags: donor.tags && Array.isArray(donor.tags) ? donor.tags.map(tag => tag.name) : []
     }));
 
     res.json({
       donors: formatDonor(formattedDonors),
-      total,
+      total: total,
       page: pageNum,
       limit: limitNum,
       pages: Math.ceil(total / limitNum)
     });
   } catch (error) {
-    console.error('Error fetching donors:', error);
+    console.error('Error fetching donor (DETAILED):', error);
+    console.error('Error stack:', error.stack);
     res.status(500).json({ message: 'Internal server error', error: error.message });
   }
 });
@@ -213,9 +226,9 @@ router.get('/', protect, async (req, res) => {
  *   "id": "123",
  *   "constituentId": "D-10023",
  *   "pmm": "Parvati Patel",
- *   "first_name": "Mei",
- *   "last_name": "Lee",
- *   "total_donations": 89267,
+ *   "firstName": "Mei",
+ *   "lastName": "Lee",
+ *   "totalDonations": 89267,
  *   "tags": ["High Priority", "Cancer Research Interest"],
  *   ...
  * }
@@ -224,31 +237,36 @@ router.get('/:id', protect, async (req, res) => {
   try {
     let donorId;
     try {
-      donorId = BigInt(req.params.id);
+      donorId = parseInt(req.params.id); 
+      if (isNaN(donorId)) {
+        return res.status(400).json({ message: 'Invalid donor ID format' });
+      }
     } catch (error) {
       return res.status(400).json({ message: 'Invalid donor ID format' });
     }
 
     const donor = await prisma.donor.findUnique({
       where: { id: donorId },
-      include: {
-        tags: true
-      }
+      include: { eventDonors: true }
     });
 
     if (!donor) {
       return res.status(404).json({ message: 'Donor not found' });
     }
 
-    // Format the donor to include tags as an array of strings
+    // Format the donor with parsed tags
+    const parsedTags = donor.tags ? donor.tags.split(',').filter(tag => tag.trim() !== '') : [];
+    
+    // Convert camelCase field names to snake_case for API consistency
     const formattedDonor = {
       ...donor,
-      tags: donor.tags.map(tag => tag.name)
+      tags: donor.tags && Array.isArray(donor.tags) ? donor.tags.map(tag => tag.name) : []
     };
 
     res.json(formatDonor(formattedDonor));
-  } catch (error) {
-    console.error('Error fetching donor:', error);
+  }  catch (error) {
+    console.error('Error fetching donor (DETAILED):', error);
+    console.error('Error stack:', error.stack);
     res.status(500).json({ message: 'Internal server error', error: error.message });
   }
 });
@@ -281,7 +299,7 @@ router.get('/:id', protect, async (req, res) => {
  *   "errors": [
  *     {
  *       "row": 15,
- *       "error": "Missing required field: last_name"
+ *       "error": "Missing required field: lastName"
  *     }
  *   ],
  *   "message": "Donor import completed with 1 error"
@@ -341,102 +359,62 @@ router.post('/import', protect, upload.single('file'), async (req, res) => {
       const donorData = donorsData[i];
       
       try {
-        // Validate required fields
-        if (!donorData.constituentId) {
-          errors.push({
-            row,
-            error: 'Missing required field: constituentId'
+        // Check if donor already exists by name
+        let existingDonor = null;
+        if (donorData.firstName && donorData.lastName) {
+          existingDonor = await prisma.donor.findFirst({
+            where: {
+              firstName: donorData.firstName,
+              lastName: donorData.lastName
+            }
           });
-          continue;
         }
 
-        // Check if donor already exists
-        const existingDonor = await prisma.donor.findUnique({
-          where: { constituentId: donorData.constituentId }
-        });
-
-        // Process tags if provided
-        let tags = [];
-        if (donorData.tags && typeof donorData.tags === 'string' && donorData.tags.trim() !== '') {
-          tags = donorData.tags.split(',').map(tag => tag.trim());
-        }
-
-        // Format donor data for database
+        // Format donor data for database - mapping CSV fields to database fields
         const donor = {
-          constituentId: donorData.constituentId,
           pmm: donorData.pmm || null,
           smm: donorData.smm || null,
           vmm: donorData.vmm || null,
-          excluded: donorData.excluded === 'true' || donorData.excluded === true || false,
-          deceased: donorData.deceased === 'true' || donorData.deceased === true || false,
-          first_name: donorData.first_name || null,
-          nick_name: donorData.nick_name || null,
-          last_name: donorData.last_name || null,
-          organization_name: donorData.organization_name || null,
-          total_donations: parseFloat(donorData.total_donations) || 0,
-          total_pledges: parseFloat(donorData.total_pledges) || 0,
-          largest_gift: parseFloat(donorData.largest_gift) || null,
-          largest_gift_appeal: donorData.largest_gift_appeal || null,
-          first_gift_date: donorData.first_gift_date ? new Date(donorData.first_gift_date) : null,
-          last_gift_date: donorData.last_gift_date ? new Date(donorData.last_gift_date) : null,
-          last_gift_amount: parseFloat(donorData.last_gift_amount) || null,
-          last_gift_request: donorData.last_gift_request || null,
-          last_gift_appeal: donorData.last_gift_appeal || null,
-          address_line1: donorData.address_line1 || null,
-          address_line2: donorData.address_line2 || null,
+          excluded: donorData.exclude === 'yes' || donorData.exclude === true || false,
+          deceased: donorData.deceased === 'yes' || donorData.deceased === true || false,
+          firstName: donorData.firstName || null,
+          nickName: donorData.nickName || null,
+          lastName: donorData.lastName || null,
+          organizationName: donorData.organizationName || null,
+          totalDonations: parseFloat(donorData.totalDonations) || 0,
+          totalPledges: parseFloat(donorData.totalPledge) || 0,
+          largestGift: parseFloat(donorData.largestGift) || 0,
+          largestGiftAppeal: donorData.largestGiftAppeal || null,
+          firstGiftDate: donorData.firstGiftDate ? new Date(parseInt(donorData.firstGiftDate) * 1000) : null,
+          lastGiftDate: donorData.lastGiftDate ? new Date(parseInt(donorData.lastGiftDate) * 1000) : null,
+          lastGiftAmount: parseFloat(donorData.lastGiftAmount) || 0,
+          lastGiftRequest: donorData.lastGiftRequest ? String(donorData.lastGiftRequest) : null,
+          lastGiftAppeal: donorData.lastGiftAppeal || null,
+          addressLine1: donorData.addressLine1 || null,
+          addressLine2: donorData.addressLine2 || null,
           city: donorData.city || null,
-          contact_phone_type: donorData.contact_phone_type || null,
-          phone_restrictions: donorData.phone_restrictions || null,
-          email_restrictions: donorData.email_restrictions || null,
-          communication_restrictions: donorData.communication_restrictions || null,
-          subscription_events_in_person: donorData.subscription_events_in_person || null,
-          subscription_events_magazine: donorData.subscription_events_magazine || null,
-          communication_preference: donorData.communication_preference || null
+          contactPhoneType: donorData.contactPhoneType || null,
+          phoneRestrictions: donorData.phoneRestrictions || null,
+          emailRestrictions: donorData.emailRestrictions || null,
+          communicationRestrictions: donorData.communicationRestrictions || null,
+          subscriptionEventsInPerson: donorData.subscriptionEventsInPerson || null,
+          subscriptionEventsMagazine: donorData.subscriptionEventsMagazine || null,
+          communicationPreference: donorData.communicationPreference || null
         };
 
         if (existingDonor) {
           // Update existing donor
           await prisma.donor.update({
-            where: { constituentId: donorData.constituentId },
+            where: { id: existingDonor.id },
             data: donor
           });
-          
-          // Update tags if provided
-          if (tags.length > 0) {
-            // First, remove existing tags
-            await prisma.donorTag.deleteMany({
-              where: { donorId: existingDonor.id }
-            });
-            
-            // Then add new tags
-            for (const tagName of tags) {
-              await prisma.donorTag.create({
-                data: {
-                  donorId: existingDonor.id,
-                  name: tagName
-                }
-              });
-            }
-          }
           
           updated++;
         } else {
           // Create new donor
-          const newDonor = await prisma.donor.create({
+          await prisma.donor.create({
             data: donor
           });
-          
-          // Add tags if provided
-          if (tags.length > 0) {
-            for (const tagName of tags) {
-              await prisma.donorTag.create({
-                data: {
-                  donorId: newDonor.id,
-                  name: tagName
-                }
-              });
-            }
-          }
           
           imported++;
         }

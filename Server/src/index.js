@@ -3,6 +3,8 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import userRoutes from './routes/user.js';
 import donorListRoutes from './routes/donorList.js';
+import donorRoutes from './routes/donor.js';
+import eventRoutes from './routes/event.js';
 
 // 加载环境变量
 dotenv.config();
@@ -16,6 +18,8 @@ app.use(express.json());
 // 路由
 app.use('/api/user', userRoutes);
 app.use('/api/lists', donorListRoutes);
+app.use('/api/donors', donorRoutes);
+app.use('/api/events', eventRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
