@@ -21,7 +21,7 @@ function App() {
             <Route path="/login" component={Login} />
             <Route path="/register" component={Register} />
             <ProtectedRoute path="/dashboard" component={Dashboard} />
-            <ProtectedRoute path="/events" component={EventManagement} />
+            <Route path="/events" component={EventManagement} />
             <ProtectedRoute path="/donors" component={Donors} />
             <Redirect from="/" to="/login" />
           </Switch>

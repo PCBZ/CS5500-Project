@@ -81,10 +81,13 @@ export const isAuthenticated = () => {
   return localStorage.getItem('token') !== null;
 };
 
-export default {
+const authService = {
   register,
   login,
   logout,
   getCurrentUser,
   isAuthenticated
 }; 
+
+
+export default authService;
