@@ -1,0 +1,436 @@
+{
+  "MOCK_EVENTS": [
+    {
+      "id": 1,
+      "name": "2025 Women's Health Major Donor Event",
+      "type": "Major Donor Event",
+      "date": "2025-07-31T09:08:44.831Z",
+      "location": "Qingdao International Conference Center",
+      "capacity": 78,
+      "focus": "Women's Health",
+      "criteriaMinGivingLevel": 15000,
+      "timelineListGenerationDate": "2025-05-01T09:08:44.831Z",
+      "timelineReviewDeadline": "2025-05-31T09:08:44.831Z",
+      "timelineInvitationDate": "2025-07-01T09:08:44.831Z",
+      "status": "Complete",
+      "createdBy": 1
+    },
+    {
+      "id": 2,
+      "name": "2026 Elderly Care Online Donation Event",
+      "type": "Online Donation Event",
+      "date": "2026-10-17T01:28:29.859Z",
+      "location": "Nanjing International Expo Center",
+      "capacity": 340,
+      "focus": "Elderly Care",
+      "criteriaMinGivingLevel": 20000,
+      "timelineListGenerationDate": "2026-07-17T01:28:29.859Z",
+      "timelineReviewDeadline": "2026-08-17T01:28:29.859Z",
+      "timelineInvitationDate": "2026-09-17T01:28:29.859Z",
+      "status": "Ready",
+      "createdBy": 1
+    },
+    {
+      "id": 3,
+      "name": "2027 Emergency Medical Services Volunteer Appreciation",
+      "type": "Volunteer Appreciation",
+      "date": "2027-01-31T09:00:55.604Z",
+      "location": "Chengdu Century City International Convention Center",
+      "capacity": 64,
+      "focus": "Emergency Medical Services",
+      "criteriaMinGivingLevel": 10000,
+      "timelineListGenerationDate": "2026-10-31T08:00:55.604Z",
+      "timelineReviewDeadline": "2026-12-01T09:00:55.604Z",
+      "timelineInvitationDate": "2026-12-31T09:00:55.604Z",
+      "status": "Complete",
+      "createdBy": 1
+    }
+  ],
+  "MOCK_DONORS": [
+    {
+      "id": 101,
+      "pmm": "Emily Parker",
+      "excluded": false,
+      "deceased": true,
+      "firstName": null,
+      "lastName": null,
+      "organizationName": "National Health Labs",
+      "totalDonations": 820866,
+      "largestGift": 653901,
+      "firstGiftDate": "2022-05-09T10:07:01.045Z",
+      "lastGiftDate": "2024-09-25T10:00:22.204Z",
+      "lastGiftAmount": 405280.2,
+      "city": "Dallas",
+      "type": "Foundation",
+      "priority": "High",
+      "tags": [
+        "Cancer Research",
+        "Elderly Care",
+        "High Potential"
+      ]
+    },
+    {
+      "id": 102,
+      "pmm": "Michael Brown",
+      "excluded": false,
+      "deceased": false,
+      "firstName": "Thomas",
+      "lastName": "Nelson",
+      "organizationName": null,
+      "totalDonations": 953747,
+      "largestGift": 469294,
+      "firstGiftDate": "2024-01-06T12:37:47.464Z",
+      "lastGiftDate": "2025-02-08T00:17:09.204Z",
+      "lastGiftAmount": 304349.8,
+      "city": "Chicago",
+      "type": "Corporate Donor",
+      "priority": "High",
+      "tags": [
+        "VIP",
+        "Elderly Care",
+        "Long-term Care"
+      ]
+    },
+    {
+      "id": 103,
+      "pmm": "Robert Miller",
+      "excluded": false,
+      "deceased": false,
+      "firstName": "Michelle",
+      "lastName": "Martinez",
+      "organizationName": null,
+      "totalDonations": 814261,
+      "largestGift": 432296,
+      "firstGiftDate": "2023-08-17T01:05:28.932Z",
+      "lastGiftDate": "2025-03-12T18:34:06.450Z",
+      "lastGiftAmount": 392613.2,
+      "city": "Los Angeles",
+      "type": "Major Donor",
+      "priority": "Medium",
+      "tags": [
+        "Medical Innovation"
+      ]
+    },
+    {
+      "id": 104,
+      "pmm": null,
+      "excluded": false,
+      "deceased": false,
+      "firstName": null,
+      "lastName": null,
+      "organizationName": "Vital Bio Innovations",
+      "totalDonations": 758937,
+      "largestGift": 606871,
+      "firstGiftDate": "2024-11-02T07:20:48.183Z",
+      "lastGiftDate": "2025-02-06T07:42:46.175Z",
+      "lastGiftAmount": 135733.2,
+      "city": "Los Angeles",
+      "type": "Major Donor",
+      "priority": "High",
+      "tags": [
+        "Emergency Services",
+        "Community Health",
+        "Elderly Care"
+      ]
+    },
+    {
+      "id": 105,
+      "pmm": "Emily Parker",
+      "excluded": false,
+      "deceased": false,
+      "firstName": "Paul",
+      "lastName": "Wright",
+      "organizationName": null,
+      "totalDonations": 707433,
+      "largestGift": 350308,
+      "firstGiftDate": "2025-02-15T21:51:43.660Z",
+      "lastGiftDate": "2025-03-03T17:29:42.930Z",
+      "lastGiftAmount": 132887.6,
+      "city": "Phoenix",
+      "type": "Foundation",
+      "priority": "High",
+      "tags": [
+        "High Potential",
+        "Children's Health"
+      ]
+    },
+    {
+      "id": 106,
+      "pmm": "Sarah Johnson",
+      "excluded": true,
+      "deceased": false,
+      "firstName": "Elizabeth",
+      "lastName": "Adams",
+      "organizationName": null,
+      "totalDonations": 531861,
+      "largestGift": 204238,
+      "firstGiftDate": "2024-01-31T21:14:16.048Z",
+      "lastGiftDate": "2024-10-10T05:05:24.105Z",
+      "lastGiftAmount": 187494.6,
+      "city": "San Antonio",
+      "type": "Corporate Donor",
+      "priority": "High",
+      "tags": [
+        "Long-term Care"
+      ]
+    },
+    {
+      "id": 107,
+      "pmm": "Michael Brown",
+      "excluded": false,
+      "deceased": false,
+      "firstName": "Matthew",
+      "lastName": "Garcia",
+      "organizationName": null,
+      "totalDonations": 495164,
+      "largestGift": 254793,
+      "firstGiftDate": "2023-09-20T09:57:07.539Z",
+      "lastGiftDate": "2023-12-07T15:51:53.849Z",
+      "lastGiftAmount": 108417.6,
+      "city": "Philadelphia",
+      "type": "Foundation",
+      "priority": "Low",
+      "tags": [
+        "Children's Health",
+        "Elderly Care"
+      ]
+    },
+    {
+      "id": 108,
+      "pmm": "James Wilson",
+      "excluded": false,
+      "deceased": false,
+      "firstName": null,
+      "lastName": null,
+      "organizationName": "Advanced Smart Services",
+      "totalDonations": 195607,
+      "largestGift": 127969,
+      "firstGiftDate": "2022-08-25T18:50:02.298Z",
+      "lastGiftDate": "2022-10-19T12:20:37.712Z",
+      "lastGiftAmount": 53259.8,
+      "city": "Phoenix",
+      "type": "Individual Donor",
+      "priority": "Medium",
+      "tags": [
+        "Needs Attention",
+        "Cancer Research"
+      ]
+    },
+    {
+      "id": 109,
+      "pmm": "Emily Parker",
+      "excluded": false,
+      "deceased": false,
+      "firstName": null,
+      "lastName": null,
+      "organizationName": "Elite Connect International",
+      "totalDonations": 481787,
+      "largestGift": 162712,
+      "firstGiftDate": "2022-05-22T20:19:17.572Z",
+      "lastGiftDate": "2024-09-14T18:31:39.498Z",
+      "lastGiftAmount": 121534.4,
+      "city": "New York",
+      "type": "Corporate Donor",
+      "priority": "Medium",
+      "tags": [
+        "Cancer Research",
+        "Children's Health"
+      ]
+    },
+    {
+      "id": 110,
+      "pmm": "Michael Brown",
+      "excluded": false,
+      "deceased": false,
+      "firstName": "Michael",
+      "lastName": "Jones",
+      "organizationName": null,
+      "totalDonations": 299433,
+      "largestGift": 168377,
+      "firstGiftDate": "2022-05-12T18:49:30.365Z",
+      "lastGiftDate": "2025-03-03T13:29:35.352Z",
+      "lastGiftAmount": 80935.4,
+      "city": "Houston",
+      "type": "Corporate Donor",
+      "priority": "Medium",
+      "tags": [
+        "Community Health"
+      ]
+    },
+    {
+      "id": 111,
+      "pmm": null,
+      "excluded": false,
+      "deceased": false,
+      "firstName": "Joseph",
+      "lastName": "Harris",
+      "organizationName": null,
+      "totalDonations": 624269,
+      "largestGift": 402350,
+      "firstGiftDate": "2022-09-10T20:34:03.245Z",
+      "lastGiftDate": "2025-02-24T11:06:25.289Z",
+      "lastGiftAmount": 381890,
+      "city": "Phoenix",
+      "type": "Community Donor",
+      "priority": "Medium",
+      "tags": [
+        "High Potential",
+        "Medical Education"
+      ]
+    },
+    {
+      "id": 112,
+      "pmm": "Michael Brown",
+      "excluded": false,
+      "deceased": true,
+      "firstName": "Betty",
+      "lastName": "Adams",
+      "organizationName": null,
+      "totalDonations": 477841,
+      "largestGift": 160248,
+      "firstGiftDate": "2022-06-11T15:36:56.753Z",
+      "lastGiftDate": "2024-01-27T06:58:32.267Z",
+      "lastGiftAmount": 64067.600000000006,
+      "city": "Phoenix",
+      "type": "Foundation",
+      "priority": "Low",
+      "tags": [
+        "Elderly Care",
+        "Cancer Research"
+      ]
+    },
+    {
+      "id": 113,
+      "pmm": "Robert Miller",
+      "excluded": false,
+      "deceased": false,
+      "firstName": "William",
+      "lastName": "Walker",
+      "organizationName": null,
+      "totalDonations": 50293,
+      "largestGift": 39702,
+      "firstGiftDate": "2023-01-22T15:40:58.091Z",
+      "lastGiftDate": "2023-02-20T17:37:32.021Z",
+      "lastGiftAmount": 36864.4,
+      "city": "San Antonio",
+      "type": "Community Donor",
+      "priority": "Medium",
+      "tags": [
+        "Medical Innovation",
+        "Cancer Research",
+        "VIP"
+      ]
+    },
+    {
+      "id": 114,
+      "pmm": "Robert Miller",
+      "excluded": false,
+      "deceased": false,
+      "firstName": "David",
+      "lastName": "Jackson",
+      "organizationName": null,
+      "totalDonations": 991523,
+      "largestGift": 369361,
+      "firstGiftDate": "2023-08-10T03:08:13.848Z",
+      "lastGiftDate": "2024-08-31T18:02:44.382Z",
+      "lastGiftAmount": 163022.2,
+      "city": "Los Angeles",
+      "type": "Foundation",
+      "priority": "Low",
+      "tags": [
+        "Needs Attention",
+        "Medical Education"
+      ]
+    },
+    {
+      "id": 115,
+      "pmm": "Robert Miller",
+      "excluded": false,
+      "deceased": false,
+      "firstName": "Anthony",
+      "lastName": "Jones",
+      "organizationName": null,
+      "totalDonations": 484184,
+      "largestGift": 274505,
+      "firstGiftDate": "2022-07-03T00:51:32.843Z",
+      "lastGiftDate": "2024-02-09T16:45:10.784Z",
+      "lastGiftAmount": 84712,
+      "city": "San Diego",
+      "type": "Corporate Donor",
+      "priority": "High",
+      "tags": [
+        "VIP"
+      ]
+    }
+  ],
+  "MOCK_EVENT_DONORS": {
+    "1": [
+      102,
+      114,
+      107,
+      115,
+      111,
+      113,
+      101,
+      112,
+      104,
+      110,
+      103,
+      108,
+      109,
+      105,
+      106
+    ],
+    "2": [
+      107,
+      114,
+      113,
+      101,
+      110,
+      112,
+      103,
+      108,
+      104,
+      109,
+      111,
+      105,
+      102,
+      106,
+      115
+    ],
+    "3": [
+      107,
+      112,
+      114,
+      111,
+      101,
+      105,
+      102,
+      110,
+      113,
+      115,
+      104,
+      103,
+      108,
+      109,
+      106
+    ]
+  },
+  "MOCK_EVENT_STATS": {
+    "1": {
+      "pending": 3,
+      "approved": 10,
+      "excluded": 2
+    },
+    "2": {
+      "pending": 4,
+      "approved": 10,
+      "excluded": 1
+    },
+    "3": {
+      "pending": 2,
+      "approved": 13,
+      "excluded": 0
+    }
+  }
+}
