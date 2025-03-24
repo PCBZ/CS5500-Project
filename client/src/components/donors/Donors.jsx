@@ -63,7 +63,9 @@ const Donors = () => {
     setError(prev => ({ ...prev, events: null }));
 
     try {
-      const response = await getEvents({ status: 'active' });
+      const response = await getEvents({ status: 'Ready' });
+
+      console.log('response', response.data);
       setEvents(response.data || []);
 
       // Set default selected event
@@ -139,8 +141,7 @@ const Donors = () => {
       // donors not already in the event
       const result = await getAvailableDonors(selectedEvent.id, {
         page: 1,
-        limit: 100,
-        search: searchQuery || ''
+        limit: 100
       });
       
       setAvailableDonors(result.data || []);
@@ -156,22 +157,12 @@ const Donors = () => {
   // Handle search
   const handleSearch = (e) => {
     setSearchQuery(e.target.value);
-    
-    // If in modal, refresh available donors with search term
-    if (showAddDonorModal) {
-      handleOpenAddDonorModal();
-    } else {
-      setCurrentPage(1); // Reset to first page on search
-    }
+    setCurrentPage(1); // Reset to first page on search
   };
 
   // Handle close modal
   const handleCloseModal = () => {
     setShowAddDonorModal(false);
-    // Reset search query if it was used in modal
-    if (searchQuery) {
-      setSearchQuery('');
-    }
   };
 
   // Handle pagination
@@ -574,23 +565,6 @@ const Donors = () => {
             
             {!loading.availableDonors && !error.availableDonors && (
               <>
-                <div className="modal-header-actions">
-                  <input
-                    type="text"
-                    placeholder="Search available donors"
-                    value={searchQuery}
-                    onChange={handleSearch}
-                    className="donor-search-input"
-                  />
-                  <button 
-                    className="refresh-button"
-                    onClick={handleOpenAddDonorModal}
-                    disabled={loading.availableDonors}
-                  >
-                    Refresh List
-                  </button>
-                </div>
-                
                 {availableDonors.length === 0 ? (
                   <p>No donors available to add</p>
                 ) : (

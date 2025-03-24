@@ -104,7 +104,19 @@ router.get('/', protect, async (req, res) => {
     // Build where conditions based on filters
     const where = {};
 
-    if (status) where.status = status;
+    // 将status字符串值转换为Prisma的EventStatus枚举值
+    if (status) {
+      // 有效值: Planning, ListGeneration, Review, Ready, Complete
+      const validStatuses = ['Planning', 'ListGeneration', 'Review', 'Ready', 'Complete'];
+      
+      if (validStatuses.includes(status)) {
+        where.status = status;
+      } else if (status === 'active') {
+        // 特殊情况: 'active' 可以映射到多个"活跃"状态
+        where.status = { in: ['Planning', 'ListGeneration', 'Review', 'Ready'] };
+      }
+    }
+    
     if (location) where.location = location;
     if (type) where.type = type;
 

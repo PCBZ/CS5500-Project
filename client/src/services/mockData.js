@@ -56,6 +56,61 @@ export const MOCK_EVENTS = [
     review_deadline: '2024-11-10',
     status: 'active',
     donors_count: 95
+  },
+  {
+    id: 6,
+    name: '医疗创新研讨会2025',
+    type: 'Scientific Event',
+    date: '2025-07-12',
+    location: '北京国际会议中心',
+    capacity: '180 attendees',
+    review_deadline: '2025-06-20',
+    status: 'active',
+    donors_count: 72
+  },
+  {
+    id: 7,
+    name: '儿童健康慈善晚宴',
+    type: 'Major Donor Event',
+    date: '2025-09-05',
+    location: '上海四季酒店',
+    capacity: '220 attendees',
+    review_deadline: '2025-08-10',
+    status: 'active',
+    donors_count: 105
+  },
+  {
+    id: 8,
+    name: '医院设备捐赠活动',
+    type: 'Business Event',
+    date: '2025-08-18',
+    location: '广州医科大学附属医院',
+    capacity: '120 attendees',
+    review_deadline: '2025-07-25',
+    status: 'active',
+    donors_count: 55
+  },
+  {
+    id: 9,
+    name: '健康科技展览会',
+    type: 'Community Event',
+    date: '2025-10-20',
+    location: '深圳会展中心',
+    capacity: '350 attendees',
+    review_deadline: '2025-09-30',
+    status: 'active',
+    donors_count: 130
+  },
+  {
+    id: 10,
+    name: '老年健康关爱计划启动仪式',
+    type: 'Community Event',
+    date: '2025-11-15',
+    location: '成都世纪城国际会议中心',
+    capacity: '200 attendees',
+    review_deadline: '2025-10-25',
+    status: 'active',
+    donors_count: 90
   }
 ];
 
@@ -180,7 +235,12 @@ export const MOCK_EVENT_DONORS = {
   2: [102, 104, 106, 107],      // Research Symposium 2025
   3: [103, 105, 107, 109],      // Patient Care Fundraiser
   4: [102, 106, 110],           // Corporate Partners Summit
-  5: [101, 104, 108, 109, 110]  // Winter Charity Ball
+  5: [101, 104, 108, 109, 110], // Winter Charity Ball
+  6: [102, 103, 106, 108, 110], // 医疗创新研讨会2025
+  7: [101, 104, 105, 107, 108, 109], // 儿童健康慈善晚宴
+  8: [102, 106, 110],           // 医院设备捐赠活动
+  9: [101, 103, 105, 107, 109], // 健康科技展览会
+  10: [104, 105, 107, 108]      // 老年健康关爱计划启动仪式
 };
 
 // 事件捐赠者统计数据
@@ -189,5 +249,10 @@ export const MOCK_EVENT_STATS = {
   2: { pending: 2, approved: 2, excluded: 0 },
   3: { pending: 0, approved: 3, excluded: 1 },
   4: { pending: 2, approved: 1, excluded: 0 },
-  5: { pending: 1, approved: 3, excluded: 1 }
+  5: { pending: 1, approved: 3, excluded: 1 },
+  6: { pending: 2, approved: 3, excluded: 0 },
+  7: { pending: 1, approved: 4, excluded: 1 },
+  8: { pending: 1, approved: 2, excluded: 0 },
+  9: { pending: 0, approved: 4, excluded: 1 },
+  10: { pending: 1, approved: 3, excluded: 0 }
 }; 
