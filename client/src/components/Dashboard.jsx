@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { getCurrentUser, logout } from '../services/authService';
 import { getDonorListsSummary } from '../services/donorListService';
+import { getEvents } from '../services/eventService';
 import { FaCalendarAlt, FaCheckCircle, FaClock } from 'react-icons/fa';
 import './Dashboard.css';
 
@@ -8,10 +9,11 @@ const Dashboard = () => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
-    activeEvents: 0, // Default value, will be fetched from API later
+    activeEvents: 0,
     reviewedDonors: 0,
     pendingReview: 0
   });
+  const [events, setEvents] = useState([]);
   const [error, setError] = useState(null);
 
   useEffect(() => {
@@ -21,27 +23,47 @@ const Dashboard = () => {
       setUser(userData);
     }
 
-    // Fetch donor statistics
-    fetchDonorStats();
+    // Fetch data
+    fetchDashboardData();
   }, []);
 
-  // Fetch donor statistics from API
-  const fetchDonorStats = async () => {
+  // Fetch all required dashboard data
+  const fetchDashboardData = async () => {
     try {
+      setLoading(true);
+      
+      // Fetch donor statistics
       const summary = await getDonorListsSummary();
       
+      // Fetch active events
+      const eventsResult = await getEvents({ status: 'active', limit: 10 });
+      const activeEvents = eventsResult.data || [];
+      
+      setEvents(activeEvents.slice(0, 3)); // Only show the first three events
+      
       setStats({
-        ...stats,
+        activeEvents: eventsResult.total_count || activeEvents.length,
         reviewedDonors: summary.total_reviewed || 0,
         pendingReview: summary.total_pending || 0
       });
       
       setLoading(false);
     } catch (err) {
-      console.error('Failed to fetch donor stats:', err);
-      setError('Failed to load donor statistics');
+      console.error('Failed to fetch dashboard data:', err);
+      setError('Failed to load dashboard data');
       setLoading(false);
     }
+  };
+
+  // Format date for display
+  const formatDate = (dateString) => {
+    if (!dateString) return 'Date not set';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
   };
 
   // Handle logout
@@ -63,7 +85,7 @@ const Dashboard = () => {
     return (
       <div className="error-container">
         <p className="error-message">{error}</p>
-        <button onClick={fetchDonorStats} className="retry-button">
+        <button onClick={fetchDashboardData} className="retry-button">
           Retry
         </button>
       </div>
@@ -118,38 +140,34 @@ const Dashboard = () => {
         </div>
 
         <div className="recent-activity">
-          <h2>Recent Activities</h2>
+          <h2>Recent Events</h2>
           <div className="activity-list">
-            <div className="activity-item">
-              <div className="activity-icon">
-                <FaCalendarAlt />
+            {events.length > 0 ? (
+              events.map(event => (
+                <div className="activity-item" key={event.id}>
+                  <div className="activity-icon">
+                    <FaCalendarAlt />
+                  </div>
+                  <div className="activity-details">
+                    <div className="activity-title">{event.name}</div>
+                    <div className="activity-meta">
+                      {formatDate(event.date)} | {event.location || 'Location not set'}
+                    </div>
+                  </div>
+                  <div className="activity-status active">Active</div>
+                </div>
+              ))
+            ) : (
+              <div className="no-events-message">
+                No active events found
               </div>
-              <div className="activity-details">
-                <div className="activity-title">Spring Charity Gala</div>
-                <div className="activity-meta">March 15, 2025 | Vancouver Convention Center</div>
-              </div>
-              <div className="activity-status">Active</div>
-            </div>
-            <div className="activity-item">
-              <div className="activity-icon">
-                <FaCalendarAlt />
-              </div>
-              <div className="activity-details">
-                <div className="activity-title">Research Symposium</div>
-                <div className="activity-meta">April 22, 2025 | BC Cancer Research Center</div>
-              </div>
-              <div className="activity-status">Upcoming</div>
-            </div>
-            <div className="activity-item">
-              <div className="activity-icon">
-                <FaCalendarAlt />
-              </div>
-              <div className="activity-details">
-                <div className="activity-title">Donor Appreciation Day</div>
-                <div className="activity-meta">May 10, 2025 | Stanley Park</div>
-              </div>
-              <div className="activity-status">Upcoming</div>
-            </div>
+            )}
+            
+            {events.length > 0 && (
+              <a href="/events" className="view-all-link">
+                View all events
+              </a>
+            )}
           </div>
         </div>
       </main>
