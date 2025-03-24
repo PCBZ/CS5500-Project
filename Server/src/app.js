@@ -18,7 +18,7 @@ app.use(express.json());
 // routes
 app.use('/api/user', userRoutes);
 app.use('/api/donor', donorRoutes);
-app.use('/api/event', eventRoutes);
+app.use('/api/events', eventRoutes);
 
 // error handling middleware
 app.use((err, req, res, next) => {
