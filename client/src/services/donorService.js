@@ -331,4 +331,91 @@ export const getEventDonorStats = async (eventId) => {
       approval_rate: 0
     };
   }
+};
+
+/**
+ * Update the status of a donor in an event
+ * @param {string} eventId - Event ID
+ * @param {string} eventDonorId - Event Donor ID (the ID of the donor-event relationship record)
+ * @param {string} status - New status ('Pending', 'Approved', or 'Excluded')
+ * @returns {Promise<Object>} Response data
+ */
+export const updateDonorStatus = async (eventId, eventDonorId, status) => {
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      throw new Error('No authentication token found');
+    }
+
+    console.log(`Updating status for donor relationship ${eventDonorId} in event ${eventId} to ${status}`);
+    
+    // Use PATCH request to update donor status
+    const response = await fetch(`${API_URL}/api/events/${eventId}/donors/${eventDonorId}/status`, {
+      method: 'PATCH',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ status })
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error('Failed to update donor status:', errorData);
+      throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+    }
+
+    const result = await response.json();
+    console.log('Donor status updated successfully:', result);
+    return result;
+  } catch (error) {
+    console.error('Error updating donor status:', error);
+    throw error;
+  }
+};
+
+/**
+ * Update the event donor information (comments, auto_excluded, etc.)
+ * @param {string} eventId - Event ID
+ * @param {string} eventDonorId - Event Donor ID (the ID of the donor-event relationship record)
+ * @param {Object} updateData - Data to update (comments, auto_excluded, etc.)
+ * @returns {Promise<Object>} Response data
+ */
+export const updateEventDonor = async (eventId, eventDonorId, updateData) => {
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      throw new Error('No authentication token found');
+    }
+
+    console.log(`Updating donor with ID ${eventDonorId} in event ${eventId}`, updateData);
+    
+    if (!eventId || !eventDonorId) {
+      console.error('Missing required parameters:', { eventId, eventDonorId });
+      throw new Error('Missing eventId or eventDonorId');
+    }
+    
+    // Use PATCH request to update donor information
+    const response = await fetch(`${API_URL}/api/events/${eventId}/donors/${eventDonorId}`, {
+      method: 'PATCH',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(updateData)
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error(`Failed to update donor (status: ${response.status}):`, errorData);
+      throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+    }
+
+    const result = await response.json();
+    console.log('Donor information updated successfully:', result);
+    return result;
+  } catch (error) {
+    console.error('Error updating donor information:', error);
+    throw error;
+  }
 }; 

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { FaUser, FaCalendarAlt, FaMapMarkerAlt, FaUsers, FaClock, FaPlus, FaTrash, FaAngleDown, FaSpinner } from 'react-icons/fa';
+import { FaUser, FaCalendarAlt, FaMapMarkerAlt, FaUsers, FaClock, FaPlus, FaTrash, FaAngleDown, FaSpinner, FaEdit, FaComment } from 'react-icons/fa';
 import { getEvents, getEventById, getEventDonors } from '../../services/eventService';
-import { getAvailableDonors, addDonorToEvent, removeDonorFromEvent, getEventDonorStats } from '../../services/donorService';
+import { getAvailableDonors, addDonorToEvent, removeDonorFromEvent, getEventDonorStats, updateDonorStatus, updateEventDonor } from '../../services/donorService';
 import './Donors.css';
 
 // Temporary workaround to ensure mock data works without authentication
@@ -39,6 +39,11 @@ const Donors = () => {
   const [totalDonors, setTotalDonors] = useState(0);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [success, setSuccess] = useState('');
+  const [editComments, setEditComments] = useState('');
+  const [editExcludeReason, setEditExcludeReason] = useState('');
+  const [showStatusModal, setShowStatusModal] = useState(false);
+  const [selectedDonor, setSelectedDonor] = useState(null);
+  const [editStatus, setEditStatus] = useState('Pending');
 
   // Set up mock token for development
   useEffect(() => {
@@ -406,31 +411,16 @@ const Donors = () => {
     }
   };
 
-  /**
-   * Format a date string for display
-   * @param {string} dateString - The date string to format
-   * @returns {string} Formatted date
-   */
+  // Format date string
   const formatDate = (dateString) => {
     if (!dateString) return '';
     
-    try {
-      const date = new Date(dateString);
-      // Check if date is valid
-      if (isNaN(date.getTime())) {
-        return 'Invalid date';
-      }
-      
-      // Format as MM/DD/YYYY
-      return date.toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit'
-      });
-    } catch (error) {
-      console.error('Error formatting date:', error);
-      return 'Invalid date';
-    }
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
   };
 
   // Generate pagination array
@@ -477,6 +467,106 @@ const Donors = () => {
     // 可以添加延迟重试或其他逻辑
     console.log('Retrying to fetch donors...');
     fetchEventDonors();
+  };
+
+  /**
+   * Open the status edit modal for a donor
+   * @param {Object} donor - The donor to edit status for
+   */
+  const handleOpenStatusModal = (donor) => {
+    // Get the donor ID and eventDonor ID
+    const eventDonorId = donor.id; // This is the ID of the eventDonor record
+    const donorId = donor.donor?.id || donor.donor_id || donor.donorId; // This is the ID of the donor entity
+    
+    // Log detailed information about the donor to debug ID issues
+    console.log('Opening status modal for donor:', {
+      eventDonorId: eventDonorId, // ID to use for updates
+      donorId: donorId, // Just for reference
+      status: donor.status,
+      firstName: donor.donor?.firstName || donor.firstName,
+      lastName: donor.donor?.lastName || donor.lastName,
+      fullDonor: donor // Log the full donor object to inspect
+    });
+    
+    setSelectedDonor({
+      ...donor,
+      // Ensure we have the correct ID for the eventDonor record
+      id: eventDonorId
+    });
+    
+    setEditStatus(donor.status || 'Pending');
+    setEditComments(donor.comments || '');
+    setEditExcludeReason(donor.exclude_reason || '');
+    setShowStatusModal(true);
+  };
+
+  /**
+   * Close the status edit modal
+   */
+  const handleCloseStatusModal = () => {
+    setShowStatusModal(false);
+    setSelectedDonor(null);
+    setEditStatus('');
+    setEditComments('');
+    setEditExcludeReason('');
+  };
+
+  /**
+   * Update donor status and comments
+   */
+  const handleUpdateStatus = async () => {
+    if (!selectedDonor || !selectedEvent) {
+      console.error('Missing selectedDonor or selectedEvent', { selectedDonor, selectedEvent });
+      return;
+    }
+
+    try {
+      setLoading(prev => ({ ...prev, donors: true }));
+      
+      // Ensure we're using the correct ID (eventDonor ID, not donor ID)
+      const eventDonorId = selectedDonor.id;
+      const eventId = selectedEvent.id;
+      
+      // Log the donor and event IDs being used
+      console.log('Updating donor:', {
+        eventId,
+        eventDonorId,
+        status: editStatus,
+        comments: editComments,
+        excludeReason: editExcludeReason,
+        selectedDonor // Log the full selectedDonor object for debugging
+      });
+      
+      // Prepare update data
+      const updateData = {
+        status: editStatus,
+        comments: editComments
+      };
+      
+      // Only include exclude_reason if status is Excluded
+      if (editStatus === 'Excluded') {
+        updateData.exclude_reason = editExcludeReason || 'Excluded by user';
+      }
+      
+      // Call API to update donor information
+      await updateEventDonor(eventId, eventDonorId, updateData);
+      
+      // Update succeeded, refresh donor data and stats
+      await fetchEventDonors();
+      await fetchEventStats();
+      
+      // Show success message
+      setSuccess('Donor information updated successfully');
+      setTimeout(() => setSuccess(''), 3000);
+      
+      // Close the modal
+      handleCloseStatusModal();
+    } catch (error) {
+      console.error('Error updating donor information:', error);
+      setError(prev => ({ ...prev, donors: 'Failed to update donor: ' + (error.message || 'Unknown error') }));
+    } finally {
+      setLoading(prev => ({ ...prev, donors: false }));
+    }
   };
 
   return (
@@ -636,18 +726,24 @@ const Donors = () => {
                       const lastGiftAmount = donorData.lastGiftAmount || donorData.last_gift_amount || 0;
                       const lastGiftDate = donorData.lastGiftDate || donorData.last_gift_date;
                       
+                      // 确保我们获取正确的ID
+                      const eventDonorId = donor.id; // EventDonor记录的ID，用于更新或删除
+                      const donorId = donorData.id || donor.donor_id || donor.donorId; // 实际Donor实体的ID
+                      
                       // Get status and comment from the top-level donor object
                       const status = donor.status || 'Pending';
                       const comments = donor.comments;
+
+                      console.log(`Rendering donor card: eventDonorId=${eventDonorId}, donorId=${donorId}, status=${status}`);
                       
                       return (
-                        <div key={donor.id} className="donor-card">
+                        <div key={eventDonorId} className="donor-card">
                           <div className="donor-card-header">
                             <FaUser className="donor-icon" />
                             <h3>{firstName} {lastName}</h3>
                             <button 
                               className="remove-donor-button"
-                              onClick={() => handleRemoveDonor(donor.id)}
+                              onClick={() => handleRemoveDonor(eventDonorId)}
                               disabled={loading.donors}
                               title="Remove this donor from the event"
                             >
@@ -665,10 +761,31 @@ const Donors = () => {
                             {status && (
                               <p className={`donor-status ${status.toLowerCase()}`}>
                                 <strong>Status:</strong> {status}
+                                <button 
+                                  className="edit-status-button"
+                                  onClick={() => handleOpenStatusModal({
+                                    ...donor,
+                                    id: eventDonorId, // 确保使用正确的eventDonor ID
+                                    donor: {
+                                      ...donorData,
+                                      id: donorId
+                                    }
+                                  })}
+                                  title="Edit Status"
+                                >
+                                  <FaEdit />
+                                </button>
                               </p>
                             )}
                             {comments && (
-                              <p><strong>Comments:</strong> {comments}</p>
+                              <p className="donor-comments">
+                                <FaComment className="comment-icon" /> {comments}
+                              </p>
+                            )}
+                            {donor.exclude_reason && status === 'Excluded' && (
+                              <p className="donor-exclude-reason">
+                                <strong>Exclude Reason:</strong> {donor.exclude_reason}
+                              </p>
                             )}
                           </div>
                         </div>
@@ -839,6 +956,112 @@ const Donors = () => {
                   ))}
                 </div>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Status Edit Modal */}
+      {showStatusModal && selectedDonor && (
+        <div className="modal-overlay">
+          <div className="modal-content status-modal">
+            <div className="modal-header">
+              <h3>Edit Donor Status</h3>
+              <button className="close-button" onClick={handleCloseStatusModal}>×</button>
+            </div>
+            <div className="modal-body">
+              <div className="donor-profile-simple">
+                <h4>{selectedDonor.donor?.firstName || selectedDonor.firstName} {selectedDonor.donor?.lastName || selectedDonor.lastName}</h4>
+                {(selectedDonor.donor?.organizationName || selectedDonor.organizationName) && (
+                  <p className="org-name">{selectedDonor.donor?.organizationName || selectedDonor.organizationName}</p>
+                )}
+              </div>
+              
+              <div className="status-section">
+                <h4>Update Status</h4>
+                <div className="status-options">
+                  <label className={`status-option ${editStatus === 'Pending' ? 'selected' : ''}`}>
+                    <input 
+                      type="radio" 
+                      name="status" 
+                      value="Pending" 
+                      checked={editStatus === 'Pending'} 
+                      onChange={() => setEditStatus('Pending')} 
+                    />
+                    <div className="status-card pending">
+                      <span className="status-label">Pending</span>
+                    </div>
+                  </label>
+                  
+                  <label className={`status-option ${editStatus === 'Approved' ? 'selected' : ''}`}>
+                    <input 
+                      type="radio" 
+                      name="status" 
+                      value="Approved" 
+                      checked={editStatus === 'Approved'} 
+                      onChange={() => setEditStatus('Approved')} 
+                    />
+                    <div className="status-card approved">
+                      <span className="status-label">Approved</span>
+                    </div>
+                  </label>
+                  
+                  <label className={`status-option ${editStatus === 'Excluded' ? 'selected' : ''}`}>
+                    <input 
+                      type="radio" 
+                      name="status" 
+                      value="Excluded" 
+                      checked={editStatus === 'Excluded'} 
+                      onChange={() => setEditStatus('Excluded')} 
+                    />
+                    <div className="status-card excluded">
+                      <span className="status-label">Excluded</span>
+                    </div>
+                  </label>
+                </div>
+              </div>
+              
+              {editStatus === 'Excluded' && (
+                <div className="exclude-reason-section">
+                  <label htmlFor="exclude-reason">Exclusion Reason:</label>
+                  <input
+                    id="exclude-reason"
+                    type="text"
+                    placeholder="Enter reason for excluding this donor"
+                    value={editExcludeReason}
+                    onChange={(e) => setEditExcludeReason(e.target.value)}
+                    className="exclude-reason-input"
+                  />
+                </div>
+              )}
+              
+              <div className="comments-section">
+                <label htmlFor="donor-comments">Comments:</label>
+                <textarea
+                  id="donor-comments"
+                  placeholder="Add notes about this donor"
+                  value={editComments}
+                  onChange={(e) => setEditComments(e.target.value)}
+                  className="comments-textarea"
+                  rows={4}
+                />
+              </div>
+              
+              <div className="modal-actions">
+                <button 
+                  className="cancel-button" 
+                  onClick={handleCloseStatusModal}
+                >
+                  Cancel
+                </button>
+                <button 
+                  className="save-button" 
+                  onClick={handleUpdateStatus}
+                  disabled={loading.donors}
+                >
+                  {loading.donors ? "Saving..." : "Save Changes"}
+                </button>
+              </div>
             </div>
           </div>
         </div>
