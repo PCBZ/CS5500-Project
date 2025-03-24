@@ -11,7 +11,35 @@ const router = express.Router();
 const prisma = new PrismaClient();
 
 /**
- * Get events list with pagination, filtering, and sorting
+ * Helper function to handle Int serialization in event objects
+ * @param {Object} event - The event object to format
+ * @returns {Object} Formatted event object with stringified ID
+ * @private
+ */
+const formatEvent = (event) => {
+  if (!event) return null;
+  
+  // Handle single event
+  if (!Array.isArray(event)) {
+    return {
+      ...event,
+      id: event.id.toString(),
+      createdBy: event.createdBy.toString(),
+      criteriaMinGivingLevel: event.criteriaMinGivingLevel ? parseFloat(event.criteriaMinGivingLevel.toString()) : 0
+    };
+  }
+  
+  // Handle array of events
+  return event.map(e => ({
+    ...e,
+    id: e.id.toString(),
+    createdBy: e.createdBy.toString(),
+    criteriaMinGivingLevel: e.criteriaMinGivingLevel ? parseFloat(e.criteriaMinGivingLevel.toString()) : 0
+  }));
+};
+
+/**
+ * Get events list with optional filtering and pagination
  * 
  * @name GET /api/events
  * @function
@@ -21,16 +49,40 @@ const prisma = new PrismaClient();
  * @param {string} req.query.limit - Number of events per page (default: 20)
  * @param {string} req.query.sort - Field to sort by (e.g., "name", "date")
  * @param {string} req.query.order - Sort order ("asc" or "desc")
- * @param {string} req.query.type - Filter by event type
+ * @param {string} req.query.status - Filter by event status
  * @param {string} req.query.location - Filter by location
- * @param {string} req.query.status - Filter by status
- * @param {string} req.query.dateFrom - Filter by date range (start)
- * @param {string} req.query.dateTo - Filter by date range (end)
- * @param {string} req.query.search - Search term for event name
+ * @param {string} req.query.type - Filter by event type
+ * @param {string} req.query.search - Search term for event name or focus
  * @param {string} req.headers.authorization - Bearer token for authentication
  * @returns {Object} 200 - List of events with pagination info
  * @returns {Error} 401 - Unauthorized access
  * @returns {Error} 500 - Server error
+ * 
+ * @example
+ * // Request
+ * GET /api/events?page=1&limit=10&status=Planning
+ * Authorization: Bearer <token>
+ * 
+ * // Success Response
+ * {
+ *   "events": [
+ *     {
+ *       "id": "1",
+ *       "name": "Spring Gala 2025",
+ *       "type": "Major Donor Event",
+ *       "date": "2025-03-15T00:00:00.000Z",
+ *       "location": "Vancouver",
+ *       "capacity": 200,
+ *       "status": "Planning",
+ *       ...
+ *     },
+ *     ...
+ *   ],
+ *   "total": 12,
+ *   "page": 1,
+ *   "limit": 10,
+ *   "pages": 2
+ * }
  */
 router.get('/', protect, async (req, res) => {
   try {
@@ -38,12 +90,10 @@ router.get('/', protect, async (req, res) => {
       page = '1',
       limit = '20',
       sort = 'date',
-      order = 'asc',
-      type,
-      location,
+      order = 'desc',
       status,
-      dateFrom,
-      dateTo,
+      location,
+      type,
       search
     } = req.query;
 
@@ -54,21 +104,14 @@ router.get('/', protect, async (req, res) => {
     // Build where conditions based on filters
     const where = {};
 
-    if (type) where.type = type;
-    if (location) where.location = location;
     if (status) where.status = status;
+    if (location) where.location = location;
+    if (type) where.type = type;
 
-    // Date range filtering
-    if (dateFrom || dateTo) {
-      where.date = {};
-      if (dateFrom) where.date.gte = new Date(dateFrom);
-      if (dateTo) where.date.lte = new Date(dateTo);
-    }
-
-    // Search by name
     if (search) {
       where.OR = [
-        { name: { contains: search, mode: 'insensitive' } }
+        { name: { contains: search } },
+        { focus: { contains: search} }
       ];
     }
 
@@ -88,15 +131,26 @@ router.get('/', protect, async (req, res) => {
           select: {
             id: true,
             name: true,
-            email: true,
-            role: true
+            email: true
+          }
+        },
+        donorLists: {
+          select: {
+            id: true,
+            name: true,
+            totalDonors: true,
+            approved: true,
+            excluded: true,
+            pending: true,
+            autoExcluded: true,
+            reviewStatus: true
           }
         }
       }
     });
 
     res.json({
-      events,
+      events: formatEvent(events),
       total,
       page: pageNum,
       limit: limitNum,
@@ -118,20 +172,46 @@ router.get('/', protect, async (req, res) => {
  * @param {Object} req.body - Event data
  * @param {string} req.body.name - Event name
  * @param {string} req.body.type - Event type
- * @param {string} req.body.date - Event date
+ * @param {string} req.body.date - Event date (ISO string)
  * @param {string} req.body.location - Event location
  * @param {number} req.body.capacity - Event capacity
- * @param {string} req.body.focus - Event focus
- * @param {number} req.body.criteriaMinGivingLevel - Minimum giving level for donors
- * @param {string} req.body.timelineListGenerationDate - Date for list generation
- * @param {string} req.body.timelineReviewDeadline - Deadline for PMM reviews
- * @param {string} req.body.timelineInvitationDate - Date for sending invitations
- * @param {string} req.body.status - Event status
+ * @param {string} req.body.focus - Event focus area (optional)
+ * @param {number} req.body.criteriaMinGivingLevel - Minimum giving level criteria (optional)
+ * @param {string} req.body.timelineListGenerationDate - List generation date (ISO string, optional)
+ * @param {string} req.body.timelineReviewDeadline - Review deadline date (ISO string, optional)
+ * @param {string} req.body.timelineInvitationDate - Invitation date (ISO string, optional)
  * @param {string} req.headers.authorization - Bearer token for authentication
  * @returns {Object} 201 - Created event
  * @returns {Error} 400 - Missing required fields
  * @returns {Error} 401 - Unauthorized access
  * @returns {Error} 500 - Server error
+ * 
+ * @example
+ * // Request
+ * POST /api/events
+ * Authorization: Bearer <token>
+ * {
+ *   "name": "Spring Gala 2025",
+ *   "type": "Major Donor Event",
+ *   "date": "2025-03-15T18:00:00.000Z",
+ *   "location": "Vancouver",
+ *   "capacity": 200,
+ *   "focus": "Cancer Research",
+ *   "criteriaMinGivingLevel": 25000,
+ *   "timelineListGenerationDate": "2025-01-15T00:00:00.000Z",
+ *   "timelineReviewDeadline": "2025-02-01T00:00:00.000Z",
+ *   "timelineInvitationDate": "2025-02-15T00:00:00.000Z"
+ * }
+ * 
+ * // Success Response
+ * {
+ *   "message": "Event created successfully",
+ *   "event": {
+ *     "id": "1",
+ *     "name": "Spring Gala 2025",
+ *     ...
+ *   }
+ * }
  */
 router.post('/', protect, async (req, res) => {
   try {
@@ -146,15 +226,18 @@ router.post('/', protect, async (req, res) => {
       timelineListGenerationDate,
       timelineReviewDeadline,
       timelineInvitationDate,
-      status
+      status = 'Planning'
     } = req.body;
 
     // Validate required fields
     if (!name || !type || !date || !location) {
-      return res.status(400).json({ message: 'Name, type, date, and location are required fields' });
+      return res.status(400).json({ message: 'Name, type, date, and location are required' });
     }
 
-    // Create new event
+    // Get user ID from auth middleware
+    const userId = req.user.id;
+
+    // Create event
     const event = await prisma.event.create({
       data: {
         name,
@@ -167,16 +250,17 @@ router.post('/', protect, async (req, res) => {
         timelineListGenerationDate: timelineListGenerationDate ? new Date(timelineListGenerationDate) : null,
         timelineReviewDeadline: timelineReviewDeadline ? new Date(timelineReviewDeadline) : null,
         timelineInvitationDate: timelineInvitationDate ? new Date(timelineInvitationDate) : null,
-        status: status || undefined, // Use the default from schema if not provided
-        createdBy: req.user.userId, // Get user ID from auth middleware
+        status,
+        creator: {
+          connect: { id: userId }
+        }
       },
       include: {
         creator: {
           select: {
             id: true,
             name: true,
-            email: true,
-            role: true
+            email: true
           }
         }
       }
@@ -184,7 +268,7 @@ router.post('/', protect, async (req, res) => {
 
     res.status(201).json({
       message: 'Event created successfully',
-      event
+      event: formatEvent(event)
     });
   } catch (error) {
     console.error('Error creating event:', error);
@@ -206,12 +290,33 @@ router.post('/', protect, async (req, res) => {
  * @returns {Error} 401 - Unauthorized access
  * @returns {Error} 404 - Event not found
  * @returns {Error} 500 - Server error
+ * 
+ * @example
+ * // Request
+ * GET /api/events/1
+ * Authorization: Bearer <token>
+ * 
+ * // Success Response
+ * {
+ *   "id": "1",
+ *   "name": "Spring Gala 2025",
+ *   "type": "Major Donor Event",
+ *   "date": "2025-03-15T18:00:00.000Z",
+ *   "location": "Vancouver",
+ *   "capacity": 200,
+ *   "status": "Planning",
+ *   ...
+ * }
  */
 router.get('/:id', protect, async (req, res) => {
   try {
-    const eventId = parseInt(req.params.id);
-    
-    if (isNaN(eventId)) {
+    let eventId;
+    try {
+      eventId = parseInt(req.params.id); 
+      if (isNaN(eventId)) {
+        return res.status(400).json({ message: 'Invalid event ID format' });
+      }
+    } catch (error) {
       return res.status(400).json({ message: 'Invalid event ID format' });
     }
 
@@ -222,16 +327,44 @@ router.get('/:id', protect, async (req, res) => {
           select: {
             id: true,
             name: true,
-            email: true,
-            role: true
+            email: true
           }
         },
         donorLists: {
           select: {
             id: true,
             name: true,
+            totalDonors: true,
+            approved: true,
+            excluded: true,
+            pending: true,
+            autoExcluded: true,
+            reviewStatus: true,
             createdAt: true,
-            updatedAt: true
+            updatedAt: true,
+            eventDonors: {
+              select: {
+                id: true,
+                donorId: true,
+                status: true,
+                excludeReason: true,
+                reviewerId: true,
+                reviewDate: true,
+                comments: true,
+                autoExcluded: true,
+                donor: {
+                  select: {
+                    id: true,
+                    firstName: true,
+                    lastName: true,
+                    organizationName: true,
+                    totalDonations: true,
+                    city: true,
+                    tags: true
+                  }
+                }
+              }
+            }
           }
         }
       }
@@ -241,7 +374,7 @@ router.get('/:id', protect, async (req, res) => {
       return res.status(404).json({ message: 'Event not found' });
     }
 
-    res.json(event);
+    res.json(formatEvent(event));
   } catch (error) {
     console.error('Error fetching event:', error);
     res.status(500).json({ message: 'Internal server error', error: error.message });
@@ -263,12 +396,36 @@ router.get('/:id', protect, async (req, res) => {
  * @returns {Error} 401 - Unauthorized access
  * @returns {Error} 404 - Event not found
  * @returns {Error} 500 - Server error
+ * 
+ * @example
+ * // Request
+ * PUT /api/events/1
+ * Authorization: Bearer <token>
+ * {
+ *   "name": "Spring Gala 2025 - Updated",
+ *   "capacity": 250
+ * }
+ * 
+ * // Success Response
+ * {
+ *   "message": "Event updated successfully",
+ *   "event": {
+ *     "id": "1",
+ *     "name": "Spring Gala 2025 - Updated",
+ *     "capacity": 250,
+ *     ...
+ *   }
+ * }
  */
 router.put('/:id', protect, async (req, res) => {
   try {
-    const eventId = parseInt(req.params.id);
-    
-    if (isNaN(eventId)) {
+    let eventId;
+    try {
+      eventId = parseInt(req.params.id); 
+      if (isNaN(eventId)) {
+        return res.status(400).json({ message: 'Invalid event ID format' });
+      }
+    } catch (error) {
       return res.status(400).json({ message: 'Invalid event ID format' });
     }
 
@@ -281,20 +438,38 @@ router.put('/:id', protect, async (req, res) => {
       return res.status(404).json({ message: 'Event not found' });
     }
 
-    // Prepare updateData based on request body
-    const updateData = { ...req.body };
+    // Update event with provided fields
+    const updateData = {};
     
-    // Convert date strings to Date objects if provided
-    if (updateData.date) updateData.date = new Date(updateData.date);
-    if (updateData.timelineListGenerationDate) updateData.timelineListGenerationDate = new Date(updateData.timelineListGenerationDate);
-    if (updateData.timelineReviewDeadline) updateData.timelineReviewDeadline = new Date(updateData.timelineReviewDeadline);
-    if (updateData.timelineInvitationDate) updateData.timelineInvitationDate = new Date(updateData.timelineInvitationDate);
+    // Handle string fields
+    if (req.body.name !== undefined) updateData.name = req.body.name;
+    if (req.body.type !== undefined) updateData.type = req.body.type;
+    if (req.body.location !== undefined) updateData.location = req.body.location;
+    if (req.body.focus !== undefined) updateData.focus = req.body.focus;
+    if (req.body.status !== undefined) updateData.status = req.body.status;
     
-    // Convert numeric fields if provided
-    if (updateData.capacity !== undefined) updateData.capacity = parseInt(updateData.capacity);
-    if (updateData.criteriaMinGivingLevel !== undefined) updateData.criteriaMinGivingLevel = parseFloat(updateData.criteriaMinGivingLevel);
+    // Handle numeric fields
+    if (req.body.capacity !== undefined) updateData.capacity = parseInt(req.body.capacity);
+    if (req.body.criteriaMinGivingLevel !== undefined) {
+      updateData.criteriaMinGivingLevel = parseFloat(req.body.criteriaMinGivingLevel);
+    }
+    
+    // Handle date fields
+    if (req.body.date !== undefined) updateData.date = new Date(req.body.date);
+    if (req.body.timelineListGenerationDate !== undefined) {
+      updateData.timelineListGenerationDate = req.body.timelineListGenerationDate ? 
+        new Date(req.body.timelineListGenerationDate) : null;
+    }
+    if (req.body.timelineReviewDeadline !== undefined) {
+      updateData.timelineReviewDeadline = req.body.timelineReviewDeadline ? 
+        new Date(req.body.timelineReviewDeadline) : null;
+    }
+    if (req.body.timelineInvitationDate !== undefined) {
+      updateData.timelineInvitationDate = req.body.timelineInvitationDate ? 
+        new Date(req.body.timelineInvitationDate) : null;
+    }
 
-    // Update event
+    // Update the event
     const updatedEvent = await prisma.event.update({
       where: { id: eventId },
       data: updateData,
@@ -303,8 +478,7 @@ router.put('/:id', protect, async (req, res) => {
           select: {
             id: true,
             name: true,
-            email: true,
-            role: true
+            email: true
           }
         }
       }
@@ -312,7 +486,7 @@ router.put('/:id', protect, async (req, res) => {
 
     res.json({
       message: 'Event updated successfully',
-      event: updatedEvent
+      event: formatEvent(updatedEvent)
     });
   } catch (error) {
     console.error('Error updating event:', error);
@@ -321,7 +495,7 @@ router.put('/:id', protect, async (req, res) => {
 });
 
 /**
- * Delete an event
+ * Delete an event (soft delete)
  * 
  * @name DELETE /api/events/:id
  * @function
@@ -334,12 +508,26 @@ router.put('/:id', protect, async (req, res) => {
  * @returns {Error} 401 - Unauthorized access
  * @returns {Error} 404 - Event not found
  * @returns {Error} 500 - Server error
+ * 
+ * @example
+ * // Request
+ * DELETE /api/events/1
+ * Authorization: Bearer <token>
+ * 
+ * // Success Response
+ * {
+ *   "message": "Event deleted successfully"
+ * }
  */
 router.delete('/:id', protect, async (req, res) => {
   try {
-    const eventId = parseInt(req.params.id);
-    
-    if (isNaN(eventId)) {
+    let eventId;
+    try {
+      eventId = parseInt(req.params.id); 
+      if (isNaN(eventId)) {
+        return res.status(400).json({ message: 'Invalid event ID format' });
+      }
+    } catch (error) {
       return res.status(400).json({ message: 'Invalid event ID format' });
     }
 
@@ -352,15 +540,13 @@ router.delete('/:id', protect, async (req, res) => {
       return res.status(404).json({ message: 'Event not found' });
     }
 
-    // Delete event
-    // Note: This will cascade to delete related donor lists if you've set up cascade delete in Prisma
+    // For a soft delete, we could add a 'deleted' field to the Event model
+    // Here, we're actually deleting the event, but in production you might want to implement soft delete
     await prisma.event.delete({
       where: { id: eventId }
     });
 
-    res.json({
-      message: 'Event deleted successfully'
-    });
+    res.json({ message: 'Event deleted successfully' });
   } catch (error) {
     console.error('Error deleting event:', error);
     res.status(500).json({ message: 'Internal server error', error: error.message });
@@ -375,27 +561,54 @@ router.delete('/:id', protect, async (req, res) => {
  * @memberof module:EventAPI
  * @inner
  * @param {string} req.params.id - Event ID
- * @param {Object} req.body - Status update data
- * @param {string} req.body.status - New status
+ * @param {Object} req.body - Request body
+ * @param {string} req.body.status - New event status (Planning|ListGeneration|Review|Ready|Complete)
  * @param {string} req.headers.authorization - Bearer token for authentication
- * @returns {Object} 200 - Updated event
- * @returns {Error} 400 - Invalid event ID format or invalid status
+ * @returns {Object} 200 - Updated event with new status
+ * @returns {Error} 400 - Invalid event ID format or missing/invalid status
  * @returns {Error} 401 - Unauthorized access
  * @returns {Error} 404 - Event not found
  * @returns {Error} 500 - Server error
+ * 
+ * @example
+ * // Request
+ * PUT /api/events/1/status
+ * Authorization: Bearer <token>
+ * {
+ *   "status": "ListGeneration"
+ * }
+ * 
+ * // Success Response
+ * {
+ *   "message": "Event status updated successfully",
+ *   "event": {
+ *     "id": "1",
+ *     "status": "ListGeneration",
+ *     ...
+ *   }
+ * }
  */
 router.put('/:id/status', protect, async (req, res) => {
   try {
-    const eventId = parseInt(req.params.id);
-    
-    if (isNaN(eventId)) {
+    let eventId;
+    try {
+      eventId = parseInt(req.params.id); 
+      if (isNaN(eventId)) {
+        return res.status(400).json({ message: 'Invalid event ID format' });
+      }
+    } catch (error) {
       return res.status(400).json({ message: 'Invalid event ID format' });
     }
 
     const { status } = req.body;
 
-    if (!status) {
-      return res.status(400).json({ message: 'Status is required' });
+    // Validate status
+    const validStatuses = ['Planning', 'ListGeneration', 'Review', 'Ready', 'Complete'];
+    if (!status || !validStatuses.includes(status)) {
+      return res.status(400).json({ 
+        message: 'Valid status is required', 
+        validStatuses 
+      });
     }
 
     // Check if event exists
@@ -410,12 +623,21 @@ router.put('/:id/status', protect, async (req, res) => {
     // Update event status
     const updatedEvent = await prisma.event.update({
       where: { id: eventId },
-      data: { status }
+      data: { status },
+      include: {
+        creator: {
+          select: {
+            id: true,
+            name: true,
+            email: true
+          }
+        }
+      }
     });
 
     res.json({
       message: 'Event status updated successfully',
-      event: updatedEvent
+      event: formatEvent(updatedEvent)
     });
   } catch (error) {
     console.error('Error updating event status:', error);
@@ -438,6 +660,28 @@ router.put('/:id/status', protect, async (req, res) => {
  * @returns {Error} 400 - Invalid status
  * @returns {Error} 401 - Unauthorized access
  * @returns {Error} 500 - Server error
+ * 
+ * @example
+ * // Request
+ * GET /api/events/status/Planning?page=1&limit=10
+ * Authorization: Bearer <token>
+ * 
+ * // Success Response
+ * {
+ *   "events": [
+ *     {
+ *       "id": "1",
+ *       "name": "Spring Gala 2025",
+ *       "status": "Planning",
+ *       ...
+ *     },
+ *     ...
+ *   ],
+ *   "total": 5,
+ *   "page": 1,
+ *   "limit": 10,
+ *   "pages": 1
+ * }
  */
 router.get('/status/:status', protect, async (req, res) => {
   try {
@@ -446,8 +690,17 @@ router.get('/status/:status', protect, async (req, res) => {
       page = '1',
       limit = '20',
       sort = 'date',
-      order = 'asc'
+      order = 'desc'
     } = req.query;
+
+    // Validate status
+    const validStatuses = ['Planning', 'ListGeneration', 'Review', 'Ready', 'Complete'];
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({ 
+        message: 'Invalid status', 
+        validStatuses 
+      });
+    }
 
     const pageNum = parseInt(page);
     const limitNum = parseInt(limit);
@@ -471,15 +724,26 @@ router.get('/status/:status', protect, async (req, res) => {
           select: {
             id: true,
             name: true,
-            email: true,
-            role: true
+            email: true
+          }
+        },
+        donorLists: {
+          select: {
+            id: true,
+            name: true,
+            totalDonors: true,
+            approved: true,
+            excluded: true,
+            pending: true,
+            autoExcluded: true,
+            reviewStatus: true
           }
         }
       }
     });
 
     res.json({
-      events,
+      events: formatEvent(events),
       total,
       page: pageNum,
       limit: limitNum,
