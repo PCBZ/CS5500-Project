@@ -305,7 +305,7 @@ const getEventDonorsAlternative = async (eventId, params = {}) => {
     });
     
     // 添加no_sort参数，避免服务器端排序错误
-    url.searchParams.set('no_sort', 'true');
+    url.searchParams.append('no_sort', 'true');
     
     console.log('使用备用端点请求捐赠者:', url.toString());
     

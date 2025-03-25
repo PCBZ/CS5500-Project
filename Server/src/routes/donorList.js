@@ -811,12 +811,11 @@ router.get('/:id/donors', protect, async (req, res) => {
 
     // 添加名称搜索过滤（搜索关联的捐赠者的名称）
     if (search) {
-      const searchLower = search.toLowerCase();
       where.donor = {
         OR: [
-          { firstName: { contains: searchLower } },
-          { lastName: { contains: searchLower } },
-          { organizationName: { contains: searchLower } }
+          { firstName: { contains: search, mode: 'insensitive' } },
+          { lastName: { contains: search, mode: 'insensitive' } },
+          { organizationName: { contains: search, mode: 'insensitive' } }
         ]
       };
     }

@@ -131,9 +131,12 @@ router.get('/', protect, async (req, res) => {
     if (deceased === 'true') where.deceased = true;
     if (deceased === 'false') where.deceased = false;
     
-    if (min_donation) {
+    // Get minDonation parameter from query
+    const minDonation = req.query.minDonation;
+    
+    if (minDonation) {
       where.totalDonations = {
-        gte: parseFloat(min_donation)
+        gte: parseFloat(minDonation)
       };
     }
 
