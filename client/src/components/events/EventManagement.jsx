@@ -369,7 +369,9 @@ const handleKeyPress = (e) => {
                     </td>
                     <td>
                       <div className="event-status">
-                        {event.status}
+                        <div className={`activity-status ${event.status.toLowerCase()}`}>
+                          {event.status}
+                        </div>
                         {event.timelineReviewDeadline && (
                           <div className="event-due-date">
                             <FaClock className="icon" />
