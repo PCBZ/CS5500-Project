@@ -365,3 +365,56 @@
     float: right;
   }
 }
+
+.activity-status {
+  padding: 6px 12px;
+  border-radius: 20px;
+  background-color: #EEF2FF;
+  color: #4F46E5;
+  font-size: 14px;
+  font-weight: 500;
+  display: inline-block;
+  width: fit-content;
+  white-space: nowrap;
+}
+
+/* 为不同状态添加不同的颜色 */
+.activity-status.planning {
+  background-color: #FEF3C7;
+  color: #D97706;
+}
+
+.activity-status.listgeneration {
+  background-color: #DBEAFE;
+  color: #2563EB;
+}
+
+.activity-status.review {
+  background-color: #E0E7FF;
+  color: #4F46E5;
+}
+
+.activity-status.ready {
+  background-color: #D1FAE5;
+  color: #059669;
+}
+
+.activity-status.complete {
+  background-color: #ECFDF5;
+  color: #10B981;
+}
+
+.deadline-info {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 4px;
+  font-size: 12px;
+  color: #EF4444;
+  font-weight: 500;
+}
+
+.deadline-info .icon {
+  color: #EF4444;
+  font-size: 12px;
+}
