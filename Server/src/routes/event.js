@@ -313,6 +313,41 @@ router.post('/', protect, async (req, res) => {
   }
 });
 
+// 在event.js路由文件中添加
+router.get('/types', protect, async (req, res) => {
+  try {
+    // 获取所有不同的事件类型
+    const types = await prisma.event.findMany({
+      select: {
+        type: true,
+      },
+      distinct: ['type'],
+    });
+    
+    res.json(types.map(t => t.type));
+  } catch (error) {
+    console.error('Error fetching event types:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+router.get('/locations', protect, async (req, res) => {
+  try {
+    // 获取所有不同的地点
+    const locations = await prisma.event.findMany({
+      select: {
+        location: true,
+      },
+      distinct: ['location'],
+    });
+    
+    res.json(locations.map(l => l.location));
+  } catch (error) {
+    console.error('Error fetching event locations:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
 /**
  * Get event by ID
  * 
