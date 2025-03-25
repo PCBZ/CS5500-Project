@@ -7,8 +7,6 @@
   "scripts": {
     "start": "node src/index.js",
     "dev": "nodemon src/index.js",
-    "seed": "node -r esm prisma/seed.js",
-    "seed:api": "node prisma/seedFromApi.cjs",
     "test": "jest --detectOpenHandles",
     "docs": "jsdoc -c jsdoc.json"
   },

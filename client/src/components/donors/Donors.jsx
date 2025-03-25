@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { FaUser, FaCalendarAlt, FaMapMarkerAlt, FaUsers, FaClock, FaPlus, FaTrash, FaAngleDown, FaSpinner, FaEdit, FaComment } from 'react-icons/fa';
+import { FaUser, FaCalendarAlt, FaMapMarkerAlt, FaUsers, FaClock, FaPlus, FaTrash, FaAngleDown, FaSpinner, FaEdit, FaComment, FaDownload } from 'react-icons/fa';
 import { getEvents, getEventById, getEventDonors } from '../../services/eventService';
-import { getAvailableDonors, addDonorToEvent, removeDonorFromEvent, getEventDonorStats, updateDonorStatus, updateEventDonor } from '../../services/donorService';
+import { getAvailableDonors, addDonorToEvent, removeDonorFromEvent, getEventDonorStats, updateDonorStatus, updateEventDonor, exportEventDonorsToCsv } from '../../services/donorService';
 import './Donors.css';
 
 // Temporary workaround to ensure mock data works without authentication
@@ -44,6 +44,7 @@ const Donors = () => {
   const [showStatusModal, setShowStatusModal] = useState(false);
   const [selectedDonor, setSelectedDonor] = useState(null);
   const [editStatus, setEditStatus] = useState('Pending');
+  const [exporting, setExporting] = useState(false);
 
   // Set up mock token for development
   useEffect(() => {
@@ -109,23 +110,23 @@ const Donors = () => {
         return;
       }
 
-      // 如果服务器表示需要创建捐赠者列表，尝试自动创建
+      // Check if server indicates need to create donor list
       if (response.needsListCreation) {
         try {
-          console.log('需要为事件创建捐赠者列表，尝试自动创建...');
+          console.log('Need to create a donor list for this event, attempting automatic creation...');
           setError(prev => ({ 
             ...prev, 
-            donors: '正在为此事件创建捐赠者列表...' 
+            donors: 'Creating donor list for this event...' 
           }));
           
-          // 从eventService中导入函数
+          // Import function from eventService
           const { createEventDonorList } = await import('../../services/eventService');
           
-          // 尝试创建列表
+          // Try to create the list
           const listResult = await createEventDonorList(selectedEvent.id);
-          console.log('捐赠者列表创建成功:', listResult);
+          console.log('Donor list created successfully:', listResult);
           
-          // 创建列表成功后重新获取捐赠者
+          // Fetch donors again after list creation
           const updatedResponse = await getEventDonors(selectedEvent.id, {
             page: currentPage,
             limit: itemsPerPage,
@@ -136,53 +137,54 @@ const Donors = () => {
           setTotalPages(updatedResponse.total_pages || 1);
           setTotalDonors(updatedResponse.total_count || 0);
           
-          // 清除错误并显示成功消息
+          // Clear error and show success message
           setError(prev => ({ ...prev, donors: null }));
-          setSuccess('捐赠者列表创建成功！');
+          setSuccess('Donor list created successfully!');
           setTimeout(() => setSuccess(''), 3000);
           
-          return; // 提前退出
+          return; // Exit early
         } catch (createErr) {
-          console.error('自动创建捐赠者列表失败:', createErr);
+          console.error('Failed to automatically create donor list:', createErr);
           setError(prev => ({ 
             ...prev, 
-            donors: `无法创建捐赠者列表: ${createErr.message || 'Unknown error'}。请联系管理员。` 
+            donors: `Unable to create donor list: ${createErr.message || 'Unknown error'}. Please contact administrator.` 
           }));
           setEventDonors([]);
           setTotalPages(1);
           setTotalDonors(0);
-          return; // 提前退出
+          return; // Exit early
         }
       }
 
       console.log('$$$$$response.data$$$$$', response.data);
-      // 正常处理捐赠者数据
+      
+      // Process the donors data normally
       setEventDonors(response.data || []);
       setTotalPages(response.total_pages || 1);
       setTotalDonors(response.total_count || 0);
     } catch (err) {
       console.error('Failed to fetch event donors:', err);
       
-      // 针对不同错误类型提供不同的用户提示
-      let errorMessage = '加载捐赠者失败: ';
+      // Provide different error messages based on error type
+      let errorMessage = 'Failed to load donors: ';
       
-      if (err.message.includes('服务器内部错误')) {
-        // 对于服务器内部错误，尝试自动创建捐赠者列表
+      if (err.message.includes('Internal server error')) {
+        // For server internal errors, try to auto-create donor list
         try {
-          console.log('服务器内部错误，尝试创建捐赠者列表作为可能的解决方案...');
+          console.log('Server internal error, attempting to create donor list as possible solution...');
           setError(prev => ({ 
             ...prev, 
-            donors: '服务器错误：尝试创建捐赠者列表...' 
+            donors: 'Server error: Attempting to create donor list...' 
           }));
           
-          // 从eventService中导入函数
+          // Import function from eventService
           const { createEventDonorList } = await import('../../services/eventService');
           
-          // 尝试创建列表
+          // Try to create the list
           const listResult = await createEventDonorList(selectedEvent.id);
-          console.log('捐赠者列表创建成功:', listResult);
+          console.log('Donor list created successfully:', listResult);
           
-          // 列表创建后重新获取捐赠者
+          // Fetch donors again after list creation
           const updatedResponse = await getEventDonors(selectedEvent.id, {
             page: currentPage,
             limit: itemsPerPage,
@@ -193,21 +195,21 @@ const Donors = () => {
           setTotalPages(updatedResponse.total_pages || 1);
           setTotalDonors(updatedResponse.total_count || 0);
           
-          // 清除错误并显示成功消息
+          // Clear error and show success message
           setError(prev => ({ ...prev, donors: null }));
-          setSuccess('捐赠者列表创建成功！问题已解决。');
+          setSuccess('Donor list created successfully! Issue resolved.');
           setTimeout(() => setSuccess(''), 5000);
           
-          return; // 提前退出
+          return; // Exit early
         } catch (createErr) {
-          console.error('尝试创建捐赠者列表失败:', createErr);
-          errorMessage += '服务器内部错误，自动修复失败。请联系管理员查看服务器日志。';
+          console.error('Failed to create donor list:', createErr);
+          errorMessage += 'Server internal error, automatic fix failed. Please contact administrator to check server logs.';
         }
-      } else if (err.message.includes('网络连接错误')) {
-        errorMessage += '网络连接问题，请检查您的网络连接后重试';
+      } else if (err.message.includes('Network error')) {
+        errorMessage += 'Network connection problem, please check your network connection and try again';
       } else if (err.message.includes('No authentication token found')) {
-        errorMessage += '会话已过期，请重新登录';
-        // 可以在这里添加重定向到登录页的逻辑
+        errorMessage += 'Session expired, please log in again';
+        // Could add redirect to login page logic here
       } else {
         errorMessage += (err.message || 'Unknown error');
       }
@@ -301,9 +303,52 @@ const Donors = () => {
     setCurrentPage(page);
   };
 
-  // Handle export list
-  const handleExport = () => {
-    alert('Export functionality will be implemented here');
+  /**
+   * Handle export donor list to CSV
+   */
+  const handleExport = async () => {
+    if (!selectedEvent) return;
+    
+    setExporting(true);
+    
+    try {
+      // Call export function to generate CSV
+      const blob = await exportEventDonorsToCsv(selectedEvent.id);
+      
+      // Create download link
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      
+      // Set download attributes
+      link.href = url;
+      link.setAttribute('download', `${selectedEvent.name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_donor_data_${new Date().toISOString().slice(0, 10)}.csv`);
+      document.body.appendChild(link);
+      
+      // Trigger download and clean up DOM
+      link.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(link);
+      
+      // Show success message highlighting active donors
+      setSuccess('Successfully exported active donor data (excluding deceased donors and excluded donors)');
+      setTimeout(() => setSuccess(''), 5000);
+    } catch (error) {
+      console.error('Failed to export donors:', error);
+      
+      // Special handling for no valid donors case
+      if (error.message === 'No valid donors to export') {
+        setError(prev => ({ ...prev, export: `No donors to export: All donors are either excluded or do not meet export criteria` }));
+      } else {
+        setError(prev => ({ ...prev, export: `Failed to export donors: ${error.message || 'Unknown error'}` }));
+      }
+      
+      // Clear export error message after 5 seconds
+      setTimeout(() => {
+        setError(prev => ({ ...prev, export: null }));
+      }, 5000);
+    } finally {
+      setExporting(false);
+    }
   };
 
   // Handle event selection
@@ -324,29 +369,29 @@ const Donors = () => {
     try {
       setLoading(prev => ({ ...prev, donors: true }));
       
-      // 调用API将捐赠者添加到事件
+      // Call API to add donor to event
       const result = await addDonorToEvent(selectedEvent.id, donorId);
       
-      // 如果响应中包含新创建的列表信息，可以在UI中进行相应更新
+      // If response includes information about newly created list, update UI
       if (result.donorList) {
         console.log('Donor list created or updated:', result.donorList);
       }
       
-      // 更新事件捐赠者数据
+      // Update event donor data
       await fetchEventDonors();
       await fetchEventStats();
       
-      // 从可用捐赠者列表中移除此捐赠者
+      // Remove this donor from available donors list
       setAvailableDonors(prev => prev.filter(donor => {
         const id = donor.id || donor.donor_id || donor.donorId;
         return id !== donorId;
       }));
       
-      // 显示成功消息
+      // Show success message
       setSuccess('Donor added successfully');
       setTimeout(() => setSuccess(''), 3000);
       
-      // 刷新可用捐赠者列表
+      // Refresh available donors list
       try {
         const updatedAvailableDonors = await getAvailableDonors(selectedEvent.id, {
           page: 1,
@@ -355,19 +400,19 @@ const Donors = () => {
         setAvailableDonors(updatedAvailableDonors.data || []);
       } catch (refreshError) {
         console.error('Error refreshing available donors:', refreshError);
-        // 错误已经处理，但不影响主流程
+        // Error already handled, but does not affect main process
       }
     } catch (error) {
       console.error('Error adding donor to event:', error);
       
-      // 特殊处理捐赠者已存在的情况
+      // Special handling for donors already in the event
       if (error.message && error.message.includes('already in this event')) {
         setError(prev => ({ ...prev, donors: 'This donor is already in this event' }));
       } else {
         setError(prev => ({ ...prev, donors: 'Failed to add donor: ' + (error.message || 'Unknown error') }));
       }
       
-      // 刷新捐赠者列表以确保UI一致性
+      // Refresh donor list to ensure UI consistency
       try {
         await fetchEventDonors();
       } catch (fetchError) {
@@ -385,7 +430,7 @@ const Donors = () => {
   const handleRemoveDonor = async (eventDonorId) => {
     if (!selectedEvent || !eventDonorId) return;
     
-    // 确认是否移除捐赠者
+    // Confirm donor removal
     if (!window.confirm('Are you sure you want to remove this donor from the event?')) {
       return;
     }
@@ -393,14 +438,14 @@ const Donors = () => {
     try {
       setLoading(prev => ({ ...prev, donors: true }));
       
-      // 调用API从事件中移除捐赠者
+      // Call API to remove donor from event
       await removeDonorFromEvent(selectedEvent.id, eventDonorId);
       
-      // 更新数据
+      // Update data
       fetchEventDonors();
       fetchEventStats();
       
-      // 显示成功消息
+      // Show success message
       setSuccess('Donor removed successfully');
       setTimeout(() => setSuccess(''), 3000);
     } catch (error) {
@@ -576,8 +621,21 @@ const Donors = () => {
           <h1>Donor Management</h1>
           <p>View and manage donor lists for upcoming events</p>
         </div>
-        <button className="export-button" onClick={handleExport}>
-          Export List
+        <button 
+          className="export-button" 
+          onClick={handleExport} 
+          disabled={loading.donors || !selectedEvent}
+          title={!selectedEvent ? "Select an event to export donors" : "Export donors to CSV"}
+        >
+          {exporting ? (
+            <div className="export-loading">
+              <FaSpinner className="loading-spinner" /> Exporting...
+            </div>
+          ) : (
+            <>
+              <FaDownload /> Export Donors
+            </>
+          )}
         </button>
       </header>
 
@@ -677,23 +735,23 @@ const Donors = () => {
               </div>
             )}
             
-            {/* 错误消息显示 */}
+            {/* Error message display */}
             {error.donors && (
               <div className="error-message">
                 <p>{error.donors}</p>
                 <p className="error-hint">
-                  {error.donors.includes('无法创建捐赠者列表') || error.donors.includes('服务器内部错误') ? 
-                    '提示：服务器端可能存在数据库字段问题。您可以尝试点击重试按钮，或者联系系统管理员修复服务器端代码中的排序字段错误。' : 
-                    '请尝试刷新页面或者稍后再试。'}
+                  {error.donors.includes('Unable to create donor list') || error.donors.includes('Server internal error') ? 
+                    'Tip: There may be a database field issue on the server. You can try clicking retry, or contact the system administrator to fix field errors in the server code.' : 
+                    'Please try refreshing the page or try again later.'}
                 </p>
                 <div className="error-actions">
-                  <button onClick={handleRetryFetchDonors}>重试</button>
-                  <button onClick={() => window.location.reload()}>刷新页面</button>
+                  <button onClick={handleRetryFetchDonors}>Retry</button>
+                  <button onClick={() => window.location.reload()}>Refresh Page</button>
                 </div>
               </div>
             )}
             
-            {/* 成功消息显示 */}
+            {/* Success message display */}
             {success && (
               <div className="success-message">
                 <p>{success}</p>
@@ -726,9 +784,9 @@ const Donors = () => {
                       const lastGiftAmount = donorData.lastGiftAmount || donorData.last_gift_amount || 0;
                       const lastGiftDate = donorData.lastGiftDate || donorData.last_gift_date;
                       
-                      // 确保我们获取正确的ID
-                      const eventDonorId = donor.id; // EventDonor记录的ID，用于更新或删除
-                      const donorId = donorData.id || donor.donor_id || donor.donorId; // 实际Donor实体的ID
+                      // Ensure we get the correct IDs
+                      const eventDonorId = donor.id; // EventDonor record ID, used for updating or deleting
+                      const donorId = donorData.id || donor.donor_id || donor.donorId; // The actual Donor entity ID
                       
                       // Get status and comment from the top-level donor object
                       const status = donor.status || 'Pending';
@@ -765,7 +823,7 @@ const Donors = () => {
                                   className="edit-status-button"
                                   onClick={() => handleOpenStatusModal({
                                     ...donor,
-                                    id: eventDonorId, // 确保使用正确的eventDonor ID
+                                    id: eventDonorId, // Ensure we use the correct eventDonor ID
                                     donor: {
                                       ...donorData,
                                       id: donorId

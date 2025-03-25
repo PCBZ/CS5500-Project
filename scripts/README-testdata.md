@@ -84,36 +84,6 @@ psql -U username -d database_name -f testEvents.sql
 
 Note: You may need to modify column names in the generated SQL to match your actual database schema.
 
-## API Upload Tool
-
-This repository includes a tool to upload the generated JSON data directly to your application's API:
-
-```bash
-# Upload generated JSON data to API
-node scripts/uploadTestData.js <json_file_path> [base_url]
-```
-
-Parameters:
-- `<json_file_path>` - Required path to the generated JSON file
-- `[base_url]` - Optional API base URL (default: http://localhost:3000)
-
-Example:
-```bash
-# Generate 10 events and save to JSON file
-node scripts/generateTestData.js 10 > testEvents.json
-
-# Upload the generated data to the API
-node scripts/uploadTestData.js testEvents.json http://localhost:3000
-```
-
-The upload tool will:
-1. Prompt for API credentials (email/password)
-2. Upload all events from the JSON file
-3. Upload all donors from the JSON file
-4. Create associations between events and donors
-
-This provides a complete test data set in your application without requiring direct database access.
-
 ## Data Ranges
 
 The script generates a variety of realistic data:

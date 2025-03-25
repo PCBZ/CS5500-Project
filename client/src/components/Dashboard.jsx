@@ -154,7 +154,7 @@ const Dashboard = () => {
                       {formatDate(event.date)} | {event.location || 'Location not set'}
                     </div>
                   </div>
-                  <div className="activity-status active">Active</div>
+                  <div className="activity-status">Active</div>
                 </div>
               ))
             ) : (

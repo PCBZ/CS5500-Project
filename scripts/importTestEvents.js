@@ -7,15 +7,10 @@
  */
 
 // Import required libraries
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
-import { PrismaClient } from '@prisma/client';
+const fs = require('fs');
+const path = require('path');
+const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
-
-// Get the directory name
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 /**
  * Import event data into the database
