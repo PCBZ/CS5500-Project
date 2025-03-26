@@ -1,82 +1,72 @@
-# Test Data Generation and Import Scripts
+# Test Data Upload Scripts
 
-This directory contains two scripts for generating and importing test data:
+This directory contains scripts for uploading test data to the application via HTTP requests.
 
-1. `generateTestEvents.js` - Generates test event and donor data
-2. `importTestEvents.js` - Imports the generated test data into the database
+## Prerequisites
 
-## Generating Test Data
+- Node.js (v14 or higher)
+- npm (v6 or higher)
+- A running instance of the application server
 
-The `generateTestEvents.js` script generates mock event and donor data in JSON format.
+## Setup
 
-### Usage
-
+1. Install dependencies:
 ```bash
-node generateTestEvents.js [count] > testEvents.json
+npm install
 ```
 
-- `[count]` - Optional parameter specifying the number of events to generate, default is 10
-- The script will generate 5 times the count of donors
+2. Configure the server URL:
+   - Open `uploadTestData.js`
+   - Update the `API_URL` constant with your server's URL (default: 'http://localhost:3000')
 
-### Example
+## Usage
 
-```bash
-# Generate 20 events and 100 donors as test data
-node generateTestEvents.js 20 > testEvents.json
-```
+### Upload Test Data
 
-## Importing Test Data
-
-The `importTestEvents.js` script imports the generated test data into the database.
-
-### Prerequisites
-
-1. Ensure database connection is configured (in the `.env` file)
-2. Make sure at least one user (ID 1) exists in the database
-
-### Usage
+To upload test data to the server:
 
 ```bash
-node importTestEvents.js <data_file_path>
+node uploadTestData.js
 ```
 
-- `<data_file_path>` - Required parameter specifying the path to the JSON file containing test data
+This script will:
+1. Create test events
+2. Create test donors
+3. Associate donors with events
+4. Set initial statuses for event-donor relationships
 
-### Example
+### Test Data Structure
 
-```bash
-# Import test data
-node importTestEvents.js ./testEvents.json
-```
+The test data includes:
+- Events with various statuses (Planning, List Generation, Review, Ready, Complete)
+- Donors with different types (Individual, Organization)
+- Event-donor relationships with different statuses (Pending, Approved, Rejected)
 
-## Data Structure
+## Error Handling
 
-The generated test data includes the following structure:
+The script includes error handling for:
+- Network errors
+- Authentication failures
+- Invalid data formats
+- Server errors
 
-1. `MOCK_EVENTS` - Array of event data
-2. `MOCK_DONORS` - Array of donor data
-3. `MOCK_EVENT_DONORS` - Event and donor relationship mapping
-4. `MOCK_EVENT_STATS` - Event donor statistics
+## Notes
 
-## Important Notes
+- The script uses JWT authentication
+- Test data is designed to cover various use cases and edge cases
+- The script can be modified to generate different types of test data
 
-- These scripts are for development and testing environments only, do not use in production
-- The import script creates new data records but does not delete existing data
-- Make sure to backup your database before importing to prevent unexpected issues
+## Troubleshooting
 
-## Generated Data Ranges
+If you encounter issues:
 
-### Event Data
-- Event types: Major Donor Event, Research Symposium, Community Event, etc.
-- Event locations: Major city convention centers
-- Event focus areas: Cancer Research, Children's Health, Medical Innovation, etc.
-- Event statuses: Planning, ListGeneration, Review, Ready, Complete
-- Event dates: From current date to two years in the future
+1. Check the server URL configuration
+2. Ensure the server is running and accessible
+3. Verify your authentication token is valid
+4. Check the console output for detailed error messages
 
-### Donor Data
-- Individual donors (70%): Randomly generated names
-- Organization donors (30%): Randomly generated company names
-- Donation amounts: Between 10,000 and 1,000,000
-- Donor types: Major Donor, Corporate Donor, Individual Donor, etc.
-- Priorities: High, Medium, Low
-- Tags: 1-3 randomly selected interest/characteristic tags 
+## Security Notes
+
+- The script uses environment variables for sensitive data
+- Test data should not be used in production environments
+- Always use secure connections (HTTPS) in production 
