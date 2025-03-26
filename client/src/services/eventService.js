@@ -166,26 +166,26 @@ export const getEventDonors = async (eventId, params = {}) => {
       throw new Error('No authentication token found');
     }
 
-    // 特殊处理：如果事件ID为227，这是一个已知有问题的事件，尝试使用另一个端点
+    // Special handling: If event ID is 227, this is a known problematic event, try using another endpoint
     if (eventId === '227' || eventId === 227) {
-      console.log('检测到ID为227的事件，尝试使用替代API端点...');
+      console.log('Detected event ID 227, trying alternative API endpoint...');
       return await getEventDonorsAlternative(eventId, params);
     }
 
-    // 直接使用 /api/events/{eventId}/donors 端点获取事件捐赠者
+    // Directly use /api/events/{eventId}/donors endpoint to get event donors
     const url = new URL(`${API_URL}/api/events/${eventId}/donors`);
     
-    // 添加查询参数
+    // Add query parameters
     Object.keys(params).forEach(key => {
       if (params[key] !== undefined && params[key] !== '') {
         url.searchParams.append(key, params[key]);
       }
     });
     
-    // 始终添加no_sort=true参数，避免服务器使用不存在的createdAt字段排序导致500错误
+    // Always add no_sort=true parameter to avoid 500 error from server using non-existent createdAt field for sorting
     url.searchParams.set('no_sort', 'true');
 
-    console.log('请求事件捐赠者:', url.toString());
+    console.log('Requesting event donors:', url.toString());
     
     try {
       const response = await fetch(url, {
@@ -197,12 +197,12 @@ export const getEventDonors = async (eventId, params = {}) => {
       });
 
       if (!response.ok) {
-        // 处理404错误，表示事件可能没有捐赠者列表
+        // Handle 404 error, indicating event may have no donor list
         if (response.status === 404) {
           const errorData = await response.json().catch(() => ({ message: 'Event has no donor list' }));
-          console.warn('事件没有捐赠者列表:', errorData.message);
+          console.warn('Event has no donor list:', errorData.message);
           
-          // 返回空结果，但包含需要创建列表的标记
+          // Return empty result with flag indicating list creation is needed
           return {
             data: [],
             page: params.page || 1,
@@ -214,13 +214,13 @@ export const getEventDonors = async (eventId, params = {}) => {
           };
         }
         
-        // 处理500错误 - 尝试使用备用方法
+        // Handle 500 error - try alternative method
         if (response.status === 500) {
-          console.error('服务器内部错误，尝试使用备用端点:', url.toString());
+          console.error('Server internal error, trying alternative endpoint:', url.toString());
           return await getEventDonorsAlternative(eventId, params);
         }
         
-        // 处理其他错误
+        // Handle other errors
         const errorText = await response.text().catch(() => 'Unknown error');
         let errorMessage;
         try {
@@ -233,17 +233,17 @@ export const getEventDonors = async (eventId, params = {}) => {
         throw new Error(errorMessage);
       }
 
-      // 获取API响应
+      // Get API response
       const responseData = await response.json();
       
-      // 若返回消息中包含needsListCreation标记，传递给调用方
+      // If response message includes needsListCreation flag, pass it to caller
       const needsListCreation = responseData.needsListCreation || false;
       
-      // 适配响应格式以符合前端期望
+      // Adapt response format to match frontend expectations
       return {
         data: Array.isArray(responseData.donors) ? responseData.donors.map(donor => ({
           ...donor,
-          // 确保字段格式一致，将snake_case转换为camelCase
+          // Ensure field format consistency, convert snake_case to camelCase
           firstName: donor.donor?.first_name || donor.donor?.firstName,
           lastName: donor.donor?.last_name || donor.donor?.lastName,
           nickName: donor.donor?.nick_name || donor.donor?.nickName,
@@ -265,25 +265,25 @@ export const getEventDonors = async (eventId, params = {}) => {
         message: responseData.message
       };
     } catch (fetchError) {
-      // 捕获fetch操作中的任何错误
-      console.error(`获取事件捐赠者时出错:`, fetchError);
+      // Catch any errors in fetch operation
+      console.error(`Failed to fetch event donors:`, fetchError);
       
-      // 如果是网络错误，给出更具体的提示
+      // If network error, provide more specific message
       if (fetchError.name === 'TypeError' && fetchError.message.includes('Failed to fetch')) {
-        throw new Error('网络连接错误，请检查您的网络连接或服务器是否可用');
+        throw new Error('Network connection error, please check your network connection or server availability');
       }
       
-      throw fetchError; // 将错误向上传递给下一个处理器
+      throw fetchError; // Pass error up to next handler
     }
   } catch (error) {
-    console.error(`Error fetching donors for event ${eventId}:`, error);
-    throw error; // 将错误传递给调用方，而不是返回模拟数据
+    console.error(`Failed to get donors for event ${eventId}:`, error);
+    throw error; // Pass error to caller instead of returning mock data
   }
 };
 
 /**
- * 备用函数：尝试获取事件捐赠者列表
- * 这个函数使用替代端点，避开已知问题
+ * Alternative function: Try to get event donor list
+ * This function uses an alternative endpoint to avoid known issues
  */
 const getEventDonorsAlternative = async (eventId, params = {}) => {
   try {
@@ -292,22 +292,22 @@ const getEventDonorsAlternative = async (eventId, params = {}) => {
       throw new Error('No authentication token found');
     }
     
-    console.log('使用备用方法获取事件捐赠者...');
+    console.log('Using alternative method to get event donors...');
     
-    // 直接使用事件捐赠者API获取数据
+    // Directly use event donor API to get data
     const url = new URL(`${API_URL}/api/events/${eventId}/donors`);
     
-    // 添加查询参数
+    // Add query parameters
     Object.keys(params).forEach(key => {
       if (params[key] !== undefined && params[key] !== '') {
         url.searchParams.append(key, params[key]);
       }
     });
     
-    // 添加no_sort参数，避免服务器端排序错误
+    // Add no_sort parameter to avoid server-side sorting errors
     url.searchParams.append('no_sort', 'true');
     
-    console.log('使用备用端点请求捐赠者:', url.toString());
+    console.log('Using alternative endpoint to request donors:', url.toString());
     
     try {
       const response = await fetch(url, {
@@ -319,15 +319,15 @@ const getEventDonorsAlternative = async (eventId, params = {}) => {
       });
       
       if (!response.ok) {
-        // 处理404错误，表示事件可能没有捐赠者列表
+        // Handle 404 error, indicating event may have no donor list
         if (response.status === 404) {
-          console.log('事件可能没有捐赠者列表，尝试创建一个...');
+          console.log('Event may have no donors, trying to create one...');
           
           try {
             const createResponse = await createEventDonorList(eventId);
-            console.log('创建捐赠者列表成功:', createResponse);
+            console.log('Donor list creation successful:', createResponse);
             
-            // 创建成功后再次尝试获取捐赠者
+            // Try to get donors again after list creation
             const retryResponse = await fetch(url, {
               method: 'GET',
               headers: {
@@ -337,7 +337,7 @@ const getEventDonorsAlternative = async (eventId, params = {}) => {
             });
             
             if (!retryResponse.ok) {
-              throw new Error(`创建列表后仍无法获取捐赠者: ${retryResponse.status}`);
+              throw new Error(`Failed to get donors after list creation: ${retryResponse.status}`);
             }
             
             const donorsData = await retryResponse.json();
@@ -365,18 +365,18 @@ const getEventDonorsAlternative = async (eventId, params = {}) => {
               total_pages: donorsData.pages || 1
             };
           } catch (createError) {
-            console.error('创建捐赠者列表失败:', createError);
-            throw new Error(`无法创建捐赠者列表: ${createError.message}`);
+            console.error('Failed to create donor list:', createError);
+            throw new Error(`Failed to create donor list: ${createError.message}`);
           }
         }
         
         if (response.status === 500) {
-          // 对于500内部服务器错误，尝试特殊处理
-          console.error('服务器内部错误，可能是排序字段问题:', url.toString());
+          // For 500 internal server error, try special handling
+          console.error('Server internal error, possibly sorting field problem:', url.toString());
           
-          // 添加一个no_sort参数，告诉服务器不要进行排序
+          // Add no_sort parameter to tell server not to sort
           url.searchParams.append('no_sort', 'true');
-          console.log('尝试不排序的请求:', url.toString());
+          console.log('Trying to request without sorting:', url.toString());
           
           const noSortResponse = await fetch(url, {
             method: 'GET',
@@ -387,7 +387,7 @@ const getEventDonorsAlternative = async (eventId, params = {}) => {
           });
           
           if (!noSortResponse.ok) {
-            throw new Error(`即使禁用排序也无法获取捐赠者: ${noSortResponse.status}`);
+            throw new Error(`Even without sorting cannot get donors: ${noSortResponse.status}`);
           }
           
           const donorsData = await noSortResponse.json();
@@ -416,12 +416,12 @@ const getEventDonorsAlternative = async (eventId, params = {}) => {
           };
         }
         
-        throw new Error(`通过备用端点获取捐赠者失败: ${response.status}`);
+        throw new Error(`Failed to get donors through alternative endpoint: ${response.status}`);
       }
       
       const donorsData = await response.json();
       
-      // 格式化数据以符合前端期望
+      // Format data to match frontend expectations
       return {
         data: Array.isArray(donorsData.donors) ? donorsData.donors.map(donor => ({
           ...donor,
@@ -445,13 +445,13 @@ const getEventDonorsAlternative = async (eventId, params = {}) => {
         total_pages: donorsData.pages || 1
       };
     } catch (fetchError) {
-      console.error('获取捐赠者列表数据失败:', fetchError);
+      console.error('Failed to fetch donor list data:', fetchError);
       throw fetchError;
     }
   } catch (error) {
-    console.error('备用方法获取捐赠者失败:', error);
+    console.error('Failed to get donors through alternative method:', error);
     
-    // 如果备用方法也失败，返回空结果
+    // If alternative method also fails, return empty result
     return {
       data: [],
       page: params.page || 1,
@@ -459,15 +459,15 @@ const getEventDonorsAlternative = async (eventId, params = {}) => {
       total_count: 0,
       total_pages: 0,
       error: true,
-      message: `获取事件捐赠者失败: ${error.message || '未知错误'}`
+      message: `Failed to get event donors: ${error.message || 'Unknown error'}`
     };
   }
 };
 
 /**
- * 为事件创建新的捐赠者列表
- * @param {string} eventId - 事件ID
- * @returns {Promise<Object>} 捐赠者列表数据
+ * Create a new donor list for an event
+ * @param {string} eventId - Event ID
+ * @returns {Promise<Object>} Donor list data
  */
 export const createEventDonorList = async (eventId) => {
   try {
@@ -476,7 +476,7 @@ export const createEventDonorList = async (eventId) => {
       throw new Error('No authentication token found');
     }
 
-    console.log(`为事件 ${eventId} 创建捐赠者列表`);
+    console.log(`Creating donor list for event ${eventId}`);
     
     const response = await fetch(`${API_URL}/api/events/${eventId}/donor-list`, {
       method: 'POST',
@@ -488,7 +488,7 @@ export const createEventDonorList = async (eventId) => {
     });
 
     if (!response.ok) {
-      // 尝试解析错误响应
+      // Try to parse error response
       const errorText = await response.text().catch(() => 'Unknown error');
       let errorMessage;
       try {
@@ -502,10 +502,10 @@ export const createEventDonorList = async (eventId) => {
     }
 
     const result = await response.json();
-    console.log('捐赠者列表创建成功:', result);
+    console.log('Donor list creation successful:', result);
     return result;
   } catch (error) {
-    console.error('创建捐赠者列表时出错:', error);
+    console.error('Failed to create donor list:', error);
     throw error;
   }
 }; 

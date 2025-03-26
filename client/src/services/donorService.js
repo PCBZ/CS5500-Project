@@ -53,7 +53,7 @@ export const getDonors = async (params = {}) => {
     };
   } catch (error) {
     console.error('Error fetching donors:', error);
-    throw error; // 不再返回模拟数据，而是将错误传递给调用方
+    throw error; // No longer return mock data, pass error to caller
   }
 };
 
