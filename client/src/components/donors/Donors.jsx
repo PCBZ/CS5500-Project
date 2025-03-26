@@ -70,7 +70,7 @@ const Donors = () => {
     setError(prev => ({ ...prev, events: null }));
 
     try {
-      const response = await getEvents({ status: 'Ready' });
+      const response = await getEvents();
 
       console.log('response', response.data);
       setEvents(response.data || []);
@@ -519,29 +519,12 @@ const Donors = () => {
    * @param {Object} donor - The donor to edit status for
    */
   const handleOpenStatusModal = (donor) => {
-    // Get the donor ID and eventDonor ID
-    const eventDonorId = donor.id; // This is the ID of the eventDonor record
-    const donorId = donor.donor?.id || donor.donor_id || donor.donorId; // This is the ID of the donor entity
-    
-    // Log detailed information about the donor to debug ID issues
-    console.log('Opening status modal for donor:', {
-      eventDonorId: eventDonorId, // ID to use for updates
-      donorId: donorId, // Just for reference
-      status: donor.status,
-      firstName: donor.donor?.firstName || donor.firstName,
-      lastName: donor.donor?.lastName || donor.lastName,
-      fullDonor: donor // Log the full donor object to inspect
-    });
-    
-    setSelectedDonor({
-      ...donor,
-      // Ensure we have the correct ID for the eventDonor record
-      id: eventDonorId
-    });
-    
-    setEditStatus(donor.status || 'Pending');
-    setEditComments(donor.comments || '');
-    setEditExcludeReason(donor.exclude_reason || '');
+    if (selectedEvent.status !== 'Ready') {
+      alert('Only events in Ready status can edit donor information');
+      return;
+    }
+    console.log('Opening status modal for donor:', donor);
+    setSelectedDonor(donor);
     setShowStatusModal(true);
   };
 
@@ -614,6 +597,13 @@ const Donors = () => {
     }
   };
 
+  // Check if the selected event is in Ready status
+  const isEventReady = () => {
+    if (!selectedEvent) return false;
+    console.log('Checking event status:', selectedEvent.status);
+    return selectedEvent.status === 'active';
+  };
+
   return (
     <div className="donors-container">
       <header className="donors-header">
@@ -624,8 +614,8 @@ const Donors = () => {
         <button 
           className="export-button" 
           onClick={handleExport} 
-          disabled={loading.donors || !selectedEvent}
-          title={!selectedEvent ? "Select an event to export donors" : "Export donors to CSV"}
+          disabled={loading.donors || !selectedEvent || !isEventReady()}
+          title={!selectedEvent ? "Select an event to export donors" : !isEventReady() ? "Only Ready events can export donors" : "Export donors to CSV"}
         >
           {exporting ? (
             <div className="export-loading">
@@ -692,7 +682,8 @@ const Donors = () => {
               <button 
                 className="add-donor-button"
                 onClick={handleOpenAddDonorModal}
-                disabled={!selectedEvent}
+                disabled={!selectedEvent || !isEventReady()}
+                title={!isEventReady() ? "Only Ready events can add donors" : "Add a new donor"}
               >
                 <FaPlus /> Add Donor
               </button>
@@ -765,7 +756,7 @@ const Donors = () => {
                     <button 
                       className="add-donor-button-large"
                       onClick={handleOpenAddDonorModal}
-                      disabled={!selectedEvent}
+                      disabled={!selectedEvent || !isEventReady()}
                     >
                       <FaPlus /> Add Your First Donor
                     </button>
@@ -802,8 +793,8 @@ const Donors = () => {
                             <button 
                               className="remove-donor-button"
                               onClick={() => handleRemoveDonor(eventDonorId)}
-                              disabled={loading.donors}
-                              title="Remove this donor from the event"
+                              disabled={loading.donors || !isEventReady()}
+                              title={!isEventReady() ? "Only Ready events can remove donors" : "Remove this donor from the event"}
                             >
                               <FaTrash />
                             </button>
@@ -823,13 +814,14 @@ const Donors = () => {
                                   className="edit-status-button"
                                   onClick={() => handleOpenStatusModal({
                                     ...donor,
-                                    id: eventDonorId, // Ensure we use the correct eventDonor ID
+                                    id: eventDonorId,
                                     donor: {
                                       ...donorData,
                                       id: donorId
                                     }
                                   })}
-                                  title="Edit Status"
+                                  disabled={!isEventReady()}
+                                  title={!isEventReady() ? "Only Ready events can edit donor status" : "Edit Status"}
                                 >
                                   <FaEdit />
                                 </button>
