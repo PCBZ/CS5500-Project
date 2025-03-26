@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { FaUser, FaCalendarAlt, FaMapMarkerAlt, FaUsers, FaClock, FaPlus, FaTrash, FaAngleDown, FaSpinner, FaEdit, FaComment, FaDownload } from 'react-icons/fa';
 import { getEvents, getEventById, getEventDonors } from '../../services/eventService';
 import { getAvailableDonors, addDonorToEvent, removeDonorFromEvent, getEventDonorStats, updateDonorStatus, updateEventDonor, exportEventDonorsToCsv } from '../../services/donorService';
+import { useLocation } from 'react-router-dom';
 import './Donors.css';
 
 // Temporary workaround to ensure mock data works without authentication
@@ -14,6 +15,7 @@ const setupMockToken = () => {
 };
 
 const Donors = () => {
+  const location = useLocation();
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedEvent, setSelectedEvent] = useState(null);
@@ -55,6 +57,29 @@ const Donors = () => {
   useEffect(() => {
     fetchEvents();
   }, []);
+
+  // Handle event selection from location state
+  useEffect(() => {
+    if (location.state?.selectedEventId) {
+      const eventId = location.state.selectedEventId;
+      const event = events.find(e => e.id === eventId);
+      if (event) {
+        setSelectedEvent(event);
+      } else {
+        // If event not found in current events list, fetch it
+        getEventById(eventId)
+          .then(response => {
+            if (response.data) {
+              setSelectedEvent(response.data);
+            }
+          })
+          .catch(error => {
+            console.error('Error fetching event:', error);
+            setError(prev => ({ ...prev, events: 'Failed to load selected event' }));
+          });
+      }
+    }
+  }, [location.state?.selectedEventId, events]);
 
   // Fetch donors when selected event changes or search/page changes
   useEffect(() => {

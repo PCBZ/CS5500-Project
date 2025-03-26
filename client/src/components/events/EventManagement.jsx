@@ -187,10 +187,8 @@ const handleKeyPress = (e) => {
   };
 
   const handleViewEvent = (eventId) => {
-    // Navigate to event details page
-    history.push(`/events/${eventId}`);
-    // OR if you're not using React Router:
-    // window.location.href = `/events/${eventId}`;
+    // Navigate to donors tab and select the event
+    history.push('/donors', { selectedEventId: eventId });
   };
 
   // Handle create new event
