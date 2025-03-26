@@ -195,69 +195,7 @@ const handleKeyPress = (e) => {
 
   // Handle create new event
   const handleCreateEvent = () => {
-    setSelectedEvent(null);
-    setShowEventModal(true);
-  };
-
-  // Handle event status change
-  const handleStatusChange = async (eventId, newStatus) => {
-    try {
-      await updateEventStatus(eventId, newStatus);
-      // Refresh events list after status update
-      fetchEvents();
-    } catch (error) {
-      console.error('Error updating event status:', error);
-      // Show error message to user
-      setError('Failed to update event status. Please try again.');
-    }
-  };
-
-  // Handle event deletion
-  const handleDeleteEvent = async (eventId) => {
-    if (window.confirm('Are you sure you want to delete this event?')) {
-      try {
-        await deleteEvent(eventId);
-        // Refresh events list after deletion
-        fetchEvents();
-      } catch (error) {
-        console.error('Error deleting event:', error);
-        // Show error message to user
-        setError('Failed to delete event. Please try again.');
-      }
-    }
-  };
-
-  // Handle event edit
-  const handleEditEvent = (event) => {
-    setSelectedEvent(event);
-    setShowEventModal(true);
-  };
-
-  // Handle event modal close
-  const handleEventModalClose = () => {
-    setShowEventModal(false);
-    setSelectedEvent(null);
-  };
-
-  // Handle event form submission
-  const handleEventSubmit = async (eventData) => {
-    try {
-      if (selectedEvent) {
-        // Update existing event
-        await updateEvent(selectedEvent.id, eventData);
-      } else {
-        // Create new event
-        await createEvent(eventData);
-      }
-      // Refresh events list
-      fetchEvents();
-      // Close modal
-      handleEventModalClose();
-    } catch (error) {
-      console.error('Error saving event:', error);
-      // Show error message to user
-      setError('Failed to save event. Please try again.');
-    }
+    alert('Create new event functionality will be implemented here');
   };
 
   return (
