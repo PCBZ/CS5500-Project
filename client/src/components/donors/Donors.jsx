@@ -47,6 +47,7 @@ const Donors = () => {
   const [selectedDonor, setSelectedDonor] = useState(null);
   const [editStatus, setEditStatus] = useState('Pending');
   const [exporting, setExporting] = useState(false);
+  const [statusFilter, setStatusFilter] = useState('');
 
   // Set up mock token for development
   useEffect(() => {
@@ -629,6 +630,23 @@ const Donors = () => {
     return selectedEvent.status === 'active';
   };
 
+  // handle status filter
+  const handleStatusFilter = (status) => {
+    setStatusFilter(status === statusFilter ? '' : status);
+  };
+
+  // filter donors based on search query and status filter
+  const filteredDonors = eventDonors.filter(donor => {
+    const matchesSearch = searchQuery === '' || 
+      donor.firstName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      donor.lastName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      donor.organizationName?.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    const matchesStatus = statusFilter === '' || donor.status === statusFilter;
+    
+    return matchesSearch && matchesStatus;
+  });
+
   return (
     <div className="donors-container">
       <header className="donors-header">
@@ -716,31 +734,27 @@ const Donors = () => {
           </div>
 
           <div className="donor-stats">
-            {loading.stats ? (
-              <div className="stats-loading">
-                <FaSpinner className="spinner" /> Loading stats...
-              </div>
-            ) : error.stats ? (
-              <div className="stats-error">
-                {error.stats}
-                <button onClick={fetchEventStats} className="retry-button-small">Retry</button>
-              </div>
-            ) : (
-              <>
-                <div className="stat-item pending">
-                  <div className="stat-number">{stats.pending}</div>
-                  <div className="stat-label">Pending</div>
-                </div>
-                <div className="stat-item approved">
-                  <div className="stat-number">{stats.approved}</div>
-                  <div className="stat-label">Approved</div>
-                </div>
-                <div className="stat-item excluded">
-                  <div className="stat-number">{stats.excluded}</div>
-                  <div className="stat-label">Excluded</div>
-                </div>
-              </>
-            )}
+            <div 
+              className={`stat-item pending ${statusFilter === 'Pending' ? 'active' : ''}`}
+              onClick={() => handleStatusFilter('Pending')}
+            >
+              <div className="stat-number">{stats.pending}</div>
+              <div className="stat-label">Pending</div>
+            </div>
+            <div 
+              className={`stat-item approved ${statusFilter === 'Approved' ? 'active' : ''}`}
+              onClick={() => handleStatusFilter('Approved')}
+            >
+              <div className="stat-number">{stats.approved}</div>
+              <div className="stat-label">Approved</div>
+            </div>
+            <div 
+              className={`stat-item excluded ${statusFilter === 'Excluded' ? 'active' : ''}`}
+              onClick={() => handleStatusFilter('Excluded')}
+            >
+              <div className="stat-number">{stats.excluded}</div>
+              <div className="stat-label">Excluded</div>
+            </div>
           </div>
 
           <div className="donors-main-content">
@@ -776,7 +790,7 @@ const Donors = () => {
             
             {!loading.donors && !error.donors && (
               <>
-                {eventDonors.length === 0 ? (
+                {filteredDonors.length === 0 ? (
                   <div className="no-donors-message">
                     <button 
                       className="add-donor-button-large"
@@ -788,7 +802,7 @@ const Donors = () => {
                   </div>
                 ) : (
                   <div className="donors-grid">
-                    {eventDonors.map(donor => {
+                    {filteredDonors.map(donor => {
                       // Extract donor data handling both flat and nested structures
                       const donorData = donor.donor || donor;
                       const firstName = donorData.firstName || donorData.first_name;
@@ -872,7 +886,7 @@ const Donors = () => {
             )}
           </div>
 
-          {!loading.donors && !error.donors && eventDonors.length > 0 && (
+          {!loading.donors && !error.donors && filteredDonors.length > 0 && (
             <div className="donor-pagination">
               <div className="pagination-info">
                 Showing {((currentPage - 1) * itemsPerPage) + 1}-{Math.min(currentPage * itemsPerPage, totalDonors)} of {totalDonors} donors
