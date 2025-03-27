@@ -49,7 +49,8 @@ const Donors = () => {
   const [exporting, setExporting] = useState(false);
   const [statusFilter, setStatusFilter] = useState('');
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [isAddingDonorToList, setIsAddingDonorToList] = useState(false);
+  const [isAddingDonorToList, setIsAddingDonorToList] = useState(null);
+  const [modalSearchQuery, setModalSearchQuery] = useState('');
 
   // Set up mock token for development
   useEffect(() => {
@@ -88,7 +89,9 @@ const Donors = () => {
   useEffect(() => {
     if (selectedEvent) {
       fetchEventDonors();
-      fetchEventStats();
+      if (!searchQuery) {
+        fetchEventStats();
+      }
     }
   }, [selectedEvent, searchQuery, currentPage]);
 
@@ -323,6 +326,13 @@ const Donors = () => {
   // Handle close modal
   const handleCloseModal = () => {
     setShowAddDonorModal(false);
+  };
+
+  // 添加关闭添加捐赠者模态框的函数
+  const handleCloseAddDonorModal = () => {
+    setShowAddDonorModal(false);
+    setModalSearchQuery('');
+    setIsAddingDonorToList(null);
   };
 
   // Handle pagination
@@ -672,6 +682,45 @@ const Donors = () => {
     }
   };
 
+  // 添加模态框搜索处理函数
+  const handleModalSearch = (e) => {
+    setModalSearchQuery(e.target.value);
+  };
+
+  // 过滤可用捐赠者列表
+  const filteredAvailableDonors = availableDonors.filter(donor => {
+    const searchTerm = modalSearchQuery.toLowerCase();
+    return (
+      donor.firstName.toLowerCase().includes(searchTerm) ||
+      donor.lastName.toLowerCase().includes(searchTerm) ||
+      (donor.organizationName && donor.organizationName.toLowerCase().includes(searchTerm))
+    );
+  });
+
+  // 修改 handleAddDonorToList 函数
+  const handleAddDonorToList = async (donor) => {
+    if (!selectedEvent) return;
+    
+    try {
+      // 使用 donor.id 作为 key 来跟踪特定按钮的加载状态
+      setIsAddingDonorToList(donor.id);
+      await addDonorToEvent(selectedEvent.id, donor.id);
+      setSuccess('Donor added successfully!');
+      setTimeout(() => setSuccess(''), 3000);
+      
+      // 刷新主列表、可用捐赠者列表和统计数据
+      await Promise.all([
+        fetchEventDonors(),
+        handleRefreshAvailableDonors(),
+        fetchEventStats()
+      ]);
+    } catch (err) {
+      setError(prev => ({ ...prev, donors: err.message }));
+    } finally {
+      setIsAddingDonorToList(null);
+    }
+  };
+
   return (
     <div className="donors-container">
       <header className="donors-header">
@@ -1017,18 +1066,26 @@ const Donors = () => {
               <button className="close-button" onClick={handleCloseModal}>×</button>
             </div>
             <div className="modal-body">
-              <div className="refresh-container">
+              <div className="modal-header-actions">
+                <div className="modal-search-container">
+                  <input
+                    type="text"
+                    placeholder="Search available donors..."
+                    value={modalSearchQuery}
+                    onChange={handleModalSearch}
+                    className="modal-search-input"
+                  />
+                </div>
                 <button 
-                  className="refresh-button" 
+                  className="refresh-button-icon" 
                   onClick={handleRefreshAvailableDonors}
                   disabled={isRefreshing}
+                  title="Refresh List"
                 >
                   {isRefreshing ? (
-                    <span className="button-loading">Refresh List</span>
+                    <FaSpinner className="spinner" />
                   ) : (
-                    <>
-                      <FaSync /> Refresh List
-                    </>
+                    <FaSync />
                   )}
                 </button>
               </div>
@@ -1038,13 +1095,13 @@ const Donors = () => {
                   <div className="loading-spinner-large"></div>
                   <p>Loading available donors...</p>
                 </div>
-              ) : availableDonors.length === 0 ? (
+              ) : filteredAvailableDonors.length === 0 ? (
                 <div className="no-donors-message">
                   <p>No donors available to add</p>
                 </div>
               ) : (
                 <div className="available-donors-list">
-                  {availableDonors.map(donor => (
+                  {filteredAvailableDonors.map(donor => (
                     <div key={donor.id} className="donor-item">
                       <div className="donor-info">
                         <p className="donor-name">
@@ -1058,15 +1115,13 @@ const Donors = () => {
                       </div>
                       <button
                         className="add-button"
-                        onClick={() => handleAddDonor(donor.id)}
-                        disabled={isAddingDonorToList}
+                        onClick={() => handleAddDonorToList(donor)}
+                        disabled={isAddingDonorToList === donor.id}
                       >
-                        {isAddingDonorToList ? (
+                        {isAddingDonorToList === donor.id ? (
                           <span className="button-loading">Adding...</span>
                         ) : (
-                          <>
-                            <FaPlus /> Add
-                          </>
+                          'Add to List'
                         )}
                       </button>
                     </div>
