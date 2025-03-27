@@ -97,14 +97,15 @@ button {
   display: grid;
   grid-template-columns: 1fr 300px;
   gap: 24px;
+  margin-top: 30px;
 }
 
 /* Donor list container */
 .donor-list-container {
-  margin-top: 30px;
   background: var(--card-bg);
   border-radius: var(--card-radius);
   box-shadow: var(--card-shadow);
+  margin-top: 20px;
   overflow: hidden;
 }
 
@@ -674,10 +675,13 @@ button {
   border-radius: var(--card-radius);
   box-shadow: var(--card-shadow);
   overflow: hidden;
+  margin-top: 20px;
+  height: fit-content;
 }
 
 .event-details {
   padding: 24px;
+  height: auto;
 }
 
 .event-details h2 {
@@ -915,6 +919,10 @@ button {
   .loading-container,
   .no-donors-message {
     height: calc(80vh - 120px);
+  }
+
+  .donor-details-container {
+    margin-top: 24px;
   }
 }
 
