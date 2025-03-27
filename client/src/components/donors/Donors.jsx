@@ -544,7 +544,7 @@ const Donors = () => {
    * @param {Object} donor - The donor to edit status for
    */
   const handleOpenStatusModal = (donor) => {
-    if (selectedEvent.status !== 'Ready') {
+    if (selectedEvent.status !== 'active') {
       alert('Only events in Ready status can edit donor information');
       return;
     }
