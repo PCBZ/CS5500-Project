@@ -101,6 +101,7 @@ button {
 
 /* 捐赠者列表容器 */
 .donor-list-container {
+  margin-top: 30px;
   background: var(--card-bg);
   border-radius: var(--card-radius);
   box-shadow: var(--card-shadow);
@@ -725,19 +726,19 @@ button {
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.6);
+  background-color: rgba(0, 0, 0, 0.5);
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 1000;
+  backdrop-filter: blur(5px);
 }
 
 .modal-content {
   background-color: white;
   border-radius: 8px;
-  max-width: 800px;
-  width: 90%;
-  max-height: 90vh;
+  width: 800px;
+  height: 600px;
   display: flex;
   flex-direction: column;
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
@@ -750,6 +751,7 @@ button {
   align-items: center;
   padding: 15px 20px;
   border-bottom: 1px solid #e0e0e0;
+  height: 60px;
 }
 
 .modal-header h3 {
@@ -774,21 +776,14 @@ button {
   padding: 20px;
   overflow-y: auto;
   flex: 1;
+  height: calc(600px - 60px);
 }
 
-/* 搜索和刷新按钮 */
-.search-container {
+/* 刷新按钮容器 */
+.refresh-container {
   display: flex;
-  gap: 10px;
-  margin-bottom: 15px;
-}
-
-.search-input {
-  flex: 1;
-  padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  font-size: 14px;
+  justify-content: flex-end;
+  margin-bottom: 20px;
 }
 
 .refresh-button {
@@ -797,7 +792,6 @@ button {
   color: white;
   border: none;
   border-radius: 4px;
-  cursor: pointer;
   display: flex;
   align-items: center;
   gap: 5px;
@@ -818,7 +812,7 @@ button {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  max-height: 400px;
+  height: calc(100% - 60px);
   overflow-y: auto;
   padding-right: 5px;
 }
@@ -902,9 +896,25 @@ button {
   .donors-content {
     grid-template-columns: 1fr;
   }
-  
+
   .donor-grid {
     grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  }
+
+  .modal-content {
+    width: 90%;
+    max-width: 800px;
+    height: 80vh;
+  }
+  
+  .modal-body {
+    height: calc(80vh - 60px);
+  }
+  
+  .available-donors-list,
+  .loading-container,
+  .no-donors-message {
+    height: calc(80vh - 120px);
   }
 }
 
@@ -914,7 +924,7 @@ button {
     align-items: flex-start;
     gap: 16px;
   }
-  
+
   .export-button {
     align-self: flex-start;
   }
@@ -924,13 +934,13 @@ button {
     gap: 16px;
     align-items: flex-start;
   }
-  
+
   .donor-actions {
     width: 100%;
     flex-direction: column;
     align-items: flex-start;
   }
-  
+
   .donor-search {
     width: 100%;
   }
@@ -1471,4 +1481,109 @@ button {
 .save-button:disabled {
   background-color: #93c5fd;
   cursor: not-allowed;
+}
+
+/* 统计区域加载状态 */
+.stats-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background-color: var(--card-bg);
+  border-radius: 10px;
+  width: 100%;
+  min-height: 120px;
+}
+
+.stats-loading .spinner {
+  font-size: 24px;
+  color: var(--primary-color);
+  margin-bottom: 10px;
+  animation: spin 1s linear infinite;
+}
+
+.stats-loading p {
+  color: var(--secondary-color);
+  font-size: 14px;
+  margin: 0;
+}
+
+.stats-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background-color: var(--card-bg);
+  border-radius: 10px;
+  width: 100%;
+  min-height: 120px;
+  text-align: center;
+}
+
+.stats-error p {
+  color: var(--danger-color);
+  margin-bottom: 10px;
+}
+
+.stats-error .retry-button-small {
+  padding: 6px 12px;
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  transition: background-color 0.2s;
+}
+
+.stats-error .retry-button-small:hover {
+  background-color: var(--primary-dark);
+}
+
+/* 加载状态容器 */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: calc(100% - 60px);
+  text-align: center;
+}
+
+.loading-spinner-large {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(74, 107, 253, 0.1);
+  border-radius: 50%;
+  border-top-color: var(--primary-color);
+  animation: spin 0.8s linear infinite;
+  margin-bottom: 16px;
+}
+
+.loading-container p {
+  color: var(--secondary-color);
+  font-size: 14px;
+  margin: 0;
+}
+
+/* 按钮加载状态 */
+.button-loading {
+  position: relative;
+  color: transparent !important;
+}
+
+.button-loading::after {
+  content: '';
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  top: 50%;
+  left: 50%;
+  margin: -8px 0 0 -8px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: #ffffff;
+  animation: spin 0.8s linear infinite;
 } 

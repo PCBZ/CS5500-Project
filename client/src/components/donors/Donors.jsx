@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FaUser, FaCalendarAlt, FaMapMarkerAlt, FaUsers, FaClock, FaPlus, FaTrash, FaAngleDown, FaSpinner, FaEdit, FaComment, FaDownload } from 'react-icons/fa';
+import { FaUser, FaCalendarAlt, FaMapMarkerAlt, FaUsers, FaClock, FaPlus, FaTrash, FaAngleDown, FaSpinner, FaEdit, FaComment, FaDownload, FaSync, FaEnvelope, FaPhone } from 'react-icons/fa';
 import { getEvents, getEventById, getEventDonors } from '../../services/eventService';
 import { getAvailableDonors, addDonorToEvent, removeDonorFromEvent, getEventDonorStats, updateDonorStatus, updateEventDonor, exportEventDonorsToCsv } from '../../services/donorService';
 import { useLocation } from 'react-router-dom';
@@ -48,6 +48,8 @@ const Donors = () => {
   const [editStatus, setEditStatus] = useState('Pending');
   const [exporting, setExporting] = useState(false);
   const [statusFilter, setStatusFilter] = useState('');
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isAddingDonorToList, setIsAddingDonorToList] = useState(false);
 
   // Set up mock token for development
   useEffect(() => {
@@ -647,6 +649,29 @@ const Donors = () => {
     return matchesSearch && matchesStatus;
   });
 
+  /**
+   * Refresh available donors list
+   */
+  const handleRefreshAvailableDonors = async () => {
+    if (!selectedEvent) return;
+    
+    setIsRefreshing(true);
+    
+    try {
+      // refresh available donors list
+      const refreshedDonors = await getAvailableDonors(selectedEvent.id, {
+        page: 1,
+        limit: 100
+      });
+      setAvailableDonors(refreshedDonors.data || []);
+    } catch (error) {
+      console.error('Error refreshing available donors:', error);
+      setError(prev => ({ ...prev, availableDonors: 'Failed to refresh donor list' }));
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
   return (
     <div className="donors-container">
       <header className="donors-header">
@@ -734,27 +759,40 @@ const Donors = () => {
           </div>
 
           <div className="donor-stats">
-            <div 
-              className={`stat-item pending ${statusFilter === 'Pending' ? 'active' : ''}`}
-              onClick={() => handleStatusFilter('Pending')}
-            >
-              <div className="stat-number">{stats.pending}</div>
-              <div className="stat-label">Pending</div>
-            </div>
-            <div 
-              className={`stat-item approved ${statusFilter === 'Approved' ? 'active' : ''}`}
-              onClick={() => handleStatusFilter('Approved')}
-            >
-              <div className="stat-number">{stats.approved}</div>
-              <div className="stat-label">Approved</div>
-            </div>
-            <div 
-              className={`stat-item excluded ${statusFilter === 'Excluded' ? 'active' : ''}`}
-              onClick={() => handleStatusFilter('Excluded')}
-            >
-              <div className="stat-number">{stats.excluded}</div>
-              <div className="stat-label">Excluded</div>
-            </div>
+            {loading.stats ? (
+              <div className="loading-indicator stats-loading">
+                <FaSpinner className="spinner" />
+              </div>
+            ) : error.stats ? (
+              <div className="error-message stats-error">
+                <p>{error.stats}</p>
+                <button onClick={fetchEventStats} className="retry-button-small">Retry</button>
+              </div>
+            ) : (
+              <>
+                <div 
+                  className={`stat-item pending ${statusFilter === 'Pending' ? 'active' : ''}`}
+                  onClick={() => handleStatusFilter('Pending')}
+                >
+                  <div className="stat-number">{stats.pending}</div>
+                  <div className="stat-label">Pending</div>
+                </div>
+                <div 
+                  className={`stat-item approved ${statusFilter === 'Approved' ? 'active' : ''}`}
+                  onClick={() => handleStatusFilter('Approved')}
+                >
+                  <div className="stat-number">{stats.approved}</div>
+                  <div className="stat-label">Approved</div>
+                </div>
+                <div 
+                  className={`stat-item excluded ${statusFilter === 'Excluded' ? 'active' : ''}`}
+                  onClick={() => handleStatusFilter('Excluded')}
+                >
+                  <div className="stat-number">{stats.excluded}</div>
+                  <div className="stat-label">Excluded</div>
+                </div>
+              </>
+            )}
           </div>
 
           <div className="donors-main-content">
@@ -982,38 +1020,22 @@ const Donors = () => {
               <div className="refresh-container">
                 <button 
                   className="refresh-button" 
-                  onClick={async () => {
-                    try {
-                      setLoading(prev => ({ ...prev, availableDonors: true }));
-                      // 使用donorList API刷新可用捐赠者列表
-                      const refreshedDonors = await getAvailableDonors(selectedEvent.id, {
-                        page: 1,
-                        limit: 100
-                      });
-                      setAvailableDonors(refreshedDonors.data || []);
-                    } catch (error) {
-                      console.error('Error refreshing available donors:', error);
-                      setError(prev => ({ ...prev, availableDonors: 'Failed to refresh donor list' }));
-                    } finally {
-                      setLoading(prev => ({ ...prev, availableDonors: false }));
-                    }
-                  }}
-                  disabled={loading.availableDonors}
+                  onClick={handleRefreshAvailableDonors}
+                  disabled={isRefreshing}
                 >
-                  {loading.availableDonors ? <FaSpinner className="loading-spinner" /> : 'Refresh List'}
+                  {isRefreshing ? (
+                    <span className="button-loading">Refresh List</span>
+                  ) : (
+                    <>
+                      <FaSync /> Refresh List
+                    </>
+                  )}
                 </button>
               </div>
               
-              {error.availableDonors && (
-                <div className="error-message">
-                  <p>{error.availableDonors}</p>
-                  <button onClick={() => setError(prev => ({ ...prev, availableDonors: null }))}>Close</button>
-                </div>
-              )}
-              
               {loading.availableDonors ? (
-                <div className="loading-indicator">
-                  <FaSpinner className="loading-spinner" />
+                <div className="loading-container">
+                  <div className="loading-spinner-large"></div>
                   <p>Loading available donors...</p>
                 </div>
               ) : availableDonors.length === 0 ? (
@@ -1034,12 +1056,18 @@ const Donors = () => {
                           {donor.city && <span> | {donor.city}</span>}
                         </p>
                       </div>
-                      <button 
-                        className="add-button" 
+                      <button
+                        className="add-button"
                         onClick={() => handleAddDonor(donor.id)}
-                        disabled={loading.donors}
+                        disabled={isAddingDonorToList}
                       >
-                        {loading.donors ? <FaSpinner className="loading-spinner" /> : 'Add'}
+                        {isAddingDonorToList ? (
+                          <span className="button-loading">Adding...</span>
+                        ) : (
+                          <>
+                            <FaPlus /> Add
+                          </>
+                        )}
                       </button>
                     </div>
                   ))}
