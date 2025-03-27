@@ -489,20 +489,53 @@ button {
 }
 
 .donor-status {
-  margin-top: 10px;
-  font-size: 14px;
-}
-
-.donor-status.approved {
-  color: var(--success-color);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  background-color: #f8f9fa;
+  border: 1px solid #dee2e6;
+  width: fit-content;
 }
 
 .donor-status.pending {
-  color: var(--warning-color);
+  background-color: #fff3cd;
+  border-color: #ffeeba;
+  color: #856404;
 }
 
-.donor-status.excluded {
-  color: var(--danger-color);
+.donor-status.approved {
+  background-color: #d4edda;
+  border-color: #c3e6cb;
+  color: #155724;
+}
+
+.donor-status.rejected {
+  background-color: #f8d7da;
+  border-color: #f5c6cb;
+  color: #721c24;
+}
+
+.edit-status-button {
+  background: none;
+  border: none;
+  color: #6c757d;
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 3px;
+  transition: all 0.2s ease;
+}
+
+.edit-status-button:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+  color: #495057;
+}
+
+.edit-status-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 /* 加载和错误状态 */
