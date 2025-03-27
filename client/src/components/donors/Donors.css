@@ -863,15 +863,35 @@ button {
   display: flex;
   justify-content: center;
   align-items: center;
+  position: relative;
 }
 
-.add-button:hover {
+.add-button:hover:not(:disabled) {
   background-color: #45a049;
 }
 
 .add-button:disabled {
   background-color: #cccccc;
   cursor: not-allowed;
+}
+
+.button-loading {
+  position: relative;
+  color: transparent !important;
+}
+
+.button-loading::after {
+  content: '';
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  top: 50%;
+  left: 50%;
+  margin: -8px 0 0 -8px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: #ffffff;
+  animation: spin 0.8s linear infinite;
 }
 
 /* Loading state */
@@ -1572,4 +1592,61 @@ button {
   border-radius: 50%;
   border-top-color: #ffffff;
   animation: spin 0.8s linear infinite;
+}
+
+.modal-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+  padding: 0 20px;
+}
+
+.modal-search-container {
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
+
+.modal-search-input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.refresh-button-icon {
+  background: none;
+  border: none;
+  padding: 8px;
+  cursor: pointer;
+  color: #666;
+  transition: color 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 36px;
+}
+
+.refresh-button-icon:hover {
+  color: #333;
+}
+
+.refresh-button-icon:disabled {
+  color: #ccc;
+  cursor: not-allowed;
+}
+
+.refresh-button-icon .spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 } 
