@@ -307,6 +307,40 @@ button {
   transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
   position: relative;
   overflow: hidden;
+  cursor: pointer;
+}
+
+.stat-item:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+.stat-item.active {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+.stat-item.active:before {
+  transform: scaleX(1);
+}
+
+.stat-item.active .stat-number {
+  transform: scale(1.1);
+}
+
+.stat-item.pending.active {
+  background-color: #fff3cd;
+  border: 2px solid #ffc107;
+}
+
+.stat-item.approved.active {
+  background-color: #d4edda;
+  border: 2px solid #28a745;
+}
+
+.stat-item.excluded.active {
+  background-color: #f8d7da;
+  border: 2px solid #dc3545;
 }
 
 .stat-item:before {
