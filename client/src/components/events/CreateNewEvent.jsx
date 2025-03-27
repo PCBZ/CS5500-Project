@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
+import { createEvent } from '../services/eventService';
 
 function CreateNewEvent() {
-  // Define all the fields in your form state
   const [formData, setFormData] = useState({
     name: '',
     type: '',
@@ -14,25 +14,38 @@ function CreateNewEvent() {
     endDate: '',
     eventStage: '',
   });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [message, setMessage] = useState('');
 
-  // Handle input changes
+  // Update state on input change
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Handle form submission
-  const handleSubmit = (e) => {
+  // Submit the form data to the server via the createEvent service
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Replace this with your own submission logic
-    console.log('Form submitted:', formData);
+    setLoading(true);
+    setError('');
+    setMessage('');
+
+    try {
+      // This calls the createEvent function defined in eventService.js
+      const result = await createEvent(formData);
+      setMessage(result.message || 'Event created successfully!');
+      // Optionally, you can clear the form here
+      // setFormData({ ...initialFormData });
+    } catch (err) {
+      setError('Error creating event: ' + err.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  // Handle cancel button (customize as needed)
+  // Reset the form fields
   const handleCancel = () => {
-    // Reset the form or navigate away
-    console.log('Form canceled');
-    // Example: reset the form
     setFormData({
       name: '',
       type: '',
@@ -51,12 +64,8 @@ function CreateNewEvent() {
     <div style={styles.container}>
       <h1 style={styles.title}>BC Cancer Foundation</h1>
       <h2 style={styles.subtitle}>Create New Event</h2>
-
       <form onSubmit={handleSubmit} style={styles.form}>
-        {/* Event Name */}
-        <label style={styles.label} htmlFor="name">
-          Name
-        </label>
+        <label style={styles.label} htmlFor="name">Name</label>
         <input
           style={styles.input}
           id="name"
@@ -67,10 +76,7 @@ function CreateNewEvent() {
           onChange={handleChange}
         />
 
-        {/* Event Type */}
-        <label style={styles.label} htmlFor="type">
-          Type
-        </label>
+        <label style={styles.label} htmlFor="type">Type</label>
         <input
           style={styles.input}
           id="type"
@@ -81,10 +87,7 @@ function CreateNewEvent() {
           onChange={handleChange}
         />
 
-        {/* Event Date */}
-        <label style={styles.label} htmlFor="date">
-          Date
-        </label>
+        <label style={styles.label} htmlFor="date">Date</label>
         <input
           style={styles.input}
           id="date"
@@ -95,10 +98,7 @@ function CreateNewEvent() {
           onChange={handleChange}
         />
 
-        {/* Address */}
-        <label style={styles.label} htmlFor="address">
-          Address
-        </label>
+        <label style={styles.label} htmlFor="address">Address</label>
         <input
           style={styles.input}
           id="address"
@@ -109,10 +109,7 @@ function CreateNewEvent() {
           onChange={handleChange}
         />
 
-        {/* Capacity */}
-        <label style={styles.label} htmlFor="capacity">
-          Capacity
-        </label>
+        <label style={styles.label} htmlFor="capacity">Capacity</label>
         <input
           style={styles.input}
           id="capacity"
@@ -123,10 +120,7 @@ function CreateNewEvent() {
           onChange={handleChange}
         />
 
-        {/* Focus (e.g., Cancer Research) */}
-        <label style={styles.label} htmlFor="focus">
-          Focus
-        </label>
+        <label style={styles.label} htmlFor="focus">Focus</label>
         <input
           style={styles.input}
           id="focus"
@@ -137,10 +131,7 @@ function CreateNewEvent() {
           onChange={handleChange}
         />
 
-        {/* Ticket Price */}
-        <label style={styles.label} htmlFor="ticketPrice">
-          Ticket Price
-        </label>
+        <label style={styles.label} htmlFor="ticketPrice">Ticket Price</label>
         <input
           style={styles.input}
           id="ticketPrice"
@@ -151,10 +142,7 @@ function CreateNewEvent() {
           onChange={handleChange}
         />
 
-        {/* Start Date (if applicable) */}
-        <label style={styles.label} htmlFor="startDate">
-          Start Date
-        </label>
+        <label style={styles.label} htmlFor="startDate">Start Date</label>
         <input
           style={styles.input}
           id="startDate"
@@ -165,10 +153,7 @@ function CreateNewEvent() {
           onChange={handleChange}
         />
 
-        {/* End Date (if applicable) */}
-        <label style={styles.label} htmlFor="endDate">
-          End Date
-        </label>
+        <label style={styles.label} htmlFor="endDate">End Date</label>
         <input
           style={styles.input}
           id="endDate"
@@ -179,10 +164,7 @@ function CreateNewEvent() {
           onChange={handleChange}
         />
 
-        {/* Event Stage */}
-        <label style={styles.label} htmlFor="eventStage">
-          Event Stage
-        </label>
+        <label style={styles.label} htmlFor="eventStage">Event Stage</label>
         <input
           style={styles.input}
           id="eventStage"
@@ -193,7 +175,6 @@ function CreateNewEvent() {
           onChange={handleChange}
         />
 
-        {/* Action Buttons */}
         <div style={styles.buttonContainer}>
           <button
             type="button"
@@ -202,16 +183,18 @@ function CreateNewEvent() {
           >
             Cancel
           </button>
-          <button type="submit" style={{ ...styles.button, ...styles.submitButton }}>
-            Submit
+          <button type="submit" style={{ ...styles.button, ...styles.submitButton }} disabled={loading}>
+            {loading ? 'Submitting...' : 'Submit'}
           </button>
         </div>
       </form>
+      {error && <p style={{ color: 'red', marginTop: '1rem' }}>{error}</p>}
+      {message && <p style={{ color: 'green', marginTop: '1rem' }}>{message}</p>}
     </div>
   );
 }
 
-// Inline styles (you can replace these with your own CSS)
+// Inline styles for simplicity (adjust or replace with your own CSS as needed)
 const styles = {
   container: {
     maxWidth: '600px',
