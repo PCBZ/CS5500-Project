@@ -1,4 +1,4 @@
-/* 主色调和变量 */
+/* Main colors and variables */
 :root {
   --primary-color: #4a6bfd;
   --primary-light: #eef1ff;
@@ -19,7 +19,7 @@
   --font-main: 'PingFang SC', 'Helvetica Neue', 'Microsoft YaHei', sans-serif;
 }
 
-/* 全局样式重置 */
+/* Global style reset */
 * {
   margin: 0;
   padding: 0;
@@ -42,14 +42,14 @@ button {
   transition: var(--transition);
 }
 
-/* 捐赠者容器 */
+/* Donor container */
 .donors-container {
   max-width: 1400px;
   margin: 0 auto;
   padding: 20px;
 }
 
-/* 顶部标题栏 */
+/* Top title bar */
 .donors-header {
   display: flex;
   justify-content: space-between;
@@ -92,14 +92,14 @@ button {
   box-shadow: 0 4px 10px rgba(74, 107, 253, 0.25);
 }
 
-/* 内容布局 */
+/* Content layout */
 .donors-content {
   display: grid;
   grid-template-columns: 1fr 300px;
   gap: 24px;
 }
 
-/* 捐赠者列表容器 */
+/* Donor list container */
 .donor-list-container {
   margin-top: 30px;
   background: var(--card-bg);
@@ -108,7 +108,7 @@ button {
   overflow: hidden;
 }
 
-/* 列表标题栏 */
+/* List title bar */
 .donor-list-header {
   padding: 24px 30px;
   display: flex;
@@ -128,7 +128,7 @@ button {
   font-size: 24px;
 }
 
-/* 事件选择器 */
+/* Event selector */
 .event-selector {
   position: relative;
   width: 280px;
@@ -191,7 +191,7 @@ button {
   font-weight: 500;
 }
 
-/* 捐赠者操作 */
+/* Donor actions */
 .donor-actions {
   display: flex;
   align-items: center;
@@ -251,7 +251,7 @@ button {
   cursor: not-allowed;
 }
 
-/* 大尺寸添加捐赠者按钮，用于空状态 */
+/* Large size add donor button, for empty state */
 .add-donor-button-large {
   background-color: #4caf50;
   color: white;
@@ -286,7 +286,7 @@ button {
   font-size: 1.3rem;
 }
 
-/* 统计数据 */
+/* Statistics */
 .donor-stats {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -404,7 +404,7 @@ button {
   color: var(--danger-color);
 }
 
-/* 捐赠者列表内容 */
+/* Donor list content */
 .donors-main-content {
   padding: 30px;
   min-height: 400px;
@@ -416,7 +416,7 @@ button {
   gap: 24px;
 }
 
-/* 捐赠者卡片 */
+/* Donor card */
 .donor-card {
   background-color: var(--card-bg);
   border-radius: 12px;
@@ -573,7 +573,7 @@ button {
   cursor: not-allowed;
 }
 
-/* 加载和错误状态 */
+/* Loading and error states */
 .loading-indicator, .error-message {
   display: flex;
   flex-direction: column;
@@ -620,7 +620,7 @@ button {
   color: var(--secondary-color);
 }
 
-/* 分页 */
+/* Pagination */
 .donor-pagination {
   display: flex;
   justify-content: space-between;
@@ -668,7 +668,7 @@ button {
   color: var(--secondary-color);
 }
 
-/* 事件详情侧边栏 */
+/* Event details sidebar */
 .donor-details-container {
   background-color: var(--card-bg);
   border-radius: var(--card-radius);
@@ -719,7 +719,7 @@ button {
   font-size: 18px;
 }
 
-/* 添加捐赠者模态框 */
+/* Add donor modal */
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -779,7 +779,7 @@ button {
   height: calc(600px - 60px);
 }
 
-/* 刷新按钮容器 */
+/* Refresh button container */
 .refresh-container {
   display: flex;
   justify-content: flex-end;
@@ -807,7 +807,7 @@ button {
   cursor: not-allowed;
 }
 
-/* 可用捐赠者列表 */
+/* Available donors list */
 .available-donors-list {
   display: flex;
   flex-direction: column;
@@ -870,7 +870,7 @@ button {
   cursor: not-allowed;
 }
 
-/* 加载状态 */
+/* Loading state */
 .loading-spinner {
   animation: spin 1s linear infinite;
 }
@@ -891,7 +891,7 @@ button {
   }
 }
 
-/* 响应式设计 */
+/* Responsive design */
 @media (max-width: 992px) {
   .donors-content {
     grid-template-columns: 1fr;
@@ -964,7 +964,7 @@ button {
   }
 }
 
-/* 添加自定义滚动条 */
+/* Custom scrollbar */
 .available-donors-list::-webkit-scrollbar {
   width: 8px;
   height: 8px;
@@ -984,7 +984,7 @@ button {
   background: var(--primary-color);
 }
 
-/* 添加按钮点击效果 */
+/* Button click effect */
 .add-donor-button, .export-button, .pagination-button {
   position: relative;
   overflow: hidden;
@@ -1052,7 +1052,7 @@ button {
   }
 }
 
-/* 成功消息 */
+/* Success message */
 .success-message {
   background-color: #d4edda;
   color: #155724;
@@ -1080,29 +1080,7 @@ button {
   to { opacity: 0; transform: translateY(-10px); }
 }
 
-/* Donor Comments and Exclude Reason */
-.donor-comments {
-  font-style: italic;
-  margin-top: 10px;
-  color: #666;
-  font-size: 14px;
-  display: flex;
-  align-items: center;
-}
-
-.comment-icon {
-  margin-right: 5px;
-  font-size: 12px;
-  color: #888;
-}
-
-.donor-exclude-reason {
-  font-size: 14px;
-  margin-top: 5px;
-  color: #b91c1c;
-}
-
-/* Status Edit Modal Improvements */
+/* Status edit modal improvements */
 .status-section {
   margin-bottom: 20px;
 }
@@ -1285,7 +1263,7 @@ button {
   padding: 8px 12px;
 }
 
-/* 状态编辑模态窗口样式 */
+/* Status edit modal window style */
 .status-modal {
   width: 500px;
   max-width: 90%;
@@ -1483,7 +1461,7 @@ button {
   cursor: not-allowed;
 }
 
-/* 统计区域加载状态 */
+/* Statistics area loading state */
 .stats-loading {
   display: flex;
   flex-direction: column;
@@ -1542,7 +1520,7 @@ button {
   background-color: var(--primary-dark);
 }
 
-/* 加载状态容器 */
+/* Loading state container */
 .loading-container {
   display: flex;
   flex-direction: column;
@@ -1568,7 +1546,7 @@ button {
   margin: 0;
 }
 
-/* 按钮加载状态 */
+/* Button loading state */
 .button-loading {
   position: relative;
   color: transparent !important;
