@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import CreateNewEvent from './components/events/CreateNewEvent';
 import { createEvent } from '../services/eventService';
 
 function CreateNewEvent() {
