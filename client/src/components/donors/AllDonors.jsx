@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { FaSearch, FaSpinner, FaDownload, FaSync, FaCheckCircle, FaFilter } from 'react-icons/fa';
-import { getAllDonors, exportDonorsToCsv, updateDonor } from '../../services/donorService';
+import React, { useState, useEffect, useRef } from 'react';
+import { FaSearch, FaSpinner, FaDownload, FaSync, FaCheckCircle, FaFilter, FaUpload } from 'react-icons/fa';
+import { getAllDonors, exportDonorsToCsv, updateDonor, importDonors } from '../../services/donorService';
 import { formatCurrency } from '../../utils/formatters';
 import DonorListItem from './DonorListItem';
 import EditDonorModal from './EditDonorModal';
@@ -17,6 +17,9 @@ const AllDonors = () => {
   const [error, setError] = useState(null);
   const [exporting, setExporting] = useState(false);
   const [success, setSuccess] = useState('');
+  const [importing, setImporting] = useState(false);
+
+  const fileInputRef = useRef(null);
   
   // 添加过滤器状态
   const [filters, setFilters] = useState({
@@ -42,6 +45,8 @@ const AllDonors = () => {
   const fetchDonors = async () => {
     setLoading(true);
     setError(null);
+
+
     
     try {
       const queryParams = {
@@ -73,6 +78,55 @@ const AllDonors = () => {
     }
   };
   
+  // 在其他处理函数附近添加
+// Trigger file selection
+const handleImportClick = () => {
+  fileInputRef.current.click();
+};
+
+// Handle import file change
+const handleFileChange = async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  
+  // Check file extension
+  const fileExtension = file.name.split('.').pop().toLowerCase();
+  if (fileExtension !== 'csv' && fileExtension !== 'xlsx' && fileExtension !== 'xls') {
+    setError('请选择 CSV 或 Excel 文件。');
+    setTimeout(() => setError(null), 5000);
+    e.target.value = null; // Reset file input
+    return;
+  }
+  
+  setImporting(true);
+  setError(null);
+  
+  try {
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    const result = await importDonors(formData);
+    
+    if (result.success) {
+      setSuccess(`导入成功！导入了 ${result.imported} 条记录，更新了 ${result.updated} 条记录。`);
+      setTimeout(() => setSuccess(''), 5000);
+      
+      // Refresh donor list
+      fetchDonors();
+    } else {
+      throw new Error(result.message || '导入失败');
+    }
+  } catch (err) {
+    console.error('Import failed:', err);
+    setError('导入失败: ' + (err.message || '未知错误'));
+    setTimeout(() => setError(null), 5000);
+  } finally {
+    setImporting(false);
+    e.target.value = null; // Reset file input
+  }
+ };
+
+
   // 处理过滤器变化
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
@@ -266,6 +320,31 @@ const AllDonors = () => {
           >
             <FaFilter /> Filters
           </button>
+
+          <button 
+            className="action-button import-button" 
+            onClick={handleImportClick} 
+            disabled={importing}
+            title="From CSV or Excel import donors data"
+          >
+            {importing ? (
+              <div className="import-loading">
+                <FaSpinner className="spinner" /> importing...
+              </div>
+            ) : (
+              <>
+                <FaUpload /> imported
+              </>
+            )}
+          </button>
+
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleFileChange}
+            style={{ display: 'none' }}
+            accept=".csv,.xlsx,.xls"
+          />
           
           <button 
             className="action-button export-button" 
