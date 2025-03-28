@@ -206,25 +206,6 @@ const getFilteredEvents = () => {
   }
 };
 
-const handleSearch = () => {
-  if (!searchQuery.trim()) {
-    setEvents(originalEvents); //
-    return;
-  }
-  
-  const filteredEvents = originalEvents.filter(event => 
-    event.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-  
-  setEvents(filteredEvents);
-};
-
-const handleKeyPress = (e) => {
-  if (e.key === 'Enter') {
-    handleSearch();
-  }
-};
-
   const applyFilters = async () => {
     setLoading(true);
     setError(null);
