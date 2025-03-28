@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import './EventManagement.css';
 import { createEvent } from '../../services/eventAPI';
+import authService from '../../services/authService.js';
 
 function CreateNewEvent() {
   const [formData, setFormData] = useState({
     name: '',
     type: '',
-    date: '',
-    address: '',
+    date: '', // expecting format "YYYY-MM-DD"
+    location: '',
     capacity: '',
     focus: '',
     ticketPrice: '',
@@ -19,39 +20,82 @@ function CreateNewEvent() {
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
 
-  // Update state on input change
+  // Handle input changes
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  // Submit the form data to the server via the createEvent service
+  // Helper function to validate date string
+  const isValidDate = (dateString) => {
+    const d = new Date(dateString);
+    return d instanceof Date && !isNaN(d);
+  };
+
+  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError('');
     setMessage('');
 
+    // Debug log
+    console.log("Submitting form with data:", formData);
+
+    // Check required fields
+    if (!formData.name || !formData.type || !formData.date || !formData.location) {
+      setError('Name, type, date, and location are required');
+      setLoading(false);
+      return;
+    }
+
+    // Validate date field(s)
+    if (!isValidDate(formData.date)) {
+      setError('Please enter a valid date in YYYY-MM-DD format for the event date');
+      setLoading(false);
+      return;
+    }
+    // Optionally validate startDate and endDate if provided
+    if (formData.startDate && !isValidDate(formData.startDate)) {
+      setError('Please enter a valid date in YYYY-MM-DD format for the start date');
+      setLoading(false);
+      return;
+    }
+    if (formData.endDate && !isValidDate(formData.endDate)) {
+      setError('Please enter a valid date in YYYY-MM-DD format for the end date');
+      setLoading(false);
+      return;
+    }
+
     try {
-      // This calls the createEvent function defined in eventService.js
-      const result = await createEvent(formData);
+      // Convert date fields to Date objects before sending, if needed
+      const payload = {
+        ...formData,
+        date: new Date(formData.date),
+        startDate: formData.startDate ? new Date(formData.startDate) : null,
+        endDate: formData.endDate ? new Date(formData.endDate) : null,
+      };
+
+      const result = await createEvent(payload);
       setMessage(result.message || 'Event created successfully!');
-      // Optionally, you can clear the form here
-      // setFormData({ ...initialFormData });
+      // Optionally, reset form after submission:
+      // setFormData({ name: '', type: '', date: '', location: '', capacity: '', focus: '', ticketPrice: '', startDate: '', endDate: '', eventStage: '' });
     } catch (err) {
+      console.error("Error in createEvent:", err);
       setError('Error creating event: ' + err.message);
     } finally {
       setLoading(false);
     }
   };
 
-  // Reset the form fields
+  // Handle cancel to reset form fields
   const handleCancel = () => {
+    console.log("Cancel button clicked");
     setFormData({
       name: '',
       type: '',
       date: '',
-      address: '',
+      location: '',
       capacity: '',
       focus: '',
       ticketPrice: '',
@@ -94,19 +138,19 @@ function CreateNewEvent() {
           id="date"
           name="date"
           type="text"
-          placeholder="15/4/2025"
+          placeholder="YYYY-MM-DD"
           value={formData.date}
           onChange={handleChange}
         />
 
-        <label style={styles.label} htmlFor="address">Address</label>
+        <label style={styles.label} htmlFor="location">Location</label>
         <input
           style={styles.input}
-          id="address"
-          name="address"
+          id="location"
+          name="location"
           type="text"
           placeholder="Vancouver"
-          value={formData.address}
+          value={formData.location}
           onChange={handleChange}
         />
 
@@ -149,7 +193,7 @@ function CreateNewEvent() {
           id="startDate"
           name="startDate"
           type="text"
-          placeholder="15/4/2025"
+          placeholder="YYYY-MM-DD (optional)"
           value={formData.startDate}
           onChange={handleChange}
         />
@@ -160,7 +204,7 @@ function CreateNewEvent() {
           id="endDate"
           name="endDate"
           type="text"
-          placeholder="23/4/2025"
+          placeholder="YYYY-MM-DD (optional)"
           value={formData.endDate}
           onChange={handleChange}
         />
@@ -184,7 +228,11 @@ function CreateNewEvent() {
           >
             Cancel
           </button>
-          <button type="submit" style={{ ...styles.button, ...styles.submitButton }} disabled={loading}>
+          <button
+            type="submit"
+            style={{ ...styles.button, ...styles.submitButton }}
+            disabled={loading}
+          >
             {loading ? 'Submitting...' : 'Submit'}
           </button>
         </div>
@@ -195,7 +243,6 @@ function CreateNewEvent() {
   );
 }
 
-// Inline styles for simplicity (adjust or replace with your own CSS as needed)
 const styles = {
   container: {
     maxWidth: '600px',
