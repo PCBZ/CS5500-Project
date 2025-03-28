@@ -143,6 +143,7 @@ model Event {
   createdBy                   Int
   creator                     User        @relation(fields: [createdBy], references: [id])
   donorLists                  EventDonorList[]
+  isDeleted                   Boolean   @default(false)
 
   @@map("events")
 }

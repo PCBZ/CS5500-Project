@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import CreateNewEvent from './components/events/CreateNewEvent';
-import { createEvent } from '../services/eventService';
+import './EventManagement.css';
+import { createEvent } from '../../services/eventAPI';
 
 function CreateNewEvent() {
   const [formData, setFormData] = useState({
