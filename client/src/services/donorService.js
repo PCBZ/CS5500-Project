@@ -4,6 +4,70 @@ import { getEventDonors } from './eventService';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000';
 
+
+/**
+ * Import donors from CSV or Excel file
+ * @param {FormData} formData - FormData containing the file to import
+ * @returns {Promise<Object>} Import results
+ */
+export const importDonors = async (formData) => {
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      throw new Error('No authentication token found');
+    }
+
+    console.log('Starting donor import process');
+    const response = await fetch(`${API_URL}/api/donors/import`, {
+      method: 'POST',
+      headers: {
+        // Note: Don't set Content-Type header when using FormData
+        // The browser will set the correct Content-Type with boundary
+        'Authorization': `Bearer ${token}`
+      },
+      body: formData
+    });
+
+    // Check if response is not JSON (e.g., HTML error page from session timeout)
+    const contentType = response.headers.get('content-type');
+    if (!contentType || !contentType.includes('application/json')) {
+      // Get full response for debugging
+      const responseText = await response.text();
+      console.error('Received non-JSON response:', responseText);
+      
+      // Check if it's a login page redirect
+      if (responseText.includes('<!DOCTYPE') || responseText.includes('<html')) {
+        throw new Error('Your session has expired. Please refresh the page and login again.');
+      } else {
+        throw new Error(`Server returned non-JSON response. Status: ${response.status}`);
+      }
+    }
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error('Import failed:', errorData);
+      throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    console.log('Import completed successfully:', data);
+    
+    return {
+      success: true,
+      imported: data.imported || 0,
+      updated: data.updated || 0,
+      errors: data.errors || [],
+      message: data.message || 'Import completed successfully'
+    };
+  } catch (error) {
+    console.error('Error importing donors:', error);
+    return {
+      success: false,
+      message: error.message || 'Import failed'
+    };
+  }
+};
+
 /**
  * Get all donors with optional filtering
  * @param {Object} params - Query parameters
