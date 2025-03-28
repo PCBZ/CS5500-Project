@@ -120,6 +120,8 @@ export const getEventLocations = async () => {
   }
 };
 
+
+
 const eventAPI =  {
   getEvents,
   getEventById,
