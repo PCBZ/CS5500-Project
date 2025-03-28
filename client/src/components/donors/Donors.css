@@ -512,60 +512,6 @@ button {
   color: var(--secondary-color);
 }
 
-/* Event details sidebar */
-.donor-details-container {
-  background-color: var(--card-bg);
-  border-radius: var(--card-radius);
-  box-shadow: var(--card-shadow);
-  overflow: hidden;
-  margin-top: 20px;
-  height: fit-content;
-}
-
-.event-details {
-  padding: 24px;
-  height: auto;
-}
-
-.event-details h2 {
-  font-size: 18px;
-  margin-bottom: 20px;
-  color: var(--dark-color);
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.event-details h2 .icon {
-  color: var(--primary-color);
-}
-
-.event-details h3 {
-  font-size: 20px;
-  margin-bottom: 8px;
-  color: var(--primary-color);
-}
-
-.event-type {
-  color: var(--secondary-color);
-  margin-bottom: 24px;
-}
-
-.event-detail-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 16px;
-  padding: 12px 16px;
-  background-color: var(--light-color);
-  border-radius: 10px;
-}
-
-.event-detail-item .icon {
-  color: var(--primary-color);
-  font-size: 18px;
-}
-
 /* Add donor modal */
 .modal-overlay {
   position: fixed;
