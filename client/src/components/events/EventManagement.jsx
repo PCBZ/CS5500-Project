@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FaCalendarAlt, FaMapMarkerAlt, FaUsers, FaClock, FaTrash, FaFilter, FaSearch, FaEdit } from 'react-icons/fa';
+import { FaCalendarAlt, FaMapMarkerAlt, FaUsers, FaClock, FaFilter, FaSearch } from 'react-icons/fa';
 import { useHistory } from 'react-router-dom';
 import './EventManagement.css';
 import eventAPI from '../../services/eventAPI.js';
@@ -12,85 +12,15 @@ const EventManagement = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const history = useHistory();
-
   const [filters, setFilters] = useState({
     status: '',
     location: '',
     type: '',
     dateRange: ''
   });
-
   const [eventTypes, setEventTypes] = useState([]);
   const [locations, setLocations] = useState([]);
   const [originalEvents, setOriginalEvents] = useState([]);
-
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [currentEvent, setCurrentEvent] = useState(null);
-
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [eventToDelete, setEventToDelete] = useState(null);
-
-  const openEditModal = (event) => {
-    setCurrentEvent({...event});
-    setShowEditModal(true);
-  };
-
-  const handleEditChange = (e) => {
-    const { name, value } = e.target;
-    setCurrentEvent({
-      ...currentEvent,
-      [name]: value
-    });
-  };
-
-   // Save edited event
-   const saveEvent = async () => {
-    setLoading(true);
-    try {
-      await eventAPI.updateEvent(currentEvent.id, currentEvent);
-      
-      // Update local state
-      const updatedEvents = originalEvents.map(event => 
-        event.id === currentEvent.id ? currentEvent : event
-      );
-      
-      setEvents(updatedEvents);
-      setOriginalEvents(updatedEvents);
-      setShowEditModal(false);
-      setCurrentEvent(null);
-    } catch (error) {
-      console.error('Error updating event:', error);
-      setError(error.message || 'Failed to update event');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-const openDeleteConfirm = (event) => {
-  setEventToDelete(event);
-  setShowDeleteConfirm(true);
-};
-
-const deleteEvent = async () => {
-  if (!eventToDelete) return;
-  
-  setLoading(true);
-  try {
-    await eventAPI.deleteEvent(eventToDelete.id);
-    
-    const updatedEvents = originalEvents.filter(event => event.id !== eventToDelete.id);
-    setEvents(updatedEvents);
-    setOriginalEvents(updatedEvents);
-    
-    setShowDeleteConfirm(false);
-    setEventToDelete(null);
-  } catch (error) {
-    console.error('Error deleting event:', error);
-    setError(error.message || 'Failed to delete event');
-  } finally {
-    setLoading(false);
-  }
-};
 
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
@@ -104,23 +34,21 @@ const deleteEvent = async () => {
     const fetchEvents = async () => {
       setLoading(true);
       setError(null);
-
       try {
         if (authService.isAuthenticated()) {
           console.log('Token exists:', localStorage.getItem('token'));
-          const eventsData = await eventAPI.getEvents();
-          console.log('Events fetched successfully:', eventsData);
-
+          const eventsData  = await eventAPI.getEvents();
+          console.log('Events fetched successfully:', eventsData); 
           if (eventsData && eventsData.events) {
             setEvents(eventsData.events);
-            setOriginalEvents(eventsData.events);
+            setOriginalEvents(eventsData.events); 
           } else {
             setEvents([]);
-            setOriginalEvents([]);
+            setOriginalEvents([]); 
             console.warn('No events data found in response');
           }
         } else {
-          setError('User not authenticated');
+          setError('User not authenticated'); 
         }
       } catch (error) {
         console.error('Error fetching events:', error);
@@ -132,12 +60,10 @@ const deleteEvent = async () => {
 
     const fetchFilterOptions = async () => {
       try {
-        // Fetch event types and locations in parallel
         const [typesData, locationsData] = await Promise.all([
           eventAPI.getEventTypes(),
           eventAPI.getEventLocations()
         ]);
-
         setEventTypes(typesData);
         setLocations(locationsData);
       } catch (error) {
@@ -159,7 +85,7 @@ const deleteEvent = async () => {
       setEvents(originalEvents);
       return;
     }
-    const filteredEvents = originalEvents.filter((event) =>
+    const filteredEvents = originalEvents.filter(event => 
       event.name.toLowerCase().includes(searchQuery.toLowerCase())
     );
     setEvents(filteredEvents);
@@ -182,44 +108,32 @@ const deleteEvent = async () => {
     });
   };
 
-// Filter events based on active tab
-const getFilteredEvents = () => {
-  const currentDate = new Date();
-  
-  if (activeTab === 'upcoming') {
-    // Filter for events with dates in the future
-    return events.filter(event => {
-      if (!event.date) return false;
-      const eventDate = new Date(event.date);
-      return eventDate >= currentDate;
-    });
-  } else if (activeTab === 'past') {
-    // Filter for events with dates in the past
-    return events.filter(event => {
-      if (!event.date) return false;
-      const eventDate = new Date(event.date);
-      return eventDate < currentDate;
-    });
-  } else {
-    // 'all' tab - return all events
-    return events;
-  }
-};
+  // Filter events based on active tab
+  const getFilteredEvents = () => {
+    if (activeTab === 'upcoming') {
+      return events;
+    } else if (activeTab === 'past') {
+      return [];
+    } else {
+      return events;
+    }
+  };
+
+  // UPDATED: Navigate to Create New Event page instead of showing an alert
+  const handleCreateEvent = () => {
+    history.push('/events/create');
+  };
 
   const applyFilters = async () => {
     setLoading(true);
     setError(null);
-
     try {
       const filterParams = {};
-
       if (filters.status) filterParams.status = filters.status;
       if (filters.location) filterParams.location = filters.location;
       if (filters.type) filterParams.type = filters.type;
-      
       if (filters.dateRange) {
         const now = new Date();
-
         if (filters.dateRange === '30days') {
           const thirtyDaysLater = new Date();
           thirtyDaysLater.setDate(now.getDate() + 30);
@@ -236,15 +150,9 @@ const getFilteredEvents = () => {
           filterParams.endDate = yearEnd.toISOString().split('T')[0];
         }
       }
-      
-      if (searchQuery) {
-        filterParams.search = searchQuery;
-      }
-
+      if (searchQuery) filterParams.search = searchQuery;
       console.log('Applying filters with params:', filterParams);
-      
       const eventsData = await eventAPI.getEvents(filterParams);
-
       if (eventsData && eventsData.events) {
         setEvents(eventsData.events);
       } else {
@@ -260,14 +168,7 @@ const getFilteredEvents = () => {
   };
 
   const handleViewEvent = (eventId) => {
-    // Navigate to donors page, passing selected event ID
     history.push('/donors', { selectedEventId: eventId });
-  };
-
-  // Updated: Navigate to Create New Event page
-  const handleCreateEvent = () => {
-    // Use React Router's history to navigate to the create event route
-    history.push('/events/create');
   };
 
   return (
@@ -281,27 +182,25 @@ const getFilteredEvents = () => {
           Create New Event
         </button>
       </header>
-
       <div className="event-tabs">
-        <button
+        <button 
           className={`event-tab ${activeTab === 'upcoming' ? 'active' : ''}`}
           onClick={() => setActiveTab('upcoming')}
         >
           Upcoming Events
         </button>
-        <button
+        <button 
           className={`event-tab ${activeTab === 'past' ? 'active' : ''}`}
           onClick={() => setActiveTab('past')}
         >
           Past Events
         </button>
-        <button
+        <button 
           className={`event-tab ${activeTab === 'all' ? 'active' : ''}`}
           onClick={() => setActiveTab('all')}
         >
           All Events
         </button>
-
         <div className="event-search-filter">
           <div className="event-search">
             <FaSearch className="search-icon" />
@@ -318,7 +217,6 @@ const getFilteredEvents = () => {
           </div>
         </div>
       </div>
-
       <div className="filter-sidebar">
         <div className="filter-header">
           <FaFilter className="filter-icon" />
@@ -327,43 +225,25 @@ const getFilteredEvents = () => {
         <div className="filter-content">
           <div className="filter-item">
             <label>Event Type</label>
-            <select
-              name="type"
-              value={filters.type}
-              onChange={handleFilterChange}
-            >
+            <select name="type" value={filters.type} onChange={handleFilterChange}>
               <option value="">All Types</option>
-              {eventTypes.map((type) => (
-                <option key={type} value={type}>
-                  {type}
-                </option>
+              {eventTypes.map(type => (
+                <option key={type} value={type}>{type}</option>
               ))}
             </select>
           </div>
-
           <div className="filter-item">
             <label>Location</label>
-            <select
-              name="location"
-              value={filters.location}
-              onChange={handleFilterChange}
-            >
+            <select name="location" value={filters.location} onChange={handleFilterChange}>
               <option value="">All Locations</option>
-              {locations.map((location) => (
-                <option key={location} value={location}>
-                  {location}
-                </option>
+              {locations.map(location => (
+                <option key={location} value={location}>{location}</option>
               ))}
             </select>
           </div>
-
           <div className="filter-item">
             <label>Status</label>
-            <select
-              name="status"
-              value={filters.status}
-              onChange={handleFilterChange}
-            >
+            <select name="status" value={filters.status} onChange={handleFilterChange}>
               <option value="">All Status</option>
               <option value="Planning">Planning</option>
               <option value="ListGeneration">List Generation</option>
@@ -372,34 +252,22 @@ const getFilteredEvents = () => {
               <option value="Complete">Complete</option>
             </select>
           </div>
-
           <div className="filter-item">
             <label>Date Range</label>
-            <select
-              name="dateRange"
-              value={filters.dateRange}
-              onChange={handleFilterChange}
-            >
+            <select name="dateRange" value={filters.dateRange} onChange={handleFilterChange}>
               <option value="">Any Date</option>
               <option value="30days">Next 30 Days</option>
               <option value="90days">Next 90 Days</option>
               <option value="thisYear">This Year</option>
             </select>
           </div>
-
           <button className="apply-filters-button" onClick={applyFilters}>
             Apply Filters
           </button>
         </div>
       </div>
-
-      {/* Loading state */}
       {loading && <div className="loading-message">Loading events...</div>}
-
-      {/* Error state */}
       {error && <div className="error-message">{error}</div>}
-
-      {/* Events table */}
       {!loading && !error && (
         <div className="events-table-container">
           <table className="events-table">
@@ -415,7 +283,7 @@ const getFilteredEvents = () => {
             </thead>
             <tbody>
               {getFilteredEvents().length > 0 ? (
-                getFilteredEvents().map((event) => (
+                getFilteredEvents().map(event => (
                   <tr key={event.id}>
                     <td className="event-name-cell">
                       <div className="event-name">{event.name}</div>
@@ -453,134 +321,21 @@ const getFilteredEvents = () => {
                       </div>
                     </td>
                     <td>
-                        <div className="event-actions">
-                          <button className="event-action-button" onClick={() => handleViewEvent(event.id)}>View</button>
-                          <button className="event-action-button edit" onClick={() => openEditModal(event)}>
-                            <FaEdit /> Edit
-                          </button>
-                          <button className="event-action-button delete" onClick={() => openDeleteConfirm(event)}>
-                            <FaTrash /> Delete
-                          </button>
-                        </div>
+                      <div className="event-actions" onClick={() => handleViewEvent(event.id)}>
+                        <button className="event-action-button">View</button>
+                      </div>
                     </td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan="6" className="no-events-message">
-                    No events found
-                  </td>
+                  <td colSpan="6" className="no-events-message">No events found</td>
                 </tr>
               )}
             </tbody>
           </table>
         </div>
       )}
-
-            {/* Edit Event Modal */}
-            {showEditModal && currentEvent && (
-        <div className="modal-overlay">
-          <div className="modal-container edit-modal">
-            <h3>Edit Event</h3>
-            <div className="edit-form">
-              <div className="form-group">
-                <label>Event Name</label>
-                <input
-                  type="text"
-                  name="name"
-                  value={currentEvent.name}
-                  onChange={handleEditChange}
-                />
-              </div>
-              
-              <div className="form-group">
-                <label>Event Type</label>
-                <input
-                  type="text"
-                  name="type"
-                  value={currentEvent.type}
-                  onChange={handleEditChange}
-                />
-              </div>
-              
-              <div className="form-group">
-                <label>Date</label>
-                <input
-                  type="date"
-                  name="date"
-                  value={currentEvent.date ? currentEvent.date.split('T')[0] : ''}
-                  onChange={handleEditChange}
-                />
-              </div>
-
-              <div className="form-group">
-                <label>Due Date</label>
-                <input
-                  type="date"
-                  name="timelineReviewDeadline"
-                  value={currentEvent.timelineReviewDeadline ? currentEvent.timelineReviewDeadline.split('T')[0] : ''}
-                  onChange={handleEditChange}
-                />
-              </div>
-              
-              <div className="form-group">
-                <label>Location</label>
-                <input
-                  type="text"
-                  name="location"
-                  value={currentEvent.location}
-                  onChange={handleEditChange}
-                />
-              </div>
-              
-              <div className="form-group">
-                <label>Capacity</label>
-                <input
-                  type="number"
-                  name="capacity"
-                  value={currentEvent.capacity}
-                  onChange={handleEditChange}
-                />
-              </div>
-              
-              <div className="form-group">
-                <label>Status</label>
-                <select
-                  name="status"
-                  value={currentEvent.status}
-                  onChange={handleEditChange}
-                >
-                  <option value="Planning">Planning</option>
-                  <option value="List Generation">List Generation</option>
-                  <option value="Review">Review</option>
-                  <option value="Ready">Ready</option>
-                  <option value="Complete">Complete</option>
-                </select>
-              </div>
-            </div>
-            <div className="modal-buttons">
-              <button className="cancel-button" onClick={() => setShowEditModal(false)}>Cancel</button>
-              <button className="save-button" onClick={saveEvent}>Save Changes</button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Delete Confirmation Modal */}
-      {showDeleteConfirm && eventToDelete && (
-        <div className="modal-overlay">
-          <div className="modal-container delete-modal">
-            <h3>Delete Event</h3>
-            <p>Are you sure you want to delete the event "{eventToDelete.name}"?</p>
-            <p className="warning-text">This action cannot be undone.</p>
-            <div className="modal-buttons">
-              <button className="cancel-button" onClick={() => setShowDeleteConfirm(false)}>Cancel</button>
-              <button className="delete-button" onClick={deleteEvent}>Delete</button>
-            </div>
-          </div>
-        </div>
-      )}
-
     </div>
   );
 };
