@@ -36,6 +36,13 @@ const Navbar = () => {
         >
           Donors
         </Link>
+        
+        <Link 
+          to="/all-donors" 
+          className={`nav-item ${isActive('/all-donors') ? 'active' : ''}`}
+        >
+          All Donors
+        </Link>
       </div>
     </nav>
   );
