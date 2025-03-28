@@ -102,7 +102,9 @@ router.get('/', protect, async (req, res) => {
     const skip = (pageNum - 1) * limitNum;
 
     // Build where conditions based on filters
-    const where = {};
+    const where = {
+      isDeleted: false
+    };
 
     // 将status字符串值转换为Prisma的EventStatus枚举值
     if (status) {
@@ -316,8 +318,10 @@ router.post('/', protect, async (req, res) => {
 // 在event.js路由文件中添加
 router.get('/types', protect, async (req, res) => {
   try {
-    // 获取所有不同的事件类型
     const types = await prisma.event.findMany({
+      where: {
+        isDeleted: false 
+      },
       select: {
         type: true,
       },
@@ -333,8 +337,10 @@ router.get('/types', protect, async (req, res) => {
 
 router.get('/locations', protect, async (req, res) => {
   try {
-    // 获取所有不同的地点
     const locations = await prisma.event.findMany({
+      where: {
+        isDeleted: false 
+      },
       select: {
         location: true,
       },
@@ -393,7 +399,7 @@ router.get('/:id', protect, async (req, res) => {
     }
 
     const event = await prisma.event.findUnique({
-      where: { id: eventId },
+      where: { id: eventId,  isDeleted: false  },
       include: {
         creator: {
           select: {
@@ -612,10 +618,10 @@ router.delete('/:id', protect, async (req, res) => {
       return res.status(404).json({ message: 'Event not found' });
     }
 
-    // For a soft delete, we could add a 'deleted' field to the Event model
-    // Here, we're actually deleting the event, but in production you might want to implement soft delete
-    await prisma.event.delete({
-      where: { id: eventId }
+    // Implementing soft delete instead of actual delete
+    await prisma.event.update({
+      where: { id: eventId },
+      data: { isDeleted: true }
     });
 
     res.json({ message: 'Event deleted successfully' });
@@ -624,7 +630,6 @@ router.delete('/:id', protect, async (req, res) => {
     res.status(500).json({ message: 'Internal server error', error: error.message });
   }
 });
-
 /**
  * Update event status
  * 
@@ -780,12 +785,12 @@ router.get('/status/:status', protect, async (req, res) => {
 
     // Get total count for pagination
     const total = await prisma.event.count({
-      where: { status }
+      where: { status, isDeleted: false  }
     });
 
     // Get events with the specified status
     const events = await prisma.event.findMany({
-      where: { status },
+      where: { status, isDeleted: false },
       skip,
       take: limitNum,
       orderBy: {
@@ -886,9 +891,8 @@ router.get('/:id/donors', protect, async (req, res) => {
       return res.status(400).json({ message: 'Invalid event ID format' });
     }
 
-    // 验证事件是否存在
     const event = await prisma.event.findUnique({
-      where: { id: eventId },
+      where: { id: eventId, isDeleted: false },
       include: {
         donorLists: {
           select: {
