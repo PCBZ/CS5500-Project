@@ -4,6 +4,7 @@ import { useHistory } from 'react-router-dom';
 import './EventManagement.css';
 import eventAPI from '../../services/eventAPI.js';
 import authService from '../../services/authService.js';
+import CreateNewEvent from './CreateNewEvent.jsx';
 
 const EventManagement = () => {
   const [activeTab, setActiveTab] = useState('upcoming');
@@ -21,6 +22,7 @@ const EventManagement = () => {
   const [eventTypes, setEventTypes] = useState([]);
   const [locations, setLocations] = useState([]);
   const [originalEvents, setOriginalEvents] = useState([]);
+  const [showCreateModal, setShowCreateModal] = useState(false);
 
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
@@ -30,34 +32,34 @@ const EventManagement = () => {
     });
   };
 
-  useEffect(() => {
-    const fetchEvents = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        if (authService.isAuthenticated()) {
-          console.log('Token exists:', localStorage.getItem('token'));
-          const eventsData  = await eventAPI.getEvents();
-          console.log('Events fetched successfully:', eventsData); 
-          if (eventsData && eventsData.events) {
-            setEvents(eventsData.events);
-            setOriginalEvents(eventsData.events); 
-          } else {
-            setEvents([]);
-            setOriginalEvents([]); 
-            console.warn('No events data found in response');
-          }
+  const fetchEvents = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      if (authService.isAuthenticated()) {
+        console.log('Token exists:', localStorage.getItem('token'));
+        const eventsData = await eventAPI.getEvents();
+        console.log('Events fetched successfully:', eventsData); 
+        if (eventsData && eventsData.events) {
+          setEvents(eventsData.events);
+          setOriginalEvents(eventsData.events); 
         } else {
-          setError('User not authenticated'); 
+          setEvents([]);
+          setOriginalEvents([]); 
+          console.warn('No events data found in response');
         }
-      } catch (error) {
-        console.error('Error fetching events:', error);
-        setError(error.message || 'Failed to fetch events');
-      } finally {
-        setLoading(false);
+      } else {
+        setError('User not authenticated'); 
       }
-    };
+    } catch (error) {
+      console.error('Error fetching events:', error);
+      setError(error.message || 'Failed to fetch events');
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     const fetchFilterOptions = async () => {
       try {
         const [typesData, locationsData] = await Promise.all([
@@ -119,9 +121,19 @@ const EventManagement = () => {
     }
   };
 
-  // UPDATED: Navigate to Create New Event page instead of showing an alert
+  // UPDATED: Show create event modal instead of navigation
   const handleCreateEvent = () => {
-    history.push('/events/create');
+    setShowCreateModal(true);
+  };
+
+  const handleCloseCreateModal = () => {
+    setShowCreateModal(false);
+  };
+
+  const handleEventCreated = async () => {
+    setShowCreateModal(false);
+    // Refresh events list
+    await fetchEvents();
   };
 
   const applyFilters = async () => {
@@ -334,6 +346,17 @@ const EventManagement = () => {
               )}
             </tbody>
           </table>
+        </div>
+      )}
+      
+      {showCreateModal && (
+        <div className="modal-overlay">
+          <div className="modal-container">
+            <CreateNewEvent 
+              onClose={handleCloseCreateModal}
+              onEventCreated={handleEventCreated}
+            />
+          </div>
         </div>
       )}
     </div>

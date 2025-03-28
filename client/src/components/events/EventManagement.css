@@ -102,16 +102,16 @@
 
 .event-search input {
   border: 1px solid #E5E7EB;
-  border-radius: 20px;
+  border-radius: 6px;
   padding: 8px 15px 8px 35px;
   width: 200px;
   font-size: 14px;
-
+  background-color: white;
 }
 
 .event-search input:focus {
   outline: none;
-  border-color: #6366F1;
+  border-color: #E5E7EB;
 }
 
 .filter-button {
@@ -211,23 +211,44 @@
 
 .event-actions {
   display: flex;
-  gap: 8px;
+  gap: 5px;
 }
 
 .event-action-button {
-  padding: 6px 12px;
-  background-color: #EEF2FF;
-  color: #4F46E5;
+  padding: 5px 10px;
   border: none;
   border-radius: 4px;
-  font-size: 13px;
-  font-weight: 500;
   cursor: pointer;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background-color: #2196f3;
+  color: white;
 }
 
 .event-action-button:hover {
-  background-color: #E0E7FF;
+  background-color: #0d8bf2;
 }
+
+.event-action-button.edit {
+  background-color: #4caf50;
+  color: white;
+}
+
+.event-action-button.edit:hover {
+  background-color: #388e3c;
+}
+
+.event-action-button.delete {
+  background-color: #f44336;
+  color: white;
+}
+
+.event-action-button.delete:hover {
+  background-color: #d32f2f;
+}
+
 /* Filter Banner Enhancements */
 .filter-sidebar {
   background-color: #f8faff;
@@ -312,47 +333,8 @@
   background-color: #4338ca;
 }
 
-.event-search {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-
-.search-icon {
-  position: absolute;
-  left: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: #9CA3AF;
-  font-size: 14px;
-}
-
-.event-search input {
-  border: 1px solid #E5E7EB;
-  border-radius: 6px 0 0 6px;
-  padding: 8px 15px 8px 35px;
-  width: 200px;
-  font-size: 14px;
-}
-
-.event-search input:focus {
-  outline: none;
-  border-color: #6366F1;
-}
-
 .search-button {
-  background-color: #6366F1;
-  color: white;
-  border: none;
-  border-radius: 0 6px 6px 0;
-  padding: 8px 15px;
-  font-size: 14px;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-.search-button:hover {
-  background-color: #4F46E5;
+  display: none;
 }
 
 @media (min-width: 768px) {
@@ -417,45 +399,6 @@
 .deadline-info .icon {
   color: #EF4444;
   font-size: 12px;
-}
-.event-actions {
-  display: flex;
-  gap: 5px;
-}
-
-.event-action-button {
-  padding: 5px 10px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 12px;
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  background-color: #2196f3;
-  color: white;
-}
-
-.event-action-button:hover {
-  background-color: #0d8bf2;
-}
-
-.event-action-button.edit {
-  background-color: #4caf50;
-  color: white;
-}
-
-.event-action-button.edit:hover {
-  background-color: #388e3c;
-}
-
-.event-action-button.delete {
-  background-color: #f44336;
-  color: white;
-}
-
-.event-action-button.delete:hover {
-  background-color: #d32f2f;
 }
 
 /* 模态框样式 */
