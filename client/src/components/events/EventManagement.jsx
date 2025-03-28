@@ -12,6 +12,7 @@ const EventManagement = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const history = useHistory();
+
   const [filters, setFilters] = useState({
     status: '',
     location: '',
@@ -39,18 +40,19 @@ const EventManagement = () => {
       try {
         if (authService.isAuthenticated()) {
           console.log('Token exists:', localStorage.getItem('token'));
-          const eventsData  = await eventAPI.getEvents();
-          console.log('Events fetched successfully:', eventsData); 
+          const eventsData = await eventAPI.getEvents();
+          console.log('Events fetched successfully:', eventsData);
+
           if (eventsData && eventsData.events) {
             setEvents(eventsData.events);
-            setOriginalEvents(eventsData.events); 
+            setOriginalEvents(eventsData.events);
           } else {
             setEvents([]);
-            setOriginalEvents([]); 
+            setOriginalEvents([]);
             console.warn('No events data found in response');
           }
         } else {
-          setError('User not authenticated'); 
+          setError('User not authenticated');
         }
       } catch (error) {
         console.error('Error fetching events:', error);
@@ -62,12 +64,12 @@ const EventManagement = () => {
 
     const fetchFilterOptions = async () => {
       try {
-        // 并行获取筛选选项
+        // Fetch event types and locations in parallel
         const [typesData, locationsData] = await Promise.all([
           eventAPI.getEventTypes(),
           eventAPI.getEventLocations()
         ]);
-        
+
         setEventTypes(typesData);
         setLocations(locationsData);
       } catch (error) {
@@ -77,12 +79,28 @@ const EventManagement = () => {
 
     fetchEvents();
     fetchFilterOptions();
-
   }, []);
-  
+
   // Handle search
   const handleSearchChange = (e) => {
     setSearchQuery(e.target.value);
+  };
+
+  const handleSearch = () => {
+    if (!searchQuery.trim()) {
+      setEvents(originalEvents);
+      return;
+    }
+    const filteredEvents = originalEvents.filter((event) =>
+      event.name.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+    setEvents(filteredEvents);
+  };
+
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter') {
+      handleSearch();
+    }
   };
 
   // Format date display
@@ -96,11 +114,9 @@ const EventManagement = () => {
     });
   };
 
-
   // Filter events based on active tab
   const getFilteredEvents = () => {
-    // In a real app, you would filter based on date compared to current date
-
+    // In a real app, you’d filter by comparing dates to the current date
     if (activeTab === 'upcoming') {
       return events;
     } else if (activeTab === 'past') {
@@ -110,45 +126,26 @@ const EventManagement = () => {
     }
   };
 
-const handleSearch = () => {
-  if (!searchQuery.trim()) {
-    setEvents(originalEvents); //
-    return;
-  }
-  
-  const filteredEvents = originalEvents.filter(event => 
-    event.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-  
-  setEvents(filteredEvents);
-};
-
-const handleKeyPress = (e) => {
-  if (e.key === 'Enter') {
-    handleSearch();
-  }
-};
-
   const applyFilters = async () => {
     setLoading(true);
     setError(null);
-    
+
     try {
-      // 创建一个包含所有已设置筛选条件的对象
+      // Build an object of all filter parameters
       const filterParams = {};
-      
+
       if (filters.status) filterParams.status = filters.status;
       if (filters.location) filterParams.location = filters.location;
       if (filters.type) filterParams.type = filters.type;
-      
-      // 处理日期范围筛选
+
+      // Handle date range filtering
       if (filters.dateRange) {
         const now = new Date();
-        
+
         if (filters.dateRange === '30days') {
           const thirtyDaysLater = new Date();
           thirtyDaysLater.setDate(now.getDate() + 30);
-          filterParams.startDate = now.toISOString().split('T')[0]; // YYYY-MM-DD
+          filterParams.startDate = now.toISOString().split('T')[0];
           filterParams.endDate = thirtyDaysLater.toISOString().split('T')[0];
         } else if (filters.dateRange === '90days') {
           const ninetyDaysLater = new Date();
@@ -161,17 +158,15 @@ const handleKeyPress = (e) => {
           filterParams.endDate = yearEnd.toISOString().split('T')[0];
         }
       }
-      
-      // 添加搜索查询参数（如果有）
+
+      // Add search query if present
       if (searchQuery) {
         filterParams.search = searchQuery;
       }
-      
+
       console.log('Applying filters with params:', filterParams);
-      
-      // 调用API获取过滤后的事件
       const eventsData = await eventAPI.getEvents(filterParams);
-      
+
       if (eventsData && eventsData.events) {
         setEvents(eventsData.events);
       } else {
@@ -187,13 +182,14 @@ const handleKeyPress = (e) => {
   };
 
   const handleViewEvent = (eventId) => {
-    // Navigate to donors tab and select the event
+    // Navigate to donors page, passing selected event ID
     history.push('/donors', { selectedEventId: eventId });
   };
 
-  // Handle create new event
+  // Updated: Navigate to Create New Event page
   const handleCreateEvent = () => {
-    alert('Create new event functionality will be implemented here');
+    // Use React Router's history to navigate to the create event route
+    history.push('/events/create');
   };
 
   return (
@@ -209,25 +205,25 @@ const handleKeyPress = (e) => {
       </header>
 
       <div className="event-tabs">
-        <button 
+        <button
           className={`event-tab ${activeTab === 'upcoming' ? 'active' : ''}`}
           onClick={() => setActiveTab('upcoming')}
         >
           Upcoming Events
         </button>
-        <button 
+        <button
           className={`event-tab ${activeTab === 'past' ? 'active' : ''}`}
           onClick={() => setActiveTab('past')}
         >
           Past Events
         </button>
-        <button 
+        <button
           className={`event-tab ${activeTab === 'all' ? 'active' : ''}`}
           onClick={() => setActiveTab('all')}
         >
           All Events
         </button>
-        
+
         <div className="event-search-filter">
           <div className="event-search">
             <FaSearch className="search-icon" />
@@ -238,90 +234,90 @@ const handleKeyPress = (e) => {
               onChange={handleSearchChange}
               onKeyPress={handleKeyPress}
             />
-
             <button className="search-button" onClick={handleSearch}>
-                Search
-              </button>
-          </div>
-        </div>
-        </div>
-
-        <div className="filter-sidebar">
-          <div className="filter-header">
-            <FaFilter className="filter-icon" />
-            <span>Filters</span>
-          </div>
-          <div className="filter-content">
-            <div className="filter-item">
-              <label>Event Type</label>
-              <select 
-                name="type" 
-                value={filters.type} 
-                onChange={handleFilterChange}
-              >
-                <option value="">All Types</option>
-                {eventTypes.map(type => (
-                  <option key={type} value={type}>{type}</option>
-                ))}
-              </select>
-            </div>
-            
-            <div className="filter-item">
-              <label>Location</label>
-              <select 
-                name="location" 
-                value={filters.location} 
-                onChange={handleFilterChange}
-              >
-                <option value="">All Locations</option>
-                {locations.map(location => (
-                  <option key={location} value={location}>{location}</option>
-                ))}
-              </select>
-            </div>
-            
-            <div className="filter-item">
-              <label>Status</label>
-              <select 
-                name="status" 
-                value={filters.status} 
-                onChange={handleFilterChange}
-              >
-                <option value="">All Status</option>
-                <option value="Planning">Planning</option>
-                <option value="ListGeneration">List Generation</option>
-                <option value="Review">Review</option>
-                <option value="Ready">Ready</option>
-                <option value="Complete">Complete</option>
-              </select>
-            </div>
-            
-            <div className="filter-item">
-              <label>Date Range</label>
-              <select 
-                name="dateRange" 
-                value={filters.dateRange} 
-                onChange={handleFilterChange}
-              >
-                <option value="">Any Date</option>
-                <option value="30days">Next 30 Days</option>
-                <option value="90days">Next 90 Days</option>
-                <option value="thisYear">This Year</option>
-              </select>
-            </div>
-            
-            <button 
-              className="apply-filters-button" 
-              onClick={applyFilters}
-            >
-              Apply Filters
+              Search
             </button>
           </div>
         </div>
+      </div>
+
+      <div className="filter-sidebar">
+        <div className="filter-header">
+          <FaFilter className="filter-icon" />
+          <span>Filters</span>
+        </div>
+        <div className="filter-content">
+          <div className="filter-item">
+            <label>Event Type</label>
+            <select
+              name="type"
+              value={filters.type}
+              onChange={handleFilterChange}
+            >
+              <option value="">All Types</option>
+              {eventTypes.map((type) => (
+                <option key={type} value={type}>
+                  {type}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="filter-item">
+            <label>Location</label>
+            <select
+              name="location"
+              value={filters.location}
+              onChange={handleFilterChange}
+            >
+              <option value="">All Locations</option>
+              {locations.map((location) => (
+                <option key={location} value={location}>
+                  {location}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="filter-item">
+            <label>Status</label>
+            <select
+              name="status"
+              value={filters.status}
+              onChange={handleFilterChange}
+            >
+              <option value="">All Status</option>
+              <option value="Planning">Planning</option>
+              <option value="ListGeneration">List Generation</option>
+              <option value="Review">Review</option>
+              <option value="Ready">Ready</option>
+              <option value="Complete">Complete</option>
+            </select>
+          </div>
+
+          <div className="filter-item">
+            <label>Date Range</label>
+            <select
+              name="dateRange"
+              value={filters.dateRange}
+              onChange={handleFilterChange}
+            >
+              <option value="">Any Date</option>
+              <option value="30days">Next 30 Days</option>
+              <option value="90days">Next 90 Days</option>
+              <option value="thisYear">This Year</option>
+            </select>
+          </div>
+
+          <button className="apply-filters-button" onClick={applyFilters}>
+            Apply Filters
+          </button>
+        </div>
+      </div>
 
       {/* Loading state */}
       {loading && <div className="loading-message">Loading events...</div>}
-      
+
       {/* Error state */}
       {error && <div className="error-message">{error}</div>}
 
@@ -341,7 +337,7 @@ const handleKeyPress = (e) => {
             </thead>
             <tbody>
               {getFilteredEvents().length > 0 ? (
-                getFilteredEvents().map(event => (
+                getFilteredEvents().map((event) => (
                   <tr key={event.id}>
                     <td className="event-name-cell">
                       <div className="event-name">{event.name}</div>
@@ -379,7 +375,9 @@ const handleKeyPress = (e) => {
                       </div>
                     </td>
                     <td>
-                      <div className="event-actions"   onClick={() => handleViewEvent(event.id)}
+                      <div
+                        className="event-actions"
+                        onClick={() => handleViewEvent(event.id)}
                       >
                         <button className="event-action-button">View</button>
                       </div>
