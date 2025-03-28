@@ -7,6 +7,7 @@ import Register from './components/auth/Register.jsx';
 import Dashboard from './components/Dashboard.jsx';
 import EventManagement from './components/events/EventManagement.jsx';
 import Donors from './components/donors/Donors.jsx';
+import AllDonors from './components/donors/AllDonors.jsx';
 import Navbar from './components/common/Navbar.jsx';
 import ProtectedRoute from './components/auth/ProtectedRoute.jsx';
 import './App.css';
@@ -23,6 +24,7 @@ function App() {
             <ProtectedRoute path="/dashboard" component={Dashboard} />
             <Route path="/events" component={EventManagement} />
             <ProtectedRoute path="/donors" component={Donors} />
+            <ProtectedRoute path="/all-donors" component={AllDonors} />
             <Redirect from="/" to="/login" />
           </Switch>
         </div>

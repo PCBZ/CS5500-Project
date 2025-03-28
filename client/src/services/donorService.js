@@ -58,6 +58,75 @@ export const getDonors = async (params = {}) => {
 };
 
 /**
+ * Get all donors with pagination and filtering
+ * Special version for the all donors page
+ * @param {Object} params - Query parameters
+ * @param {number} params.page - Page number
+ * @param {number} params.limit - Results per page
+ * @param {string} params.search - Search term
+ * @param {string} params.status - Filter by status
+ * @param {string} params.type - Filter by donor type
+ * @param {string} params.city - Filter by city
+ * @param {string} params.minDonation - Filter by minimum donation amount
+ * @param {string} params.pmm - Filter by PMM status
+ * @param {string} params.excluded - Filter by exclusion status
+ * @param {string} params.deceased - Filter by deceased status
+ * @param {string} params.tags - Filter by tags
+ * @returns {Promise<Object>} Donor data with pagination info
+ */
+export const getAllDonors = async (params = {}) => {
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      throw new Error('No authentication token found');
+    }
+
+    // Build URL with query parameters
+    const url = new URL(`${API_URL}/api/donors`);
+    
+    // Add all parameters to the URL - map any camelCase to backend's snake_case if needed
+    Object.keys(params).forEach(key => {
+      if (params[key] !== undefined && params[key] !== '') {
+        // Convert camelCase to snake_case for backend
+        const paramKey = key.replace(/([A-Z])/g, '_$1').toLowerCase();
+        url.searchParams.append(paramKey, params[key]);
+      }
+    });
+
+    console.log(`Making request to: ${url.toString()}`);
+    
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('API Error Response:', errorText);
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    console.log('Raw donor response:', data);
+    
+    // Format the response - check for field mappings that might be needed
+    return {
+      data: data.donors || [],
+      page: data.page || 1,
+      limit: data.limit || 10,
+      total_count: data.total || 0,
+      total_pages: data.pages || 1
+    };
+  } catch (error) {
+    console.error('Error fetching all donors:', error);
+    throw error;
+  }
+};
+
+/**
  * Get donors that are not part of a specific event
  * @param {string} eventId - Event ID to exclude donors from
  * @param {Object} params - Additional query parameters
@@ -701,6 +770,232 @@ export const exportEventDonorsToCsv = async (eventId) => {
     return new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
   } catch (error) {
     console.error('Error exporting donors to CSV:', error);
+    throw error;
+  }
+};
+
+/**
+ * Export all donors to CSV
+ * @returns {Promise<Object>} CSV data as blob and success status
+ */
+export const exportDonorsToCsv = async () => {
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      throw new Error('No authentication token found');
+    }
+
+    console.log('Fetching all donors for CSV export');
+    
+    // Step 1: Get all donors from API with a large limit to get as many as possible
+    const url = new URL(`${API_URL}/api/donors`);
+    url.searchParams.append('limit', '1000'); // Request a large number of donors
+    
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    // Get the JSON data
+    const donorsData = await response.json();
+    const donors = donorsData.donors || [];
+    
+    if (donors.length === 0) {
+      throw new Error('No donors found to export');
+    }
+    
+    console.log(`Retrieved ${donors.length} donors for CSV export`);
+    
+    // Step 2: Define CSV headers
+    const standardFields = [
+      { key: 'id', header: 'Donor ID' },
+      { key: 'firstName', header: 'First Name' },
+      { key: 'lastName', header: 'Last Name' },
+      { key: 'organizationName', header: 'Organization' },
+      { key: 'city', header: 'City' },
+      { key: 'totalDonations', header: 'Total Donations' },
+      { key: 'totalPledges', header: 'Total Pledges' },
+      { key: 'addressLine1', header: 'Address Line 1' },
+      { key: 'addressLine2', header: 'Address Line 2' },
+      { key: 'largestGift', header: 'Largest Gift' },
+      { key: 'lastGiftDate', header: 'Last Gift Date', isDate: true },
+      { key: 'lastGiftAmount', header: 'Last Gift Amount' },
+      { key: 'pmm', header: 'Prospect Move Manager' },
+      { key: 'excluded', header: 'Excluded' },
+      { key: 'deceased', header: 'Deceased' }
+    ];
+    
+    // Step 3: Prepare headers and check for additional fields in the data
+    let headers = [];
+    let dynamicFields = new Map(); // Maps field names to their array index
+    
+    // Add standard fields to headers
+    standardFields.forEach(field => {
+      const keyName = typeof field.key === 'string' ? field.key : field.key[0];
+      headers.push(field.header);
+      
+      // Add to our dynamic fields map
+      dynamicFields.set(keyName, {
+        index: headers.length - 1,
+        isDate: field.isDate || keyName.includes('date') || keyName.includes('Date')
+      });
+      
+      // For fields with alternate names, map those too
+      if (Array.isArray(field.key)) {
+        field.key.slice(1).forEach(altKey => {
+          dynamicFields.set(altKey, {
+            index: headers.length - 1,
+            isDate: field.isDate || altKey.includes('date') || altKey.includes('Date')
+          });
+        });
+      }
+    });
+    
+    // Check for additional fields not in our standard list
+    donors.forEach(donor => {
+      Object.keys(donor).forEach(key => {
+        // Skip if already in our dynamic fields
+        if (!dynamicFields.has(key) && 
+            key !== 'eventDonors' && 
+            !key.includes('_id') && 
+            key !== 'id') {
+          // Add to headers and dynamic fields
+          headers.push(key.charAt(0).toUpperCase() + key.slice(1).replace(/([A-Z])/g, ' $1'));
+          dynamicFields.set(key, {
+            index: headers.length - 1,
+            isDate: key.includes('date') || key.includes('Date')
+          });
+        }
+      });
+    });
+    
+    console.log('CSV headers:', headers);
+    
+    // Step 4: Generate CSV rows
+    const rows = donors.map(donor => {
+      // Prepare array for this row
+      const rowData = new Array(headers.length).fill('');
+      
+      // Process donor object fields
+      Object.entries(donor).forEach(([key, value]) => {
+        if (dynamicFields.has(key)) {
+          const fieldInfo = dynamicFields.get(key);
+          let processedValue = value;
+          
+          // Format dates
+          if (fieldInfo.isDate && value) {
+            try {
+              processedValue = new Date(value).toLocaleDateString();
+            } catch (e) {
+              processedValue = value;
+            }
+          }
+          
+          // Format boolean values
+          if (typeof value === 'boolean') {
+            processedValue = value ? 'Yes' : 'No';
+          }
+          
+          // Handle arrays
+          if (Array.isArray(value)) {
+            processedValue = value.join('; ');
+          }
+          
+          rowData[fieldInfo.index] = processedValue;
+        }
+      });
+      
+      return rowData;
+    });
+    
+    // Step 5: Combine headers and rows into CSV content
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.map(cell => {
+        // Ensure cell is a string
+        const cellStr = cell === null || cell === undefined ? '' : String(cell);
+        // Handle commas, quotes, and newlines in strings
+        if (cellStr.includes(',') || cellStr.includes('"') || cellStr.includes('\n')) {
+          return `"${cellStr.replace(/"/g, '""')}"`;
+        }
+        return cellStr;
+      }).join(','))
+    ].join('\n');
+    
+    // Step 6: Create and return blob
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    
+    return {
+      success: true,
+      data: blob,
+      fileName: `all_donors_export_${new Date().toISOString().slice(0, 10)}.csv`
+    };
+  } catch (error) {
+    console.error('Error exporting donors to CSV:', error);
+    return {
+      success: false,
+      message: error.message || 'Failed to export donors'
+    };
+  }
+};
+
+/**
+ * Update donor information
+ * @param {string} donorId - The ID of the donor to update
+ * @param {Object} donorData - Updated donor data
+ * @returns {Promise<Object>} Updated donor data
+ */
+export const updateDonor = async (donorId, donorData) => {
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      throw new Error('No authentication token found');
+    }
+
+    console.log(`Updating donor with ID ${donorId}:`, donorData);
+    
+    const response = await fetch(`${API_URL}/api/donors/${donorId}`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(donorData)
+    });
+
+    // 检查非JSON响应，如HTML错误页面（通常是会话过期导致的）
+    const contentType = response.headers.get('content-type');
+    if (!contentType || !contentType.includes('application/json')) {
+      // 获取完整响应以便调试
+      const responseText = await response.text();
+      console.error('Received non-JSON response:', responseText);
+      
+      // 检查是否是登录页面重定向（通常包含DOCTYPE或HTML标签）
+      if (responseText.includes('<!DOCTYPE') || responseText.includes('<html')) {
+        throw new Error('Your session has expired. Please refresh the page and login again.');
+      } else {
+        throw new Error(`Server returned non-JSON response. Status: ${response.status}`);
+      }
+    }
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error('Failed to update donor:', errorData);
+      throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+    }
+
+    const result = await response.json();
+    console.log('Donor updated successfully:', result);
+    return result;
+  } catch (error) {
+    console.error('Error updating donor information:', error);
     throw error;
   }
 }; 

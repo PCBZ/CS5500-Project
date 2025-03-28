@@ -275,6 +275,113 @@ router.get('/:id', protect, async (req, res) => {
 });
 
 /**
+ * Update donor information
+ * 
+ * @name PUT /api/donors/:id
+ * @function
+ * @memberof module:DonorAPI
+ * @inner
+ * @param {string} req.params.id - Donor ID
+ * @param {Object} req.body - Updated donor data
+ * @param {string} req.headers.authorization - Bearer token for authentication
+ * @returns {Object} 200 - Updated donor details
+ * @returns {Error} 400 - Invalid donor ID format
+ * @returns {Error} 401 - Unauthorized access
+ * @returns {Error} 404 - Donor not found
+ * @returns {Error} 500 - Server error
+ * 
+ * @example
+ * // Request
+ * PUT /api/donors/123
+ * Authorization: Bearer <token>
+ * {
+ *   "firstName": "Mei",
+ *   "lastName": "Lee-Wong",
+ *   "pmm": "John Smith",
+ *   ...
+ * }
+ * 
+ * // Success Response
+ * {
+ *   "id": "123",
+ *   "firstName": "Mei",
+ *   "lastName": "Lee-Wong",
+ *   "pmm": "John Smith",
+ *   ...
+ * }
+ */
+router.put('/:id', protect, async (req, res) => {
+  try {
+    // 解析并验证捐赠者ID
+    let donorId;
+    try {
+      donorId = parseInt(req.params.id);
+      if (isNaN(donorId)) {
+        return res.status(400).json({ message: 'Invalid donor ID format' });
+      }
+    } catch (error) {
+      return res.status(400).json({ message: 'Invalid donor ID format' });
+    }
+
+    // 验证捐赠者是否存在
+    const donorExists = await prisma.donor.findUnique({
+      where: { id: donorId }
+    });
+
+    if (!donorExists) {
+      return res.status(404).json({ message: 'Donor not found' });
+    }
+
+    // 从请求体中获取更新数据
+    const rawUpdateData = req.body;
+    
+    // 只保留有效的捐赠者字段
+    const validFields = [
+      'pmm', 'smm', 'vmm', 'excluded', 'deceased', 
+      'firstName', 'nickName', 'lastName', 'organizationName', 
+      'totalDonations', 'totalPledges', 'largestGift', 'largestGiftAppeal', 
+      'firstGiftDate', 'lastGiftDate', 'lastGiftAmount', 'lastGiftRequest', 'lastGiftAppeal', 
+      'addressLine1', 'addressLine2', 'city', 
+      'contactPhoneType', 'phoneRestrictions', 'emailRestrictions', 'communicationRestrictions', 
+      'subscriptionEventsInPerson', 'subscriptionEventsMagazine', 'communicationPreference'
+    ];
+    
+    // 过滤掉不存在的字段
+    const updateData = {};
+    validFields.forEach(field => {
+      if (rawUpdateData[field] !== undefined) {
+        updateData[field] = rawUpdateData[field];
+      }
+    });
+    
+    // 记录更新操作
+    console.log(`Updating donor with ID ${donorId}:`, updateData);
+    
+    // 处理日期字段，确保它们是有效的格式
+    if (updateData.firstGiftDate) {
+      updateData.firstGiftDate = new Date(updateData.firstGiftDate);
+    }
+    
+    if (updateData.lastGiftDate) {
+      updateData.lastGiftDate = new Date(updateData.lastGiftDate);
+    }
+
+    // 更新捐赠者信息
+    const updatedDonor = await prisma.donor.update({
+      where: { id: donorId },
+      data: updateData
+    });
+
+    // 返回更新后的捐赠者信息
+    res.json(formatDonor(updatedDonor));
+  } catch (error) {
+    console.error('Error updating donor:', error);
+    console.error('Error stack:', error.stack);
+    res.status(500).json({ message: 'Failed to update donor', error: error.message });
+  }
+});
+
+/**
  * Import donors from CSV or Excel file
  * 
  * @name POST /api/donors/import

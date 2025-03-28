@@ -1,0 +1,70 @@
+/* DonorListItem.css - Styling for individual donor list items */
+
+/* Row styling */
+.donor-row {
+  transition: all 0.2s ease;
+}
+
+.donor-row:hover {
+  background-color: rgba(37, 99, 235, 0.05);
+}
+
+/* Cell styling */
+.donor-row td {
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid #e2e8f0;
+  font-size: 0.875rem;
+  color: #1e293b;
+  vertical-align: middle;
+}
+
+/* Name cell styling */
+.donor-name-cell {
+  font-weight: 500;
+  color: #1e40af;
+}
+
+/* Donation and pledge amount styling */
+.donation-amount,
+.pledge-amount {
+  font-family: 'Monaco', 'Courier New', monospace;
+  font-weight: 500;
+  text-align: right;
+}
+
+.donation-amount {
+  color: #10b981;
+}
+
+.pledge-amount {
+  color: #2563eb;
+}
+
+/* Actions cell styling */
+.actions-cell {
+  width: 60px;
+  text-align: center;
+}
+
+.edit-button {
+  background: none;
+  border: none;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  padding: 0.5rem;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.edit-button:hover {
+  color: #2563eb;
+  background-color: rgba(37, 99, 235, 0.1);
+}
+
+.edit-button svg {
+  width: 1rem;
+  height: 1rem;
+} 
