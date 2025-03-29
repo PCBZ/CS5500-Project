@@ -146,17 +146,28 @@ const EditDonorModal = ({ donor, onSave, onClose, isOpen }) => {
     }
   };
 
+  const handleLoginAgain = () => {
+    // Implement login again logic
+  };
+
   if (!isOpen) return null;
 
   return (
     <div className="modal-overlay">
       <div className="modal-container">
         <div className="modal-header">
-          <h2>Edit Donor</h2>
-          <button className="close-button" onClick={onClose}>
-            <FaTimes />
-          </button>
+          <h2 className="modal-title">Edit Donor</h2>
+          <button className="modal-close-button" onClick={onClose}>&times;</button>
         </div>
+        
+        {error && (
+          <div className="modal-error-message">
+            {error}
+            <button className="modal-login-again-button" onClick={handleLoginAgain}>
+              Login Again
+            </button>
+          </div>
+        )}
         
         <form onSubmit={handleSubmit} className="donor-form">
           <div className="form-section">
@@ -597,26 +608,10 @@ const EditDonorModal = ({ donor, onSave, onClose, isOpen }) => {
             )}
           </div>
           
-          {error && (
-            <div className="error-message">
-              {error}
-              {error.includes('session may have expired') && (
-                <div className="error-action">
-                  <button 
-                    onClick={() => window.location.href = '/login'} 
-                    className="login-again-button"
-                  >
-                    Login Again
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
-          
           <div className="modal-actions">
             <button 
               type="button" 
-              className="cancel-button" 
+              className="modal-cancel-button" 
               onClick={onClose}
               disabled={loading}
             >
@@ -624,7 +619,7 @@ const EditDonorModal = ({ donor, onSave, onClose, isOpen }) => {
             </button>
             <button 
               type="submit" 
-              className="save-button" 
+              className="modal-save-button" 
               disabled={loading}
             >
               {loading ? (
