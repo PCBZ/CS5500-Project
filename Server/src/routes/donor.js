@@ -415,8 +415,17 @@ router.put('/:id', protect, async (req, res) => {
  *   "message": "Donor import completed with 1 error"
  * }
  */
+/**
+ * Import donors from CSV or Excel file
+ * 
+ * @name POST /api/donors/import
+ * @function
+ * @memberof module:DonorAPI
+ * @inner
+ */
 router.post('/import', protect, upload.single('file'), async (req, res) => {
   try {
+    // 验证是否有文件上传
     if (!req.file) {
       return res.status(400).json({ message: 'No file uploaded' });
     }
@@ -427,106 +436,306 @@ router.post('/import', protect, upload.single('file'), async (req, res) => {
     let donorsData = [];
     let errors = [];
     
-    // Parse file based on its extension
+    // 根据文件扩展名解析文件
     if (fileExtension === '.csv') {
-      // Parse CSV file
-      const fileContent = fs.readFileSync(filePath, 'utf8');
-      const parseResult = Papa.parse(fileContent, {
-        header: true,
-        skipEmptyLines: true,
-        dynamicTyping: true
-      });
-      
-      donorsData = parseResult.data;
-      
-      // Check for parsing errors
-      if (parseResult.errors && parseResult.errors.length > 0) {
-        parseResult.errors.forEach(error => {
-          errors.push({
-            row: error.row + 1, // Add 1 to match Excel row numbers (1-indexed)
-            error: error.message
-          });
+      // 解析CSV文件
+      try {
+        const fileContent = fs.readFileSync(filePath, 'utf8');
+        // 移除可能干扰解析的字符
+        const cleanContent = fileContent.replace(/\r/g, '');
+        const parseResult = Papa.parse(cleanContent, {
+          header: true,
+          skipEmptyLines: true,
+          dynamicTyping: true,
+          delimiter: ",", 
+          transformHeader: (header) => header.trim().toLowerCase(),
+          quoteChar: '"', 
+          escapeChar: '"'
         });
+        
+        donorsData = parseResult.data;
+        
+        // 检查解析错误
+        if (parseResult.errors && parseResult.errors.length > 0) {
+          parseResult.errors.forEach(error => {
+            errors.push({
+              row: error.row + 1, // Excel行号从1开始
+              error: error.message
+            });
+          });
+        }
+      } catch (csvError) {
+        console.error('Error parsing CSV file:', csvError);
+        fs.unlinkSync(filePath);
+        return res.status(400).json({ message: `Error parsing CSV file: ${csvError.message}` });
       }
     } else if (fileExtension === '.xlsx' || fileExtension === '.xls') {
-      // Parse Excel file
-      const workbook = xlsx.readFile(filePath);
-      const sheetName = workbook.SheetNames[0];
-      const worksheet = workbook.Sheets[sheetName];
-      donorsData = xlsx.utils.sheet_to_json(worksheet);
+      // 解析Excel文件
+      try {
+        const workbook = xlsx.readFile(filePath);
+        const sheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[sheetName];
+        donorsData = xlsx.utils.sheet_to_json(worksheet, { 
+          raw: false, // 获取格式化的字符串而不是类型化值
+          defval: '' // 为空单元格设置默认值为空字符串而不是undefined
+        });
+        
+        // 标准化Excel数据的字段名
+        donorsData = donorsData.map(row => {
+          const normalizedRow = {};
+          Object.keys(row).forEach(key => {
+            normalizedRow[key.trim().toLowerCase()] = row[key];
+          });
+          return normalizedRow;
+        });
+      } catch (excelError) {
+        console.error('Error parsing Excel file:', excelError);
+        fs.unlinkSync(filePath);
+        return res.status(400).json({ message: `Error parsing Excel file: ${excelError.message}` });
+      }
     } else {
-      // Clean up the uploaded file
+      // 不支持的文件格式
       fs.unlinkSync(filePath);
-      return res.status(400).json({ message: 'Unsupported file format. Please upload CSV or Excel file.' });
+      return res.status(400).json({ 
+        message: 'Unsupported file format. Please upload CSV or Excel file.' 
+      });
     }
 
-    // Process donors data
+    // 记录导入的数据行以进行调试
+    console.log(`Processing ${donorsData.length} donor records from imported file`);
+    if (donorsData.length > 0) {
+      console.log('Sample data row:', JSON.stringify(donorsData[0], null, 2));
+      console.log('Available fields:', Object.keys(donorsData[0]));
+    }
+
+    // 处理捐赠者数据
     let imported = 0;
     let updated = 0;
+    let skipped = 0;
 
+    // 定义辅助函数
+    const getFieldValue = (donorData, fieldNames, defaultValue = null) => {
+      for (const name of fieldNames) {
+        if (donorData[name] !== undefined && donorData[name] !== '') {
+          return donorData[name];
+        }
+      }
+      return defaultValue;
+    };
+
+    const parseDate = (value) => {
+      if (!value) return null;
+      
+      // 如果是数字（可能是时间戳），尝试转换
+      if (typeof value === 'number' || !isNaN(value)) {
+        // 尝试作为Unix时间戳（秒）处理
+        const timestamp = parseInt(value);
+        if (timestamp > 1000000000) { // 确保是合理的时间戳（2001年以后）
+          return new Date(timestamp * 1000);
+        }
+      }
+      
+      // 尝试作为标准日期字符串处理
+      const date = new Date(value);
+      if (!isNaN(date.getTime())) {
+        return date;
+      }
+      
+      return null;
+    };
+
+    const parseNumber = (value, defaultValue = 0) => {
+      if (value === undefined || value === null || value === '') return defaultValue;
+      
+      const num = parseFloat(value);
+      return isNaN(num) ? defaultValue : num;
+    };
+
+    const parseBoolean = (value) => {
+      if (typeof value === 'boolean') return value;
+      if (typeof value === 'string') {
+        const lowercaseValue = value.toLowerCase();
+        return lowercaseValue === 'yes' || 
+              lowercaseValue === 'true' || 
+              lowercaseValue === '1' || 
+              lowercaseValue === 'y';
+      }
+      if (typeof value === 'number') return value === 1;
+      return false;
+    };
+
+    // 处理每条记录
     for (let i = 0; i < donorsData.length; i++) {
-      const row = i + 2; // Excel row number (header is row 1)
+      const row = i + 2; // Excel行号（标题行为1）
       const donorData = donorsData[i];
       
       try {
-        // Check if donor already exists by name
+        // 验证基本必需字段
+        const firstName = getFieldValue(donorData, ['first_name', 'firstname'], '');
+        const lastName = getFieldValue(donorData, ['last_name', 'lastname'], '');
+        const orgName = getFieldValue(donorData, ['organization_name', 'organizationname'], '');
+        
+        if (!firstName && !lastName && !orgName) {
+          console.log(`Row ${row}: Skipping - missing required identification fields`);
+          errors.push({
+            row,
+            error: 'Missing required identification fields (first name, last name, or organization name)'
+          });
+          skipped++;
+          continue;
+        }
+        
+        // 检查捐赠者是否已存在
         let existingDonor = null;
-        if (donorData.firstName && donorData.lastName) {
+        
+        if (firstName && lastName) {
           existingDonor = await prisma.donor.findFirst({
             where: {
-              firstName: donorData.firstName,
-              lastName: donorData.lastName
+              firstName: firstName,
+              lastName: lastName
+            }
+          });
+        } else if (orgName) {
+          existingDonor = await prisma.donor.findFirst({
+            where: {
+              organizationName: orgName
             }
           });
         }
 
-        // Format donor data for database - mapping CSV fields to database fields
+        // 准备捐赠者数据对象
         const donor = {
-          pmm: donorData.pmm || null,
-          smm: donorData.smm || null,
-          vmm: donorData.vmm || null,
-          excluded: donorData.exclude === 'yes' || donorData.exclude === true || false,
-          deceased: donorData.deceased === 'yes' || donorData.deceased === true || false,
-          firstName: donorData.firstName || null,
-          nickName: donorData.nickName || null,
-          lastName: donorData.lastName || null,
-          organizationName: donorData.organizationName || null,
-          totalDonations: parseFloat(donorData.totalDonations) || 0,
-          totalPledges: parseFloat(donorData.totalPledge) || 0,
-          largestGift: parseFloat(donorData.largestGift) || 0,
-          largestGiftAppeal: donorData.largestGiftAppeal || null,
-          firstGiftDate: donorData.firstGiftDate ? new Date(parseInt(donorData.firstGiftDate) * 1000) : null,
-          lastGiftDate: donorData.lastGiftDate ? new Date(parseInt(donorData.lastGiftDate) * 1000) : null,
-          lastGiftAmount: parseFloat(donorData.lastGiftAmount) || 0,
-          lastGiftRequest: donorData.lastGiftRequest ? String(donorData.lastGiftRequest) : null,
-          lastGiftAppeal: donorData.lastGiftAppeal || null,
-          addressLine1: donorData.addressLine1 || null,
-          addressLine2: donorData.addressLine2 || null,
-          city: donorData.city || null,
-          contactPhoneType: donorData.contactPhoneType || null,
-          phoneRestrictions: donorData.phoneRestrictions || null,
-          emailRestrictions: donorData.emailRestrictions || null,
-          communicationRestrictions: donorData.communicationRestrictions || null,
-          subscriptionEventsInPerson: donorData.subscriptionEventsInPerson || null,
-          subscriptionEventsMagazine: donorData.subscriptionEventsMagazine || null,
-          communicationPreference: donorData.communicationPreference || null
+          // 基本信息字段
+          pmm: getFieldValue(donorData, ['pmm'], ''),
+          smm: getFieldValue(donorData, ['smm'], ''),
+          vmm: getFieldValue(donorData, ['vmm'], ''),
+          excluded: parseBoolean(getFieldValue(donorData, ['exclude', 'excluded'])),
+          deceased: parseBoolean(getFieldValue(donorData, ['deceased'])),
+          
+          // 个人/组织信息
+          firstName: firstName,
+          nickName: getFieldValue(donorData, ['nick_name', 'nickname'], ''),
+          lastName: lastName,
+          organizationName: orgName,
+          
+          // 捐赠信息
+          totalDonations: parseNumber(getFieldValue(donorData, [
+            'total_donations', 'totaldonations', 'totalDonations'
+          ])),
+          
+          totalPledges: parseNumber(getFieldValue(donorData, [
+            'total_pledge', 'totalpledge', 'totalPledges'
+          ])),
+          
+          largestGift: parseNumber(getFieldValue(donorData, [
+            'largest_gift', 'largestgift', 'largestGift'
+          ])),
+          
+          largestGiftAppeal: getFieldValue(donorData, [
+            'largest_gift_appeal', 'largestgiftappeal', 'largestGiftAppeal'
+          ], ''),
+          
+          firstGiftDate: parseDate(getFieldValue(donorData, [
+            'first_gift_date', 'firstgiftdate', 'firstGiftDate'
+          ])),
+          
+          lastGiftDate: parseDate(getFieldValue(donorData, [
+            'last_gift_date', 'lastgiftdate', 'lastGiftDate'
+          ])),
+          
+          lastGiftAmount: parseNumber(getFieldValue(donorData, [
+            'last_gift_amount', 'lastgiftamount', 'lastGiftAmount'
+          ])),
+          
+          lastGiftRequest: String(getFieldValue(donorData, [
+            'last_gift_request', 'lastgiftrequest', 'lastGiftRequest'
+          ], '')),
+          
+          lastGiftAppeal: getFieldValue(donorData, [
+            'last_gift_appeal', 'lastgiftappeal', 'lastGiftAppeal'
+          ], ''),
+          
+          // 地址信息
+          addressLine1: getFieldValue(donorData, ['address_line1', 'addressline1', 'addressLine1'], ''),
+          addressLine2: getFieldValue(donorData, ['address_line2', 'addressline2', 'addressLine2'], ''),
+          city: getFieldValue(donorData, ['city'], ''),
+          
+          // 通信偏好和限制
+          contactPhoneType: getFieldValue(donorData, [
+            'contact_phone_type', 'contactphonetype', 'contactPhoneType'
+          ], ''),
+          
+          phoneRestrictions: getFieldValue(donorData, [
+            'phone_restrictions', 'phonerestrictions', 'phoneRestrictions'
+          ], ''),
+          
+          emailRestrictions: getFieldValue(donorData, [
+            'email_restrictions', 'emailrestrictions', 'emailRestrictions'
+          ], ''),
+          
+          communicationRestrictions: getFieldValue(donorData, [
+            'communication_restrictions', 'communicationrestrictions', 'communicationRestrictions'
+          ], ''),
+          
+          subscriptionEventsInPerson: getFieldValue(donorData, [
+            'subscription_events_in_person', 'subscriptioneventsinperson', 'subscriptionEventsInPerson'
+          ], ''),
+          
+          subscriptionEventsMagazine: getFieldValue(donorData, [
+            'subscription_events_magazine', 'subscriptioneventsmagazine', 'subscriptionEventsMagazine'
+          ], ''),
+          
+          communicationPreference: getFieldValue(donorData, [
+            'communication_preference', 'communicationpreference', 'communicationPreference'
+          ], '')
         };
 
+        // 移除undefined值但保留null和空字符串
+        Object.keys(donor).forEach(key => {
+          if (donor[key] === undefined) {
+            delete donor[key];
+          }
+        });
+
         if (existingDonor) {
-          // Update existing donor
-          await prisma.donor.update({
-            where: { id: existingDonor.id },
-            data: donor
-          });
+          console.log(`Row ${row}: Updating donor: ${firstName} ${lastName} ${orgName}`);
+          console.log(`Before update - Donor ID ${existingDonor.id}:`, JSON.stringify(donor, null, 2));
           
-          updated++;
+          try {
+            // 执行更新操作
+            const updatedDonor = await prisma.donor.update({
+              where: { id: existingDonor.id },
+              data: donor
+            });
+            
+            console.log(`After update - Donor ID ${existingDonor.id}:`, JSON.stringify(updatedDonor, null, 2));
+            updated++;
+          } catch (updateError) {
+            console.error(`Error updating donor ID ${existingDonor.id}:`, updateError);
+            errors.push({
+              row,
+              error: `Error updating donor: ${updateError.message}`
+            });
+          }
         } else {
-          // Create new donor
-          await prisma.donor.create({
-            data: donor
-          });
+          console.log(`Row ${row}: Creating new donor: ${firstName} ${lastName} ${orgName}`);
+          console.log('Before create - New donor:', JSON.stringify(donor, null, 2));
           
-          imported++;
+          try {
+            // 执行创建操作
+            const newDonor = await prisma.donor.create({
+              data: donor
+            });
+            
+            console.log('After create - New donor:', JSON.stringify(newDonor, null, 2));
+            imported++;
+          } catch (createError) {
+            console.error('Error creating new donor:', createError);
+            errors.push({
+              row,
+              error: `Error creating donor: ${createError.message}`
+            });
+          }
         }
       } catch (error) {
         console.error(`Error processing donor at row ${row}:`, error);
@@ -536,21 +745,38 @@ router.post('/import', protect, upload.single('file'), async (req, res) => {
         });
       }
     }
+    
+    // 处理完成后，检查结果
+    console.log('Import completed. Imported:', imported, 'Updated:', updated, 'Skipped:', skipped, 'Errors:', errors.length);
+    
+    // 最近导入的记录验证
+    try {
+      console.log('Verifying recent imports...');
+      const recentDonors = await prisma.donor.findMany({
+        take: 5,
+        orderBy: { id: 'desc' }
+      });
+      console.log('Most recent donors in database:', JSON.stringify(recentDonors, null, 2));
+    } catch (verifyError) {
+      console.error('Error verifying recent imports:', verifyError);
+    }
 
-    // Clean up the uploaded file
+    // 清理上传的文件
     fs.unlinkSync(filePath);
 
-    res.json({
+    // 返回导入结果
+    return res.json({
       success: true,
       imported,
       updated,
+      skipped,
       errors,
       message: `Donor import completed with ${errors.length} error${errors.length !== 1 ? 's' : ''}`
     });
   } catch (error) {
     console.error('Error importing donors:', error);
     
-    // Clean up the uploaded file if it exists
+    // 清理上传的文件（如果存在）
     if (req.file && req.file.path) {
       try {
         fs.unlinkSync(req.file.path);
@@ -559,8 +785,12 @@ router.post('/import', protect, upload.single('file'), async (req, res) => {
       }
     }
     
-    res.status(500).json({ message: 'Internal server error', error: error.message });
+    return res.status(500).json({ 
+      message: 'Internal server error', 
+      error: error.message 
+    });
   }
 });
+    
 
 export default router;
