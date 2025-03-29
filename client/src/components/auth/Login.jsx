@@ -85,13 +85,13 @@ const Login = () => {
         <h2>Login</h2>
         
         {message.text && (
-          <div className={`message ${message.type}`}>
+          <div className={`auth-message ${message.type}`}>
             {message.text}
           </div>
         )}
         
         <form onSubmit={handleSubmit}>
-          <div className="form-group">
+          <div className="auth-form-group">
             <label htmlFor="email">Email</label>
             <input
               type="email"
@@ -102,10 +102,10 @@ const Login = () => {
               disabled={loading}
               className={errors.email ? 'error' : ''}
             />
-            {errors.email && <div className="error-text">{errors.email}</div>}
+            {errors.email && <div className="auth-error-text">{errors.email}</div>}
           </div>
           
-          <div className="form-group">
+          <div className="auth-form-group">
             <label htmlFor="password">Password</label>
             <input
               type="password"
@@ -116,7 +116,7 @@ const Login = () => {
               disabled={loading}
               className={errors.password ? 'error' : ''}
             />
-            {errors.password && <div className="error-text">{errors.password}</div>}
+            {errors.password && <div className="auth-error-text">{errors.password}</div>}
           </div>
           
           <button 
