@@ -611,20 +611,17 @@
 } 
 
 .import-button {
-  background-color: #4a5568;
-  margin-right: 10px;
+  background-color: var(--primary-color);
+  color: var(--text-white);
 }
 
-.import-button:hover {
-  background-color: #2d3748;
+.import-button:hover:not(:disabled) {
+  background-color: var(--primary-hover);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
 }
 
-.import-loading {
-  display: flex;
-  align-items: center;
-}
-
-.import-loading .spinner {
-  margin-right: 0.5rem;
-  animation: spin 1s linear infinite;
+.import-button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
 }
