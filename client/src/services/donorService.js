@@ -4,7 +4,6 @@ import { getEventDonors } from './eventService';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000';
 
-
 /**
  * Import donors from CSV or Excel file
  * @param {FormData} formData - FormData containing the file to import
@@ -18,10 +17,12 @@ export const importDonors = async (formData) => {
     }
 
     console.log('Starting donor import process');
+    
+    // Make the API call to the import endpoint
     const response = await fetch(`${API_URL}/api/donors/import`, {
       method: 'POST',
       headers: {
-        // Note: Don't set Content-Type header when using FormData
+        // Don't set Content-Type header when using FormData
         // The browser will set the correct Content-Type with boundary
         'Authorization': `Bearer ${token}`
       },
@@ -55,7 +56,7 @@ export const importDonors = async (formData) => {
     return {
       success: true,
       imported: data.imported || 0,
-      updated: data.updated || 0,
+      updated: data.updated || 0, 
       errors: data.errors || [],
       message: data.message || 'Import completed successfully'
     };
@@ -175,10 +176,50 @@ export const getAllDonors = async (params = {}) => {
 
     const data = await response.json();
     console.log('Raw donor response:', data);
+
+    const formattedDonors = data.donors.map(donor => ({
+      id: donor.id,
+      firstName: donor.firstName || '',
+      lastName: donor.lastName || '',
+      nickName: donor.nickName || '',
+      organizationName: donor.organizationName || '',
+      
+      addressLine1: donor.addressLine1 || '',
+      addressLine2: donor.addressLine2 || '',
+      city: donor.city || '',
+      
+      contactPhoneType: donor.contactPhoneType || '',
+      communicationPreference: donor.communicationPreference || '',
+      communicationRestrictions: donor.communicationRestrictions || '',
+      emailRestrictions: donor.emailRestrictions || '',
+      phoneRestrictions: donor.phoneRestrictions || '',
+      subscriptionEventsInPerson: donor.subscriptionEventsInPerson || '',
+      subscriptionEventsMagazine: donor.subscriptionEventsMagazine || '',
+      
+      totalDonations: donor.totalDonations || 0,
+      totalPledges: donor.totalPledges || 0,
+      largestGift: donor.largestGift || 0,
+      largestGiftAppeal: donor.largestGiftAppeal || '',
+      firstGiftDate: donor.firstGiftDate || null,
+      lastGiftDate: donor.lastGiftDate || null,
+      lastGiftAmount: donor.lastGiftAmount || 0,
+      lastGiftRequest: donor.lastGiftRequest || '',
+      lastGiftAppeal: donor.lastGiftAppeal || '',
+      
+      deceased: donor.deceased || false,
+      excluded: donor.excluded || false,
+      
+      pmm: donor.pmm || '',
+      smm: donor.smm || '',
+      vmm: donor.vmm || '',
+      
+      tags: donor.tags || [],
+      eventDonors: donor.eventDonors || []
+    }));
     
     // Format the response - check for field mappings that might be needed
     return {
-      data: data.donors || [],
+      data: formattedDonors,
       page: data.page || 1,
       limit: data.limit || 10,
       total_count: data.total || 0,

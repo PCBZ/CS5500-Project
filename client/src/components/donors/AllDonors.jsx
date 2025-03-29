@@ -92,7 +92,16 @@ const handleFileChange = async (e) => {
   // Check file extension
   const fileExtension = file.name.split('.').pop().toLowerCase();
   if (fileExtension !== 'csv' && fileExtension !== 'xlsx' && fileExtension !== 'xls') {
-    setError('请选择 CSV 或 Excel 文件。');
+    setError('Please select a CSV or Excel file.');
+    setTimeout(() => setError(null), 5000);
+    e.target.value = null; // Reset file input
+    return;
+  }
+  
+  // Check file size (limit to 10MB)
+  const maxSize = 10 * 1024 * 1024; // 10MB
+  if (file.size > maxSize) {
+    setError('File size exceeds the limit (10MB). Please select a smaller file.');
     setTimeout(() => setError(null), 5000);
     e.target.value = null; // Reset file input
     return;
@@ -105,29 +114,42 @@ const handleFileChange = async (e) => {
     const formData = new FormData();
     formData.append('file', file);
     
+    // Add file type hint for server processing
+    if (fileExtension === 'csv') {
+      formData.append('fileType', 'csv');
+    } else {
+      formData.append('fileType', 'excel');
+    }
+    
     const result = await importDonors(formData);
     
     if (result.success) {
-      setSuccess(`导入成功！导入了 ${result.imported} 条记录，更新了 ${result.updated} 条记录。`);
+      setSuccess(`Import successful! Imported ${result.imported} records, updated ${result.updated} records.`);
+      
+      // If there are errors, show more details
+      if (result.errors && result.errors.length > 0) {
+        console.warn('Import completed with errors:', result.errors);
+        setError(`Import completed with ${result.errors.length} errors. Check the console for details.`);
+        setTimeout(() => setError(null), 8000);
+      }
+      
       setTimeout(() => setSuccess(''), 5000);
       
       // Refresh donor list
       fetchDonors();
     } else {
-      throw new Error(result.message || '导入失败');
+      throw new Error(result.message || 'Import failed');
     }
   } catch (err) {
     console.error('Import failed:', err);
-    setError('导入失败: ' + (err.message || '未知错误'));
+    setError('Import failed: ' + (err.message || 'Unknown error'));
     setTimeout(() => setError(null), 5000);
   } finally {
     setImporting(false);
     e.target.value = null; // Reset file input
   }
- };
+};
 
-
-  // 处理过滤器变化
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
     setFilters(prev => ({
@@ -136,14 +158,12 @@ const handleFileChange = async (e) => {
     }));
   };
   
-  // 应用过滤器
   const applyFilters = (e) => {
     e.preventDefault();
     setCurrentPage(1); // 重置到第一页
     fetchDonors();
   };
   
-  // 重置过滤器
   const resetFilters = () => {
     setFilters({
       city: '',
@@ -156,7 +176,6 @@ const handleFileChange = async (e) => {
     setCurrentPage(1);
   };
   
-  // 处理过滤器切换显示
   const toggleFilters = () => {
     setShowFilters(!showFilters);
   };
