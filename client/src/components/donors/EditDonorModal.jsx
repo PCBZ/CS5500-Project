@@ -153,23 +153,27 @@ const EditDonorModal = ({ donor, onSave, onClose, isOpen }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="modal-overlay">
-      <div className="modal-container">
-        <div className="modal-header">
-          <h2 className="modal-title">Edit Donor</h2>
-          <button className="modal-close-button" onClick={onClose}>&times;</button>
+    <div className="donors-modal-overlay">
+      <div className="donors-modal-container">
+        <div className="donors-modal-header">
+          <h2 className="donors-modal-title">Edit Donor</h2>
+          <button className="donors-modal-close-button" onClick={onClose}>
+            &times;
+          </button>
         </div>
         
         {error && (
-          <div className="modal-error-message">
+          <div className="donors-error-message">
             {error}
-            <button className="modal-login-again-button" onClick={handleLoginAgain}>
-              Login Again
-            </button>
+            {error.includes('401') && (
+              <button className="donors-login-again-button" onClick={handleLoginAgain}>
+                Login Again
+              </button>
+            )}
           </div>
         )}
         
-        <form onSubmit={handleSubmit} className="donor-form">
+        <form onSubmit={handleSubmit} className="donors-form">
           <div className="form-section">
             <div className="section-header" onClick={() => toggleSection('basic')}>
               <h3>Basic Information</h3>
@@ -608,10 +612,10 @@ const EditDonorModal = ({ donor, onSave, onClose, isOpen }) => {
             )}
           </div>
           
-          <div className="modal-actions">
+          <div className="donors-modal-actions">
             <button 
               type="button" 
-              className="modal-cancel-button" 
+              className="donors-cancel-button" 
               onClick={onClose}
               disabled={loading}
             >
@@ -619,7 +623,7 @@ const EditDonorModal = ({ donor, onSave, onClose, isOpen }) => {
             </button>
             <button 
               type="submit" 
-              className="modal-save-button" 
+              className="donors-save-button" 
               disabled={loading}
             >
               {loading ? (
