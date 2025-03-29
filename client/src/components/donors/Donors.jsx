@@ -690,14 +690,21 @@ const Donors = () => {
   };
 
   // 过滤可用捐赠者列表
-  const filteredAvailableDonors = availableDonors.filter(donor => {
-    const searchTerm = modalSearchQuery.toLowerCase();
-    return (
-      donor.firstName.toLowerCase().includes(searchTerm) ||
-      donor.lastName.toLowerCase().includes(searchTerm) ||
-      (donor.organizationName && donor.organizationName.toLowerCase().includes(searchTerm))
-    );
-  });
+// 过滤可用捐赠者列表
+const filteredAvailableDonors = availableDonors.filter(donor => {
+  const searchTerm = modalSearchQuery.toLowerCase();
+  
+  // 安全地访问可能为null的字段
+  const firstName = donor.firstName || '';
+  const lastName = donor.lastName || '';
+  const organizationName = donor.organizationName || '';
+  
+  return (
+    firstName.toLowerCase().includes(searchTerm) ||
+    lastName.toLowerCase().includes(searchTerm) ||
+    organizationName.toLowerCase().includes(searchTerm)
+  );
+});
 
   // 修改 handleAddDonorToList 函数
   const handleAddDonorToList = async (donor) => {
