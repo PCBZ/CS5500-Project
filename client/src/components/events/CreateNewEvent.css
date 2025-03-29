@@ -1,0 +1,211 @@
+.create-event-container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 1.5rem;
+  background-color: white;
+  border-radius: 8px;
+}
+
+.create-event-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  text-align: center;
+  width: 100%;
+}
+
+.create-event-subtitle {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #333;
+  margin: 0;
+  flex-grow: 1;
+  text-align: center;
+}
+
+.create-event-close-button {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: #666;
+  cursor: pointer;
+  padding: 0.5rem;
+  line-height: 1;
+  position: absolute;
+  right: 1rem;
+  top: 1rem;
+}
+
+.create-event-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.create-event-label {
+  font-weight: 500;
+  color: #374151;
+  margin-top: 0.5rem;
+  display: block;
+}
+
+.create-event-input {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid #D1D5DB;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  margin-bottom: 0.5rem;
+}
+
+.create-event-input:focus {
+  outline: none;
+  border-color: #6366F1;
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+}
+
+.create-event-button-container {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #E5E7EB;
+}
+
+.create-event-button {
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  font-weight: 500;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.create-event-submit-button {
+  background-color: #6366F1;
+  color: white;
+  border: none;
+}
+
+.create-event-submit-button:hover {
+  background-color: #4F46E5;
+}
+
+.create-event-cancel-button {
+  background-color: white;
+  color: #374151;
+  border: 1px solid #D1D5DB;
+}
+
+.required {
+  color: #EF4444;
+  margin-left: 0.25rem;
+}
+
+.create-event-error {
+  color: #EF4444;
+  font-size: 0.875rem;
+  margin-top: 0.75rem;
+}
+
+.create-event-success {
+  color: #10B981;
+  font-size: 0.875rem;
+  margin-top: 0.75rem;
+}
+
+/* 日历选择器样式 */
+.create-event-date-input {
+  position: relative;
+}
+
+.create-event-calendar {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 10;
+  background: white;
+  border: 1px solid #D1D5DB;
+  border-radius: 0.375rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  padding: 1rem;
+  margin-top: 0.5rem;
+  width: 100%;
+}
+
+.create-event-calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.create-event-calendar-nav {
+  background: none;
+  border: none;
+  color: #6B7280;
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  font-size: 1rem;
+}
+
+.create-event-calendar-nav:hover {
+  color: #374151;
+}
+
+.create-event-calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0.25rem;
+}
+
+.create-event-calendar-weekday {
+  text-align: center;
+  font-weight: 500;
+  color: #6B7280;
+  padding: 0.25rem;
+  font-size: 0.75rem;
+}
+
+.create-event-calendar-day {
+  text-align: center;
+  padding: 0.25rem;
+  cursor: pointer;
+  border-radius: 0.25rem;
+  font-size: 0.875rem;
+}
+
+.create-event-calendar-day:hover {
+  background-color: #F3F4F6;
+}
+
+.create-event-calendar-day.other-month {
+  color: #9CA3AF;
+}
+
+.create-event-calendar-day.today {
+  font-weight: 600;
+  color: #6366F1;
+}
+
+.create-event-calendar-day.selected {
+  background-color: #6366F1;
+  color: white;
+}
+
+@media (max-width: 768px) {
+  .create-event-container {
+    padding: 1rem;
+  }
+
+  .create-event-calendar {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 90%;
+    max-width: 320px;
+  }
+} 

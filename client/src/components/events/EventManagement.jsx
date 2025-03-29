@@ -4,6 +4,7 @@ import { useHistory } from 'react-router-dom';
 import './EventManagement.css';
 import eventAPI from '../../services/eventAPI.js';
 import authService from '../../services/authService.js';
+import CreateNewEvent from './CreateNewEvent.jsx';
 
 const EventManagement = () => {
   const [activeTab, setActiveTab] = useState('upcoming');
@@ -29,6 +30,7 @@ const EventManagement = () => {
 
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [eventToDelete, setEventToDelete] = useState(null);
+  const [showCreateModal, setShowCreateModal] = useState(false);
 
   const openEditModal = (event) => {
     setCurrentEvent({...event});
@@ -43,13 +45,11 @@ const EventManagement = () => {
     });
   };
 
-   // Save edited event
-   const saveEvent = async () => {
+  const saveEvent = async () => {
     setLoading(true);
     try {
       await eventAPI.updateEvent(currentEvent.id, currentEvent);
       
-      // Update local state
       const updatedEvents = originalEvents.map(event => 
         event.id === currentEvent.id ? currentEvent : event
       );
@@ -66,31 +66,31 @@ const EventManagement = () => {
     }
   };
 
-const openDeleteConfirm = (event) => {
-  setEventToDelete(event);
-  setShowDeleteConfirm(true);
-};
+  const openDeleteConfirm = (event) => {
+    setEventToDelete(event);
+    setShowDeleteConfirm(true);
+  };
 
-const deleteEvent = async () => {
-  if (!eventToDelete) return;
-  
-  setLoading(true);
-  try {
-    await eventAPI.deleteEvent(eventToDelete.id);
+  const deleteEvent = async () => {
+    if (!eventToDelete) return;
     
-    const updatedEvents = originalEvents.filter(event => event.id !== eventToDelete.id);
-    setEvents(updatedEvents);
-    setOriginalEvents(updatedEvents);
-    
-    setShowDeleteConfirm(false);
-    setEventToDelete(null);
-  } catch (error) {
-    console.error('Error deleting event:', error);
-    setError(error.message || 'Failed to delete event');
-  } finally {
-    setLoading(false);
-  }
-};
+    setLoading(true);
+    try {
+      await eventAPI.deleteEvent(eventToDelete.id);
+      
+      const updatedEvents = originalEvents.filter(event => event.id !== eventToDelete.id);
+      setEvents(updatedEvents);
+      setOriginalEvents(updatedEvents);
+      
+      setShowDeleteConfirm(false);
+      setEventToDelete(null);
+    } catch (error) {
+      console.error('Error deleting event:', error);
+      setError(error.message || 'Failed to delete event');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
@@ -132,7 +132,6 @@ const deleteEvent = async () => {
 
     const fetchFilterOptions = async () => {
       try {
-        // Fetch event types and locations in parallel
         const [typesData, locationsData] = await Promise.all([
           eventAPI.getEventTypes(),
           eventAPI.getEventLocations()
@@ -149,7 +148,6 @@ const deleteEvent = async () => {
     fetchFilterOptions();
   }, []);
 
-  // Handle search
   const handleSearchChange = (e) => {
     setSearchQuery(e.target.value);
   };
@@ -171,7 +169,6 @@ const deleteEvent = async () => {
     }
   };
 
-  // Format date display
   const formatDate = (dateString) => {
     if (!dateString) return '';
     const date = new Date(dateString);
@@ -182,28 +179,25 @@ const deleteEvent = async () => {
     });
   };
 
-const getFilteredEvents = () => {
-   const currentDate = new Date();
-   
-   if (activeTab === 'upcoming') {
-     // Filter for events with dates in the future
-     return events.filter(event => {
-       if (!event.date) return false;
-       const eventDate = new Date(event.date);
-       return eventDate >= currentDate;
-     });
-   } else if (activeTab === 'past') {
-     // Filter for events with dates in the past
-     return events.filter(event => {
-       if (!event.date) return false;
-       const eventDate = new Date(event.date);
-       return eventDate < currentDate;
-     });
-   } else {
-     // 'all' tab - return all events
-     return events;
-   }
- };
+  const getFilteredEvents = () => {
+    const currentDate = new Date();
+    
+    if (activeTab === 'upcoming') {
+      return events.filter(event => {
+        if (!event.date) return false;
+        const eventDate = new Date(event.date);
+        return eventDate >= currentDate;
+      });
+    } else if (activeTab === 'past') {
+      return events.filter(event => {
+        if (!event.date) return false;
+        const eventDate = new Date(event.date);
+        return eventDate < currentDate;
+      });
+    } else {
+      return events;
+    }
+  };
 
   const applyFilters = async () => {
     setLoading(true);
@@ -259,14 +253,17 @@ const getFilteredEvents = () => {
   };
 
   const handleViewEvent = (eventId) => {
-    // Navigate to donors page, passing selected event ID
     history.push('/donors', { selectedEventId: eventId });
   };
 
-  // Updated: Navigate to Create New Event page
   const handleCreateEvent = () => {
-    // Use React Router's history to navigate to the create event route
-    history.push('/events/create');
+    setShowCreateModal(true);
+  };
+
+  const handleEventCreated = (newEvent) => {
+    setEvents(prevEvents => [...prevEvents, newEvent]);
+    setOriginalEvents(prevEvents => [...prevEvents, newEvent]);
+    setShowCreateModal(false);
   };
 
   return (
@@ -311,9 +308,7 @@ const getFilteredEvents = () => {
               onChange={handleSearchChange}
               onKeyPress={handleKeyPress}
             />
-
           </div>
-
         </div>
       </div>
 
@@ -364,7 +359,7 @@ const getFilteredEvents = () => {
             >
               <option value="">All Status</option>
               <option value="Planning">Planning</option>
-              <option value="ListGeneration">ListGeneration</option>
+              <option value="ListGeneration">List Generation</option>
               <option value="Review">Review</option>
               <option value="Ready">Ready</option>
               <option value="Complete">Complete</option>
@@ -391,13 +386,9 @@ const getFilteredEvents = () => {
         </div>
       </div>
 
-      {/* Loading state */}
       {loading && <div className="loading-message">Loading events...</div>}
-
-      {/* Error state */}
       {error && <div className="error-message">{error}</div>}
 
-      {/* Events table */}
       {!loading && !error && (
         <div className="events-table-container">
           <table className="events-table">
@@ -475,8 +466,20 @@ const getFilteredEvents = () => {
         </div>
       )}
 
-            {/* Edit Event Modal */}
-            {showEditModal && currentEvent && (
+      {/* Create New Event Modal */}
+      {showCreateModal && (
+        <div className="modal-overlay">
+          <div className="modal-container create-modal">
+            <CreateNewEvent 
+              onClose={() => setShowCreateModal(false)}
+              onEventCreated={handleEventCreated}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Edit Event Modal */}
+      {showEditModal && currentEvent && (
         <div className="modal-overlay">
           <div className="modal-container edit-modal">
             <h3>Edit Event</h3>
