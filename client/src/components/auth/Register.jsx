@@ -107,13 +107,13 @@ const Register = () => {
         <h2>Register</h2>
         
         {message.text && (
-          <div className={`message ${message.type}`}>
+          <div className={`auth-message ${message.type}`}>
             {message.text}
           </div>
         )}
         
         <form onSubmit={handleSubmit}>
-          <div className="form-group">
+          <div className="auth-form-group">
             <label htmlFor="name">Name</label>
             <input
               type="text"
@@ -124,10 +124,10 @@ const Register = () => {
               disabled={loading}
               className={errors.name ? 'error' : ''}
             />
-            {errors.name && <div className="error-text">{errors.name}</div>}
+            {errors.name && <div className="auth-error-text">{errors.name}</div>}
           </div>
           
-          <div className="form-group">
+          <div className="auth-form-group">
             <label htmlFor="email">Email</label>
             <input
               type="email"
@@ -138,10 +138,10 @@ const Register = () => {
               disabled={loading}
               className={errors.email ? 'error' : ''}
             />
-            {errors.email && <div className="error-text">{errors.email}</div>}
+            {errors.email && <div className="auth-error-text">{errors.email}</div>}
           </div>
           
-          <div className="form-group">
+          <div className="auth-form-group">
             <label htmlFor="password">Password</label>
             <input
               type="password"
@@ -152,10 +152,10 @@ const Register = () => {
               disabled={loading}
               className={errors.password ? 'error' : ''}
             />
-            {errors.password && <div className="error-text">{errors.password}</div>}
+            {errors.password && <div className="auth-error-text">{errors.password}</div>}
           </div>
           
-          <div className="form-group">
+          <div className="auth-form-group">
             <label htmlFor="role">Role</label>
             <select
               id="role"
@@ -170,7 +170,7 @@ const Register = () => {
               <option value="smm">SMM - Senior Marketing Manager</option>
               <option value="vmm">VMM - Vice Marketing Manager</option>
             </select>
-            {errors.role && <div className="error-text">{errors.role}</div>}
+            {errors.role && <div className="auth-error-text">{errors.role}</div>}
           </div>
           
           <button 
