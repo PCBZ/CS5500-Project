@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
-import './EventManagement.css';
+import React, { useState, useEffect, useRef } from 'react';
+import './CreateNewEvent.css';
 import { createEvent } from '../../services/eventAPI';
 import authService from '../../services/authService.js';
 
-function CreateNewEvent() {
+function CreateNewEvent({ onClose, onEventCreated }) {
   const [formData, setFormData] = useState({
     name: '',
     type: '',
@@ -19,6 +19,144 @@ function CreateNewEvent() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
+  const [showCalendar, setShowCalendar] = useState({
+    date: false,
+    startDate: false,
+    endDate: false
+  });
+  const [currentDate, setCurrentDate] = useState({
+    date: new Date(),
+    startDate: new Date(),
+    endDate: new Date()
+  });
+  const [selectedDate, setSelectedDate] = useState({
+    date: null,
+    startDate: null,
+    endDate: null
+  });
+  const calendarRefs = {
+    date: useRef(null),
+    startDate: useRef(null),
+    endDate: useRef(null)
+  };
+
+  // 处理点击外部关闭日历
+  useEffect(() => {
+    function handleClickOutside(event) {
+      Object.keys(calendarRefs).forEach(key => {
+        if (calendarRefs[key].current && !calendarRefs[key].current.contains(event.target)) {
+          setShowCalendar(prev => ({ ...prev, [key]: false }));
+        }
+      });
+    }
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  // 获取当前月份的日历数据
+  const getCalendarDays = (date) => {
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const days = [];
+
+    // 添加上个月的日期
+    const firstDayWeekday = firstDay.getDay();
+    for (let i = firstDayWeekday - 1; i >= 0; i--) {
+      const date = new Date(year, month, -i);
+      days.push({ date, isCurrentMonth: false });
+    }
+
+    // 添加当前月的日期
+    for (let i = 1; i <= lastDay.getDate(); i++) {
+      const date = new Date(year, month, i);
+      days.push({ date, isCurrentMonth: true });
+    }
+
+    // 添加下个月的日期
+    const remainingDays = 42 - days.length; // 保持6行
+    for (let i = 1; i <= remainingDays; i++) {
+      const date = new Date(year, month + 1, i);
+      days.push({ date, isCurrentMonth: false });
+    }
+
+    return days;
+  };
+
+  // 处理日期选择
+  const handleDateSelect = (date, field) => {
+    const formattedDate = date.toISOString().split('T')[0];
+    setFormData(prev => ({ ...prev, [field]: formattedDate }));
+    setSelectedDate(prev => ({ ...prev, [field]: date }));
+    setShowCalendar(prev => ({ ...prev, [field]: false }));
+  };
+
+  // 处理月份导航
+  const handlePrevMonth = (field) => {
+    setCurrentDate(prev => ({
+      ...prev,
+      [field]: new Date(prev[field].getFullYear(), prev[field].getMonth() - 1)
+    }));
+  };
+
+  const handleNextMonth = (field) => {
+    setCurrentDate(prev => ({
+      ...prev,
+      [field]: new Date(prev[field].getFullYear(), prev[field].getMonth() + 1)
+    }));
+  };
+
+  // 获取月份名称
+  const getMonthName = (date) => {
+    return date.toLocaleString('default', { month: 'long' });
+  };
+
+  // 获取星期名称
+  const getWeekDays = () => {
+    return ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  };
+
+  // 检查是否是今天
+  const isToday = (date) => {
+    const today = new Date();
+    return date.toDateString() === today.toDateString();
+  };
+
+  // 检查是否是选中日期
+  const isSelected = (date, field) => {
+    return selectedDate[field] && date.toDateString() === selectedDate[field].toDateString();
+  };
+
+  // 渲染日历组件
+  const renderCalendar = (field) => {
+    return (
+      <div className="create-event-calendar" ref={calendarRefs[field]}>
+        <div className="create-event-calendar-header">
+          <button type="button" onClick={() => handlePrevMonth(field)} className="create-event-calendar-nav">←</button>
+          <span>{getMonthName(currentDate[field])} {currentDate[field].getFullYear()}</span>
+          <button type="button" onClick={() => handleNextMonth(field)} className="create-event-calendar-nav">→</button>
+        </div>
+        <div className="create-event-calendar-grid">
+          {getWeekDays().map(day => (
+            <div key={day} className="create-event-calendar-weekday">{day}</div>
+          ))}
+          {getCalendarDays(currentDate[field]).map(({ date, isCurrentMonth }, index) => (
+            <div
+              key={index}
+              className={`create-event-calendar-day ${!isCurrentMonth ? 'other-month' : ''} ${isToday(date) ? 'today' : ''} ${isSelected(date, field) ? 'selected' : ''}`}
+              onClick={() => handleDateSelect(date, field)}
+            >
+              {date.getDate()}
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
 
   // Handle input changes
   const handleChange = (e) => {
@@ -43,8 +181,8 @@ function CreateNewEvent() {
     console.log("Submitting form with data:", formData);
 
     // Check required fields
-    if (!formData.name || !formData.type || !formData.date || !formData.location) {
-      setError('Name, type, date, and location are required');
+    if (!formData.name || !formData.type || !formData.date || !formData.location || !formData.focus || !formData.eventStage) {
+      setError('Name, type, date, location, focus and event stage are required');
       setLoading(false);
       return;
     }
@@ -78,8 +216,10 @@ function CreateNewEvent() {
 
       const result = await createEvent(payload);
       setMessage(result.message || 'Event created successfully!');
-      // Optionally, reset form after submission:
-      // setFormData({ name: '', type: '', date: '', location: '', capacity: '', focus: '', ticketPrice: '', startDate: '', endDate: '', eventStage: '' });
+      // Call the onEventCreated callback after successful creation
+      if (onEventCreated) {
+        onEventCreated();
+      }
     } catch (err) {
       console.error("Error in createEvent:", err);
       setError('Error creating event: ' + err.message);
@@ -88,7 +228,7 @@ function CreateNewEvent() {
     }
   };
 
-  // Handle cancel to reset form fields
+  // Handle cancel to reset form fields and close modal
   const handleCancel = () => {
     console.log("Cancel button clicked");
     setFormData({
@@ -103,199 +243,169 @@ function CreateNewEvent() {
       endDate: '',
       eventStage: '',
     });
+    if (onClose) {
+      onClose();
+    }
   };
 
   return (
-    <div style={styles.container}>
-      <h1 style={styles.title}>BC Cancer Foundation</h1>
-      <h2 style={styles.subtitle}>Create New Event</h2>
-      <form onSubmit={handleSubmit} style={styles.form}>
-        <label style={styles.label} htmlFor="name">Name</label>
+    <div className="create-event-container">
+      <div className="create-event-header">
+        <h2 className="create-event-subtitle">Create New Event</h2>
+        <button onClick={handleCancel} className="create-event-close-button">×</button>
+      </div>
+      <form onSubmit={handleSubmit} className="create-event-form">
+        <label className="create-event-label" htmlFor="name">Name <span className="required">*</span></label>
         <input
-          style={styles.input}
+          className="create-event-input"
           id="name"
           name="name"
           type="text"
-          placeholder="Spring Gala 2025"
           value={formData.name}
           onChange={handleChange}
+          required
         />
 
-        <label style={styles.label} htmlFor="type">Type</label>
+        <label className="create-event-label" htmlFor="type">Type <span className="required">*</span></label>
         <input
-          style={styles.input}
+          className="create-event-input"
           id="type"
           name="type"
           type="text"
-          placeholder="Major Donor Event"
           value={formData.type}
           onChange={handleChange}
+          required
         />
 
-        <label style={styles.label} htmlFor="date">Date</label>
-        <input
-          style={styles.input}
-          id="date"
-          name="date"
-          type="text"
-          placeholder="YYYY-MM-DD"
-          value={formData.date}
-          onChange={handleChange}
-        />
+        <label className="create-event-label" htmlFor="date">Date <span className="required">*</span></label>
+        <div className="create-event-date-input">
+          <input
+            className="create-event-input"
+            id="date"
+            name="date"
+            type="text"
+            placeholder="YYYY-MM-DD"
+            value={formData.date}
+            onChange={handleChange}
+            onClick={() => setShowCalendar(prev => ({ ...prev, date: true }))}
+            readOnly
+            required
+          />
+          {showCalendar.date && renderCalendar('date')}
+        </div>
 
-        <label style={styles.label} htmlFor="location">Location</label>
+        <label className="create-event-label" htmlFor="location">Location <span className="required">*</span></label>
         <input
-          style={styles.input}
+          className="create-event-input"
           id="location"
           name="location"
           type="text"
-          placeholder="Vancouver"
           value={formData.location}
           onChange={handleChange}
+          required
         />
 
-        <label style={styles.label} htmlFor="capacity">Capacity</label>
+        <label className="create-event-label" htmlFor="capacity">Capacity</label>
         <input
-          style={styles.input}
+          className="create-event-input"
           id="capacity"
           name="capacity"
           type="number"
-          placeholder="200"
           value={formData.capacity}
           onChange={handleChange}
         />
 
-        <label style={styles.label} htmlFor="focus">Focus</label>
+        <label className="create-event-label" htmlFor="focus">Focus <span className="required">*</span></label>
         <input
-          style={styles.input}
+          className="create-event-input"
           id="focus"
           name="focus"
           type="text"
-          placeholder="Cancer Research"
           value={formData.focus}
           onChange={handleChange}
+          required
         />
 
-        <label style={styles.label} htmlFor="ticketPrice">Ticket Price</label>
+        <label className="create-event-label" htmlFor="ticketPrice">Ticket Price</label>
         <input
-          style={styles.input}
+          className="create-event-input"
           id="ticketPrice"
           name="ticketPrice"
           type="number"
-          placeholder="2500"
           value={formData.ticketPrice}
           onChange={handleChange}
         />
 
-        <label style={styles.label} htmlFor="startDate">Start Date</label>
-        <input
-          style={styles.input}
-          id="startDate"
-          name="startDate"
-          type="text"
-          placeholder="YYYY-MM-DD (optional)"
-          value={formData.startDate}
-          onChange={handleChange}
-        />
+        <label className="create-event-label" htmlFor="startDate">Start Date</label>
+        <div className="create-event-date-input">
+          <input
+            className="create-event-input"
+            id="startDate"
+            name="startDate"
+            type="text"
+            placeholder="YYYY-MM-DD"
+            value={formData.startDate}
+            onChange={handleChange}
+            onClick={() => setShowCalendar(prev => ({ ...prev, startDate: true }))}
+            readOnly
+          />
+          {showCalendar.startDate && renderCalendar('startDate')}
+        </div>
 
-        <label style={styles.label} htmlFor="endDate">End Date</label>
-        <input
-          style={styles.input}
-          id="endDate"
-          name="endDate"
-          type="text"
-          placeholder="YYYY-MM-DD (optional)"
-          value={formData.endDate}
-          onChange={handleChange}
-        />
+        <label className="create-event-label" htmlFor="endDate">End Date</label>
+        <div className="create-event-date-input">
+          <input
+            className="create-event-input"
+            id="endDate"
+            name="endDate"
+            type="text"
+            placeholder="YYYY-MM-DD"
+            value={formData.endDate}
+            onChange={handleChange}
+            onClick={() => setShowCalendar(prev => ({ ...prev, endDate: true }))}
+            readOnly
+          />
+          {showCalendar.endDate && renderCalendar('endDate')}
+        </div>
 
-        <label style={styles.label} htmlFor="eventStage">Event Stage</label>
-        <input
-          style={styles.input}
+        <label className="create-event-label" htmlFor="eventStage">Event Stage <span className="required">*</span></label>
+        <select
+          className="create-event-input"
           id="eventStage"
           name="eventStage"
-          type="text"
-          placeholder="Planning"
           value={formData.eventStage}
           onChange={handleChange}
-        />
+          required
+        >
+          <option value="">Select a stage</option>
+          <option value="Planning">Planning</option>
+          <option value="ListGeneration">List Generation</option>
+          <option value="Review">Review</option>
+          <option value="Ready">Ready</option>
+          <option value="Complete">Complete</option>
+        </select>
 
-        <div style={styles.buttonContainer}>
+        <div className="create-event-button-container">
           <button
             type="button"
             onClick={handleCancel}
-            style={{ ...styles.button, ...styles.cancelButton }}
+            className="create-event-button create-event-cancel-button"
           >
             Cancel
           </button>
           <button
             type="submit"
-            style={{ ...styles.button, ...styles.submitButton }}
+            className="create-event-button create-event-submit-button"
             disabled={loading}
           >
             {loading ? 'Submitting...' : 'Submit'}
           </button>
         </div>
       </form>
-      {error && <p style={{ color: 'red', marginTop: '1rem' }}>{error}</p>}
-      {message && <p style={{ color: 'green', marginTop: '1rem' }}>{message}</p>}
+      {error && <p className="create-event-error">{error}</p>}
+      {message && <p className="create-event-success">{message}</p>}
     </div>
   );
 }
-
-const styles = {
-  container: {
-    maxWidth: '600px',
-    margin: '0 auto',
-    fontFamily: 'sans-serif',
-    padding: '2rem',
-    color: '#333',
-  },
-  title: {
-    color: '#6C63FF',
-    marginBottom: '0.5rem',
-  },
-  subtitle: {
-    marginBottom: '2rem',
-    fontWeight: 'normal',
-    color: '#555',
-  },
-  form: {
-    display: 'flex',
-    flexDirection: 'column',
-  },
-  label: {
-    marginBottom: '0.25rem',
-    marginTop: '1rem',
-    fontWeight: 'bold',
-  },
-  input: {
-    padding: '0.5rem',
-    fontSize: '1rem',
-    borderRadius: '4px',
-    border: '1px solid #ccc',
-  },
-  buttonContainer: {
-    display: 'flex',
-    justifyContent: 'flex-end',
-    marginTop: '2rem',
-    gap: '1rem',
-  },
-  button: {
-    padding: '0.75rem 1.5rem',
-    fontSize: '1rem',
-    border: 'none',
-    borderRadius: '4px',
-    cursor: 'pointer',
-  },
-  cancelButton: {
-    backgroundColor: '#f0f0f0',
-    color: '#333',
-  },
-  submitButton: {
-    backgroundColor: '#6C63FF',
-    color: '#fff',
-  },
-};
 
 export default CreateNewEvent;
