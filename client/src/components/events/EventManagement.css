@@ -374,7 +374,6 @@
 
 .search-button:hover {
   background-color: #4F46E5;
->>>>>>> 8760bb6286abe5bfb874770f75036c3d80c1f3ab
 }
 
 @media (min-width: 768px) {
@@ -569,5 +568,54 @@
     width: 95%;
     max-width: none;
     padding: 16px;
+  }
+}
+
+.modal-container.create-modal {
+  max-width: 600px;
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 0;
+  position: relative;
+  margin: 2rem auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-container.create-modal .create-event-container {
+  border-radius: 8px;
+  box-shadow: none;
+  border: none;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+}
+
+.modal-container.create-modal .create-event-header {
+  padding: 1.5rem;
+  border-bottom: 1px solid #E5E7EB;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+}
+
+.modal-container.create-modal .create-event-form {
+  padding: 1.5rem;
+}
+
+.modal-container.create-modal .create-event-button-container {
+  padding: 1.5rem;
+  border-top: 1px solid #E5E7EB;
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+}
+
+@media (max-width: 768px) {
+  .modal-container.create-modal {
+    width: 95%;
+    margin: 1rem auto;
   }
 }
