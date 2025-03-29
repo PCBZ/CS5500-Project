@@ -146,19 +146,34 @@ const EditDonorModal = ({ donor, onSave, onClose, isOpen }) => {
     }
   };
 
+  const handleLoginAgain = () => {
+    // Implement login again logic
+  };
+
   if (!isOpen) return null;
 
   return (
-    <div className="modal-overlay">
-      <div className="modal-container">
-        <div className="modal-header">
-          <h2>Edit Donor</h2>
-          <button className="close-button" onClick={onClose}>
-            <FaTimes />
+    <div className="donors-modal-overlay">
+      <div className="donors-modal-container">
+        <div className="donors-modal-header">
+          <h2 className="donors-modal-title">Edit Donor</h2>
+          <button className="donors-modal-close-button" onClick={onClose}>
+            &times;
           </button>
         </div>
         
-        <form onSubmit={handleSubmit} className="donor-form">
+        {error && (
+          <div className="donors-error-message">
+            {error}
+            {error.includes('401') && (
+              <button className="donors-login-again-button" onClick={handleLoginAgain}>
+                Login Again
+              </button>
+            )}
+          </div>
+        )}
+        
+        <form onSubmit={handleSubmit} className="donors-form">
           <div className="form-section">
             <div className="section-header" onClick={() => toggleSection('basic')}>
               <h3>Basic Information</h3>
@@ -597,26 +612,10 @@ const EditDonorModal = ({ donor, onSave, onClose, isOpen }) => {
             )}
           </div>
           
-          {error && (
-            <div className="error-message">
-              {error}
-              {error.includes('session may have expired') && (
-                <div className="error-action">
-                  <button 
-                    onClick={() => window.location.href = '/login'} 
-                    className="login-again-button"
-                  >
-                    Login Again
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
-          
-          <div className="modal-actions">
+          <div className="donors-modal-actions">
             <button 
               type="button" 
-              className="cancel-button" 
+              className="donors-cancel-button" 
               onClick={onClose}
               disabled={loading}
             >
@@ -624,7 +623,7 @@ const EditDonorModal = ({ donor, onSave, onClose, isOpen }) => {
             </button>
             <button 
               type="submit" 
-              className="save-button" 
+              className="donors-save-button" 
               disabled={loading}
             >
               {loading ? (

@@ -651,10 +651,15 @@ const Donors = () => {
 
   // filter donors based on search query and status filter
   const filteredDonors = eventDonors.filter(donor => {
+    const searchTerm = searchQuery.toLowerCase();
+    const firstName = (donor.firstName || '').toLowerCase();
+    const lastName = (donor.lastName || '').toLowerCase();
+    const organizationName = (donor.organizationName || '').toLowerCase();
+    
     const matchesSearch = searchQuery === '' || 
-      donor.firstName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      donor.lastName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      donor.organizationName?.toLowerCase().includes(searchQuery.toLowerCase());
+      firstName.includes(searchTerm) ||
+      lastName.includes(searchTerm) ||
+      organizationName.includes(searchTerm);
     
     const matchesStatus = statusFilter === '' || donor.status === statusFilter;
     
@@ -706,18 +711,15 @@ const filteredAvailableDonors = availableDonors.filter(donor => {
   );
 });
 
-  // 修改 handleAddDonorToList 函数
   const handleAddDonorToList = async (donor) => {
     if (!selectedEvent) return;
     
     try {
-      // 使用 donor.id 作为 key 来跟踪特定按钮的加载状态
       setIsAddingDonorToList(donor.id);
       await addDonorToEvent(selectedEvent.id, donor.id);
       setSuccess('Donor added successfully!');
       setTimeout(() => setSuccess(''), 3000);
       
-      // 刷新主列表、可用捐赠者列表和统计数据
       await Promise.all([
         fetchEventDonors(),
         handleRefreshAvailableDonors(),

@@ -418,50 +418,204 @@ button {
 }
 
 /* Loading and error states */
-.loading-indicator, .error-message {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 40px;
+.donors-loading-indicator,
+.donors-error-message {
   text-align: center;
+  padding: 20px;
+  background-color: var(--card-bg);
+  border-radius: var(--card-radius);
+  box-shadow: var(--card-shadow);
 }
 
-.spinner {
-  animation: spin 1s linear infinite;
-  font-size: 28px;
-  color: var(--primary-color);
-  margin-bottom: 16px;
-  filter: drop-shadow(0 0 2px rgba(74, 107, 253, 0.3));
+.donors-error-message p {
+  color: #e74c3c;
+  margin-bottom: 15px;
 }
 
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-.error-message p {
-  color: var(--danger-color);
-  margin-bottom: 16px;
-}
-
-.error-message button {
-  background-color: var(--primary-color);
+.donors-error-message button {
+  background-color: #4a90e2;
   color: white;
-  padding: 8px 16px;
-  border-radius: 30px;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.donors-error-message button:hover {
+  background-color: #357abd;
+}
+
+.donors-no-donors-message {
+  text-align: center;
+  padding: 40px 20px;
+  background-color: var(--card-bg);
+  border-radius: var(--card-radius);
+  box-shadow: var(--card-shadow);
+}
+
+.donors-close-button {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: #666;
+  cursor: pointer;
+  padding: 5px;
+  line-height: 1;
+}
+
+.donors-close-button:hover {
+  color: #333;
+}
+
+.donors-refresh-container {
+  display: flex;
+  justify-content: center;
+  margin: 20px 0;
+}
+
+.donors-refresh-button {
+  background-color: #4a90e2;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.donors-refresh-button:hover {
+  background-color: #357abd;
+}
+
+.donors-refresh-button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.donors-add-button {
+  background-color: #4a90e2;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.donors-add-button:hover:not(:disabled) {
+  background-color: #357abd;
+}
+
+.donors-add-button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.donors-button-loading {
+  position: relative;
+  color: transparent;
+}
+
+.donors-button-loading::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 16px;
+  height: 16px;
+  margin: -8px 0 0 -8px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: donors-spin 0.8s linear infinite;
+}
+
+.donors-loading-container,
+.donors-no-donors-message {
+  text-align: center;
+  padding: 40px 20px;
+  background-color: var(--card-bg);
+  border-radius: var(--card-radius);
+  box-shadow: var(--card-shadow);
+}
+
+.donors-loading-container p {
+  color: #666;
+  margin-top: 10px;
+}
+
+.donors-success-message {
+  background-color: #d4edda;
+  color: #155724;
+  padding: 15px;
+  border-radius: 4px;
+  margin-bottom: 20px;
+}
+
+.donors-success-message p {
+  margin: 0;
+  font-size: 14px;
+}
+
+.donors-textarea-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 10px;
+  font-size: 12px;
+  color: #666;
+}
+
+.donors-cancel-button,
+.donors-save-button {
+  padding: 10px 20px;
+  border-radius: 4px;
   font-size: 14px;
   font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s;
 }
 
-.error-message button:hover {
-  background-color: var(--primary-dark);
+.donors-cancel-button {
+  background-color: #f5f5f5;
+  color: #666;
+  border: 1px solid #ddd;
 }
 
-.no-donors-message {
-  text-align: center;
-  padding: 40px;
-  color: var(--secondary-color);
+.donors-cancel-button:hover {
+  background-color: #e8e8e8;
+}
+
+.donors-save-button {
+  background-color: #4a90e2;
+  color: white;
+  border: none;
+}
+
+.donors-save-button:hover:not(:disabled) {
+  background-color: #357abd;
+}
+
+.donors-save-button:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.donors-save-button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+@keyframes donors-spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* Pagination */
