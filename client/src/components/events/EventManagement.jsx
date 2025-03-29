@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { FaCalendarAlt, FaMapMarkerAlt, FaUsers, FaClock, FaTrash, FaFilter, FaSearch, FaEdit } from 'react-icons/fa';
 import { useHistory } from 'react-router-dom';
 import './EventManagement.css';
-import eventAPI from '../../services/eventAPI.js';
+import { getEvents, updateEvent, deleteEvent, getEventTypes, getEventLocations } from '../../services/eventService';
 import authService from '../../services/authService.js';
 import CreateNewEvent from './CreateNewEvent.jsx';
 
@@ -48,7 +48,7 @@ const EventManagement = () => {
   const saveEvent = async () => {
     setLoading(true);
     try {
-      await eventAPI.updateEvent(currentEvent.id, currentEvent);
+      await updateEvent(currentEvent.id, currentEvent);
       
       const updatedEvents = originalEvents.map(event => 
         event.id === currentEvent.id ? currentEvent : event
@@ -71,12 +71,12 @@ const EventManagement = () => {
     setShowDeleteConfirm(true);
   };
 
-  const deleteEvent = async () => {
+  const handleDeleteEvent = async () => {
     if (!eventToDelete) return;
     
     setLoading(true);
     try {
-      await eventAPI.deleteEvent(eventToDelete.id);
+      await deleteEvent(eventToDelete.id);
       
       const updatedEvents = originalEvents.filter(event => event.id !== eventToDelete.id);
       setEvents(updatedEvents);
@@ -108,12 +108,12 @@ const EventManagement = () => {
       try {
         if (authService.isAuthenticated()) {
           console.log('Token exists:', localStorage.getItem('token'));
-          const eventsData = await eventAPI.getEvents();
+          const eventsData = await getEvents();
           console.log('Events fetched successfully:', eventsData);
 
-          if (eventsData && eventsData.events) {
-            setEvents(eventsData.events);
-            setOriginalEvents(eventsData.events);
+          if (eventsData && eventsData.data) {
+            setEvents(eventsData.data);
+            setOriginalEvents(eventsData.data);
           } else {
             setEvents([]);
             setOriginalEvents([]);
@@ -133,8 +133,8 @@ const EventManagement = () => {
     const fetchFilterOptions = async () => {
       try {
         const [typesData, locationsData] = await Promise.all([
-          eventAPI.getEventTypes(),
-          eventAPI.getEventLocations()
+          getEventTypes(),
+          getEventLocations()
         ]);
 
         setEventTypes(typesData);
@@ -236,10 +236,10 @@ const EventManagement = () => {
 
       console.log('Applying filters with params:', filterParams);
       
-      const eventsData = await eventAPI.getEvents(filterParams);
+      const eventsData = await getEvents(filterParams);
 
-      if (eventsData && eventsData.events) {
-        setEvents(eventsData.events);
+      if (eventsData && eventsData.data) {
+        setEvents(eventsData.data);
       } else {
         setEvents([]);
         console.warn('No events found with the applied filters');
@@ -576,7 +576,7 @@ const EventManagement = () => {
             <p className="warning-text">This action cannot be undone.</p>
             <div className="modal-buttons">
               <button className="cancel-button" onClick={() => setShowDeleteConfirm(false)}>Cancel</button>
-              <button className="delete-button" onClick={deleteEvent}>Delete</button>
+              <button className="delete-button" onClick={handleDeleteEvent}>Delete</button>
             </div>
           </div>
         </div>

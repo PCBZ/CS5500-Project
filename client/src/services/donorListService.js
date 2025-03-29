@@ -1,3 +1,5 @@
+import { fetchWithAuthMiddleware } from '../middleware/authMiddleware';
+
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000';
 
 // Get summary statistics for all donor lists
@@ -8,7 +10,7 @@ export const getDonorListsSummary = async () => {
       throw new Error('No authentication token found');
     }
 
-    const response = await fetch(`${API_URL}/api/lists/stats/summary`, {
+    const response = await fetchWithAuthMiddleware(`${API_URL}/api/lists/stats/summary`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -35,7 +37,7 @@ export const getDonorListStats = async (listId) => {
       throw new Error('No authentication token found');
     }
 
-    const response = await fetch(`${API_URL}/api/lists/${listId}/stats`, {
+    const response = await fetchWithAuthMiddleware(`${API_URL}/api/lists/${listId}/stats`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -68,7 +70,7 @@ export const getDonorLists = async (page = 1, limit = 10, status = '') => {
     if (limit) url.searchParams.append('limit', limit);
     if (status) url.searchParams.append('status', status);
 
-    const response = await fetch(url, {
+    const response = await fetchWithAuthMiddleware(url, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`,
