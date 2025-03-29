@@ -1,3 +1,5 @@
+import { fetchWithAuthMiddleware } from '../middleware/authMiddleware';
+
 // API base URL
 const API_URL = 'http://localhost:3000/api/user';
 
@@ -17,8 +19,8 @@ const fetchWithAuth = async (endpoint, options = {}) => {
     options.headers['Authorization'] = `Bearer ${token}`;
   }
   
-  // Execute the request
-  const response = await fetch(`${API_URL}${endpoint}`, options);
+  // Execute the request using middleware
+  const response = await fetchWithAuthMiddleware(`${API_URL}${endpoint}`, options);
   
   // Throw error if response is not successful
   if (!response.ok) {
