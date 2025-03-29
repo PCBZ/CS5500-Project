@@ -651,10 +651,15 @@ const Donors = () => {
 
   // filter donors based on search query and status filter
   const filteredDonors = eventDonors.filter(donor => {
+    const searchTerm = searchQuery.toLowerCase();
+    const firstName = (donor.firstName || '').toLowerCase();
+    const lastName = (donor.lastName || '').toLowerCase();
+    const organizationName = (donor.organizationName || '').toLowerCase();
+    
     const matchesSearch = searchQuery === '' || 
-      donor.firstName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      donor.lastName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      donor.organizationName?.toLowerCase().includes(searchQuery.toLowerCase());
+      firstName.includes(searchTerm) ||
+      lastName.includes(searchTerm) ||
+      organizationName.includes(searchTerm);
     
     const matchesStatus = statusFilter === '' || donor.status === statusFilter;
     
@@ -692,10 +697,14 @@ const Donors = () => {
   // 过滤可用捐赠者列表
   const filteredAvailableDonors = availableDonors.filter(donor => {
     const searchTerm = modalSearchQuery.toLowerCase();
+    const firstName = (donor.firstName || '').toLowerCase();
+    const lastName = (donor.lastName || '').toLowerCase();
+    const organizationName = (donor.organizationName || '').toLowerCase();
+    
     return (
-      donor.firstName.toLowerCase().includes(searchTerm) ||
-      donor.lastName.toLowerCase().includes(searchTerm) ||
-      (donor.organizationName && donor.organizationName.toLowerCase().includes(searchTerm))
+      firstName.includes(searchTerm) ||
+      lastName.includes(searchTerm) ||
+      organizationName.includes(searchTerm)
     );
   });
 
