@@ -791,6 +791,61 @@ router.post('/import', protect, upload.single('file'), async (req, res) => {
     });
   }
 });
-    
+
+// Delete a donor
+router.delete('/:id', protect, async (req, res) => {
+  try {
+    const donorId = parseInt(req.params.id);
+    console.log(`Attempting to delete donor with ID: ${donorId}`);
+
+    if (isNaN(donorId)) {
+      console.error('Invalid donor ID format:', req.params.id);
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid donor ID format'
+      });
+    }
+
+    // First check if donor exists
+    const existingDonor = await prisma.donor.findUnique({
+      where: { id: donorId }
+    });
+
+    console.log('Found donor:', existingDonor);
+
+    if (!existingDonor) {
+      console.log(`Donor with ID ${donorId} not found`);
+      return res.status(404).json({
+        success: false,
+        message: 'Donor not found'
+      });
+    }
+
+    // Delete donor and any related records
+    await prisma.$transaction([
+      // Delete any related event donor records first
+      prisma.eventDonor.deleteMany({
+        where: { donorId: donorId }
+      }),
+      // Then delete the donor
+      prisma.donor.delete({
+        where: { id: donorId }
+      })
+    ]);
+
+    console.log(`Successfully deleted donor with ID: ${donorId}`);
+    res.json({
+      success: true,
+      message: 'Donor deleted successfully'
+    });
+  } catch (error) {
+    console.error('Error deleting donor:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to delete donor',
+      error: error.message
+    });
+  }
+});
 
 export default router;

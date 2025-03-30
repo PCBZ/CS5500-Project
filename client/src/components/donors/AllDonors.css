@@ -624,3 +624,199 @@
   opacity: 0.7;
   cursor: not-allowed;
 }
+
+/* Donor item actions */
+.donor-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 15px;
+  background-color: #f9f9f9;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.donor-item:hover {
+  background-color: #f0f0f0;
+}
+
+.donor-info {
+  flex: 1;
+}
+
+.donor-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.donor-action-button {
+  padding: 6px;
+  border-radius: 50%;
+  border: none;
+  background: none;
+  color: var(--text-light);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.7;
+}
+
+.donor-action-button:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+  opacity: 1;
+}
+
+.donor-action-button.delete {
+  color: var(--danger-color);
+}
+
+.donor-action-button.delete:hover {
+  background-color: rgba(234, 84, 85, 0.1);
+  opacity: 1;
+}
+
+.donor-action-button:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+/* Confirmation modal */
+.donor-confirm-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: white;
+  padding: 1.5rem;
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-xl);
+  z-index: 1000;
+  width: 90%;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.donor-confirm-modal .donor-modal-body {
+  text-align: center;
+}
+
+.donor-confirm-modal p {
+  margin: 0;
+  color: var(--text-dark);
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.donor-confirm-modal .donor-modal-actions {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+
+.donor-confirm-modal .donor-delete-button,
+.donor-confirm-modal .donor-cancel-button {
+  min-width: 100px;
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: var(--border-radius);
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.donor-confirm-modal .donor-delete-button {
+  background-color: var(--danger-color);
+  color: white;
+}
+
+.donor-confirm-modal .donor-delete-button:hover {
+  background-color: #dc2626;
+}
+
+.donor-confirm-modal .donor-cancel-button {
+  background-color: var(--secondary-light);
+  color: var(--text-dark);
+}
+
+.donor-confirm-modal .donor-cancel-button:hover {
+  background-color: #e2e8f0;
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-container.delete-modal {
+  background: white;
+  padding: 2rem;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 400px;
+  text-align: center;
+}
+
+.delete-modal h3 {
+  margin: 0 0 1rem;
+  color: var(--text-dark);
+  font-size: 1.25rem;
+}
+
+.delete-modal p {
+  margin: 0 0 0.5rem;
+  color: var(--text-dark);
+}
+
+.delete-modal .warning-text {
+  color: var(--danger-color);
+  font-size: 0.875rem;
+  margin-bottom: 1.5rem;
+}
+
+.modal-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.modal-buttons .cancel-button,
+.modal-buttons .delete-button {
+  padding: 0.5rem 1.5rem;
+  border: none;
+  border-radius: 4px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.modal-buttons .cancel-button {
+  background-color: var(--secondary-light);
+  color: var(--text-dark);
+}
+
+.modal-buttons .cancel-button:hover {
+  background-color: #e2e8f0;
+}
+
+.modal-buttons .delete-button {
+  background-color: var(--danger-color);
+  color: white;
+}
+
+.modal-buttons .delete-button:hover {
+  background-color: #dc2626;
+}
