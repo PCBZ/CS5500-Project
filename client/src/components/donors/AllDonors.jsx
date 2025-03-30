@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { FaSearch, FaSpinner, FaDownload, FaSync, FaCheckCircle, FaFilter, FaUpload } from 'react-icons/fa';
-import { getAllDonors, exportDonorsToCsv, updateDonor, importDonors } from '../../services/donorService';
+import { FaSearch, FaSpinner, FaDownload, FaSync, FaCheckCircle, FaFilter, FaUpload, FaEdit, FaTrash, FaPlus } from 'react-icons/fa';
+import { getAllDonors, exportDonorsToCsv, updateDonor, importDonors, deleteDonor } from '../../services/donorService';
 import { formatCurrency } from '../../utils/formatters';
 import DonorListItem from './DonorListItem';
 import EditDonorModal from './EditDonorModal';
@@ -18,6 +18,11 @@ const AllDonors = () => {
   const [exporting, setExporting] = useState(false);
   const [success, setSuccess] = useState('');
   const [importing, setImporting] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [donorToDelete, setDonorToDelete] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [selectedDonor, setSelectedDonor] = useState(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   const fileInputRef = useRef(null);
   
@@ -32,10 +37,6 @@ const AllDonors = () => {
   });
   const [showFilters, setShowFilters] = useState(false);
   
-  // State for edit modal
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [selectedDonor, setSelectedDonor] = useState(null);
-  
   // Fetch all donor data
   useEffect(() => {
     fetchDonors();
@@ -46,8 +47,6 @@ const AllDonors = () => {
     setLoading(true);
     setError(null);
 
-
-    
     try {
       const queryParams = {
         page: currentPage,
@@ -78,77 +77,76 @@ const AllDonors = () => {
     }
   };
   
-  // 在其他处理函数附近添加
-// Trigger file selection
-const handleImportClick = () => {
-  fileInputRef.current.click();
-};
+  // Trigger file selection
+  const handleImportClick = () => {
+    fileInputRef.current.click();
+  };
 
-// Handle import file change
-const handleFileChange = async (e) => {
-  const file = e.target.files[0];
-  if (!file) return;
-  
-  // Check file extension
-  const fileExtension = file.name.split('.').pop().toLowerCase();
-  if (fileExtension !== 'csv' && fileExtension !== 'xlsx' && fileExtension !== 'xls') {
-    setError('Please select a CSV or Excel file.');
-    setTimeout(() => setError(null), 5000);
-    e.target.value = null; // Reset file input
-    return;
-  }
-  
-  // Check file size (limit to 10MB)
-  const maxSize = 10 * 1024 * 1024; // 10MB
-  if (file.size > maxSize) {
-    setError('File size exceeds the limit (10MB). Please select a smaller file.');
-    setTimeout(() => setError(null), 5000);
-    e.target.value = null; // Reset file input
-    return;
-  }
-  
-  setImporting(true);
-  setError(null);
-  
-  try {
-    const formData = new FormData();
-    formData.append('file', file);
+  // Handle import file change
+  const handleFileChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
     
-    // Add file type hint for server processing
-    if (fileExtension === 'csv') {
-      formData.append('fileType', 'csv');
-    } else {
-      formData.append('fileType', 'excel');
+    // Check file extension
+    const fileExtension = file.name.split('.').pop().toLowerCase();
+    if (fileExtension !== 'csv' && fileExtension !== 'xlsx' && fileExtension !== 'xls') {
+      setError('Please select a CSV or Excel file.');
+      setTimeout(() => setError(null), 5000);
+      e.target.value = null; // Reset file input
+      return;
     }
     
-    const result = await importDonors(formData);
+    // Check file size (limit to 10MB)
+    const maxSize = 10 * 1024 * 1024; // 10MB
+    if (file.size > maxSize) {
+      setError('File size exceeds the limit (10MB). Please select a smaller file.');
+      setTimeout(() => setError(null), 5000);
+      e.target.value = null; // Reset file input
+      return;
+    }
     
-    if (result.success) {
-      setSuccess(`Import successful! Imported ${result.imported} records, updated ${result.updated} records.`);
+    setImporting(true);
+    setError(null);
+    
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
       
-      // If there are errors, show more details
-      if (result.errors && result.errors.length > 0) {
-        console.warn('Import completed with errors:', result.errors);
-        setError(`Import completed with ${result.errors.length} errors. Check the console for details.`);
-        setTimeout(() => setError(null), 8000);
+      // Add file type hint for server processing
+      if (fileExtension === 'csv') {
+        formData.append('fileType', 'csv');
+      } else {
+        formData.append('fileType', 'excel');
       }
       
-      setTimeout(() => setSuccess(''), 5000);
+      const result = await importDonors(formData);
       
-      // Refresh donor list
-      fetchDonors();
-    } else {
-      throw new Error(result.message || 'Import failed');
+      if (result.success) {
+        setSuccess(`Import successful! Imported ${result.imported} records, updated ${result.updated} records.`);
+        
+        // If there are errors, show more details
+        if (result.errors && result.errors.length > 0) {
+          console.warn('Import completed with errors:', result.errors);
+          setError(`Import completed with ${result.errors.length} errors. Check the console for details.`);
+          setTimeout(() => setError(null), 8000);
+        }
+        
+        setTimeout(() => setSuccess(''), 5000);
+        
+        // Refresh donor list
+        fetchDonors();
+      } else {
+        throw new Error(result.message || 'Import failed');
+      }
+    } catch (err) {
+      console.error('Import failed:', err);
+      setError('Import failed: ' + (err.message || 'Unknown error'));
+      setTimeout(() => setError(null), 5000);
+    } finally {
+      setImporting(false);
+      e.target.value = null; // Reset file input
     }
-  } catch (err) {
-    console.error('Import failed:', err);
-    setError('Import failed: ' + (err.message || 'Unknown error'));
-    setTimeout(() => setError(null), 5000);
-  } finally {
-    setImporting(false);
-    e.target.value = null; // Reset file input
-  }
-};
+  };
 
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
@@ -310,7 +308,46 @@ const handleFileChange = async (e) => {
       throw err;
     }
   };
-  
+
+  const handleDeleteClick = (donor) => {
+    setDonorToDelete(donor);
+    setShowDeleteConfirm(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    try {
+      setIsDeleting(true);
+      setError(null);
+      console.log('Deleting donor:', donorToDelete);
+
+      if (!donorToDelete || !donorToDelete.id) {
+        throw new Error('Invalid donor data');
+      }
+
+      const result = await deleteDonor(donorToDelete.id);
+      
+      if (result.success) {
+        // Close modal and reset state
+        setShowDeleteConfirm(false);
+        setDonorToDelete(null);
+        
+        // Show success message
+        setSuccess('Donor deleted successfully');
+        setTimeout(() => setSuccess(''), 3000);
+        
+        // Refresh donor list
+        fetchDonors();
+      } else {
+        throw new Error(result.message || 'Failed to delete donor');
+      }
+    } catch (error) {
+      console.error('Error deleting donor:', error);
+      setError(error.message);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   return (
     <div className="all-donors-container">
       <div className="all-donors-header">
@@ -389,6 +426,13 @@ const handleFileChange = async (e) => {
             title="Refresh data"
           >
             {loading ? <FaSpinner className="spinner" /> : <FaSync />} Refresh
+          </button>
+
+          <button 
+            className="add-donor-button"
+            onClick={() => setIsEditModalOpen(true)}
+          >
+            <FaPlus /> Add Donor
           </button>
         </div>
       </div>
@@ -539,11 +583,31 @@ const handleFileChange = async (e) => {
                 </thead>
                 <tbody>
                   {donors.map(donor => (
-                    <DonorListItem 
-                      key={donor.id}
-                      donor={donor}
-                      onEdit={handleEditClick}
-                    />
+                    <tr key={donor.id}>
+                      <td>{donor.firstName} {donor.lastName}</td>
+                      <td>{donor.city}</td>
+                      <td>${donor.totalDonations?.toLocaleString() || 0}</td>
+                      <td>${donor.totalPledges?.toLocaleString() || 0}</td>
+                      <td>{donor.addressLine1}</td>
+                      <td>
+                        <div className="donor-actions">
+                          <button
+                            className="donor-action-button"
+                            onClick={() => handleEditClick(donor)}
+                            title="Edit donor"
+                          >
+                            <FaEdit />
+                          </button>
+                          <button
+                            className="donor-action-button delete"
+                            onClick={() => handleDeleteClick(donor)}
+                            title="Delete donor"
+                          >
+                            <FaTrash />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
                   ))}
                 </tbody>
               </table>
@@ -598,6 +662,34 @@ const handleFileChange = async (e) => {
         )}
       </div>
       
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm && donorToDelete && (
+        <div className="modal-overlay">
+          <div className="modal-container delete-modal">
+            <h3>Delete Donor</h3>
+            <p>Are you sure you want to delete the donor "{donorToDelete.firstName} {donorToDelete.lastName}"?</p>
+            <p className="warning-text">This action cannot be undone.</p>
+            <div className="modal-buttons">
+              <button className="cancel-button" onClick={() => {
+                setShowDeleteConfirm(false);
+                setDonorToDelete(null);
+              }}>Cancel</button>
+              <button 
+                className="delete-button" 
+                onClick={handleConfirmDelete}
+                disabled={isDeleting}
+              >
+                {isDeleting ? (
+                  <>
+                    Deleting...
+                  </>
+                ) : 'Delete'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Edit Donor Modal */}
       {selectedDonor && (
         <EditDonorModal
