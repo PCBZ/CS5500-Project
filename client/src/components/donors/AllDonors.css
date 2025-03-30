@@ -34,16 +34,15 @@
 }
 
 /* Main container styling */
-.donors-container {
+.all-donors-container {
   max-width: 1400px;
   margin: 0 auto;
   padding: 1.5rem;
-  background-color: var(--bg-main);
   min-height: calc(100vh - 64px); /* Full height minus navbar */
 }
 
 /* Header section with title and actions */
-.donors-header {
+.all-donors-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -54,7 +53,7 @@
   box-shadow: var(--shadow-md);
 }
 
-.donors-header h1 {
+.all-donors-header h1 {
   font-size: 1.75rem;
   font-weight: 600;
   color: var(--text-dark);
@@ -63,7 +62,7 @@
   position: relative;
 }
 
-.donors-header h1::after {
+.all-donors-header h1::after {
   content: '';
   position: absolute;
   bottom: -0.5rem;
@@ -75,7 +74,7 @@
 }
 
 /* Action buttons group */
-.donors-actions {
+.all-donors-actions {
   display: flex;
   align-items: center;
   gap: 0.75rem;
@@ -315,7 +314,7 @@
 }
 
 /* Donor list section */
-.donors-list-container {
+.all-donors-list-container {
   background-color: var(--bg-card);
   border-radius: var(--border-radius-lg);
   box-shadow: var(--shadow-md);
@@ -378,16 +377,16 @@
 }
 
 /* Table styling */
-.donors-table-container {
+.all-donors-table-container {
   overflow-x: auto;
 }
 
-.donors-table {
+.all-donors-table {
   width: 100%;
   border-collapse: collapse;
 }
 
-.donors-table th {
+.all-donors-table th {
   background-color: #f8fafc;
   padding: 1rem 1.5rem;
   text-align: left;
@@ -398,7 +397,7 @@
   white-space: nowrap;
 }
 
-.donors-table td {
+.all-donors-table td {
   padding: 1rem 1.5rem;
   border-bottom: 1px solid #e2e8f0;
   font-size: 0.875rem;
@@ -491,13 +490,13 @@
 
 /* Responsive adjustments */
 @media (max-width: 992px) {
-  .donors-header {
+  .all-donors-header {
     flex-direction: column;
     align-items: flex-start;
     gap: 1rem;
   }
   
-  .donors-actions {
+  .all-donors-actions {
     width: 100%;
     justify-content: space-between;
   }
@@ -522,7 +521,7 @@
 }
 
 @media (max-width: 768px) {
-  .donors-actions {
+  .all-donors-actions {
     flex-wrap: wrap;
     gap: 0.5rem;
   }
