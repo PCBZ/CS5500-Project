@@ -312,11 +312,11 @@ const handleFileChange = async (e) => {
   };
   
   return (
-    <div className="donors-container">
-      <div className="donors-header">
+    <div className="all-donors-container">
+      <div className="all-donors-header">
         <h1>All Donors</h1>
         
-        <div className="donors-actions">
+        <div className="all-donors-actions">
           <div className="search-bar">
             <form onSubmit={handleSearch}>
               <input
@@ -513,9 +513,9 @@ const handleFileChange = async (e) => {
         </div>
       )}
       
-      <div className="donors-list-container">
+      <div className="all-donors-list-container">
         {loading ? (
-          <div className="loading-indicator donors-loading">
+          <div className="loading-indicator">
             <FaSpinner className="spinner" />
             <p>Loading donor data...</p>
           </div>
@@ -525,8 +525,8 @@ const handleFileChange = async (e) => {
               Showing {donors.length} donors out of {totalDonors} total
             </div>
             
-            <div className="donors-table-container">
-              <table className="donors-table">
+            <div className="all-donors-table-container">
+              <table className="all-donors-table">
                 <thead>
                   <tr>
                     <th>Name</th>
