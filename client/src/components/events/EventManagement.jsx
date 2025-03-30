@@ -184,13 +184,13 @@ const EventManagement = () => {
     
     if (activeTab === 'upcoming') {
       return events.filter(event => {
-        if (!event.date) return false;
+        if (!event || !event.date) return false;
         const eventDate = new Date(event.date);
         return eventDate >= currentDate;
       });
     } else if (activeTab === 'past') {
       return events.filter(event => {
-        if (!event.date) return false;
+        if (!event || !event.date) return false;
         const eventDate = new Date(event.date);
         return eventDate < currentDate;
       });
