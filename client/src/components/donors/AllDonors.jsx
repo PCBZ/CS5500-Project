@@ -602,6 +602,7 @@ const AllDonors = () => {
                             className="donor-action-button delete"
                             onClick={() => handleDeleteClick(donor)}
                             title="Delete donor"
+                            disabled={isDeleting && donorToDelete?.id === donor.id}
                           >
                             <FaTrash />
                           </button>
@@ -670,20 +671,22 @@ const AllDonors = () => {
             <p>Are you sure you want to delete the donor "{donorToDelete.firstName} {donorToDelete.lastName}"?</p>
             <p className="warning-text">This action cannot be undone.</p>
             <div className="modal-buttons">
-              <button className="cancel-button" onClick={() => {
-                setShowDeleteConfirm(false);
-                setDonorToDelete(null);
-              }}>Cancel</button>
+              <button 
+                className="cancel-button" 
+                onClick={() => {
+                  setShowDeleteConfirm(false);
+                  setDonorToDelete(null);
+                }}
+                disabled={isDeleting}
+              >
+                Cancel
+              </button>
               <button 
                 className="delete-button" 
                 onClick={handleConfirmDelete}
                 disabled={isDeleting}
               >
-                {isDeleting ? (
-                  <>
-                    Deleting...
-                  </>
-                ) : 'Delete'}
+                {isDeleting ? 'Deleting...' : 'Delete'}
               </button>
             </div>
           </div>

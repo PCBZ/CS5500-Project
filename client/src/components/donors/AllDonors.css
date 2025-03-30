@@ -664,7 +664,7 @@
   opacity: 0.7;
 }
 
-.donor-action-button:hover {
+.donor-action-button:hover:not(:disabled) {
   background-color: rgba(0, 0, 0, 0.05);
   opacity: 1;
 }
@@ -673,7 +673,7 @@
   color: var(--danger-color);
 }
 
-.donor-action-button.delete:hover {
+.donor-action-button.delete:hover:not(:disabled) {
   background-color: rgba(234, 84, 85, 0.1);
   opacity: 1;
 }
@@ -681,6 +681,7 @@
 .donor-action-button:disabled {
   opacity: 0.3;
   cursor: not-allowed;
+  pointer-events: none;
 }
 
 /* Confirmation modal */
@@ -803,12 +804,19 @@
   transition: all 0.2s ease;
 }
 
+.modal-buttons .cancel-button:disabled,
+.modal-buttons .delete-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
 .modal-buttons .cancel-button {
   background-color: var(--secondary-light);
   color: var(--text-dark);
 }
 
-.modal-buttons .cancel-button:hover {
+.modal-buttons .cancel-button:hover:not(:disabled) {
   background-color: #e2e8f0;
 }
 
@@ -817,6 +825,6 @@
   color: white;
 }
 
-.modal-buttons .delete-button:hover {
+.modal-buttons .delete-button:hover:not(:disabled) {
   background-color: #dc2626;
 }
