@@ -567,12 +567,12 @@
 
 /* Filter button */
 .filter-button {
-  background-color: var(--warning-color);
+  background-color: var(--primary-color);
   color: var(--text-white);
 }
 
 .filter-button:hover:not(:disabled) {
-  background-color: #e97d0a;
+  background-color: var(--primary-dark);
   transform: translateY(-1px);
   box-shadow: var(--shadow-md);
 }

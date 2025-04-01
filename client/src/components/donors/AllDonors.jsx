@@ -389,7 +389,7 @@ const AllDonors = () => {
               </div>
             ) : (
               <>
-                <FaUpload /> imported
+                <FaUpload /> Import
               </>
             )}
           </button>

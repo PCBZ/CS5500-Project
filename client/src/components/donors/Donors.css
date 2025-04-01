@@ -232,7 +232,7 @@ button {
 }
 
 .add-donor-button {
-  background-color: #4caf50;
+  background-color: var(--primary-color);
   color: white;
   border: none;
   padding: 8px 12px;
@@ -245,7 +245,7 @@ button {
 }
 
 .add-donor-button:hover {
-  background-color: #45a049;
+  background-color: var(--primary-dark);
 }
 
 .add-donor-button:disabled {
@@ -255,7 +255,7 @@ button {
 
 /* Large size add donor button, for empty state */
 .add-donor-button-large {
-  background-color: #4caf50;
+  background-color: var(--primary-color);
   color: white;
   border: none;
   padding: 12px 24px;
@@ -272,7 +272,7 @@ button {
 }
 
 .add-donor-button-large:hover {
-  background-color: #45a049;
+  background-color: var(--primary-dark);
   transform: translateY(-2px);
   box-shadow: 0 6px 8px rgba(0,0,0,0.15);
 }
@@ -797,7 +797,7 @@ button {
 
 .add-button {
   padding: 8px 12px;
-  background-color: #4caf50;
+  background-color: var(--primary-color);
   color: white;
   border: none;
   border-radius: 4px;
@@ -811,7 +811,7 @@ button {
 }
 
 .add-button:hover:not(:disabled) {
-  background-color: #45a049;
+  background-color: var(--primary-dark);
 }
 
 .add-button:disabled {

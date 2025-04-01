@@ -4,6 +4,7 @@
   --primary-light: #eef1ff;
   --primary-dark: #3a4cb1;
   --secondary-color: #6c7293;
+  --secondary-light: #f1f5f9;
   --success-color: #28c76f;
   --warning-color: #ff9f43;
   --danger-color: #ea5455;
@@ -660,21 +661,22 @@
 }
 
 .reset-filters-button {
-  flex:1;
-  background-color: var(--primary-color);
-  color: white;
-  border: none;
+  flex: 1;
+  background-color: #f8f9fa;
+  color: #4b5563;
+  border: 1px solid #e5e7eb;
   border-radius: 6px;
   padding: 10px 16px;
   font-weight: 500;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: all 0.2s ease;
   margin-top: 16px;
   width: 100%;
 }
 
 .reset-filters-button:hover {
-  background-color: var(--primary-dark);
+  background-color: #e5e7eb;
+  color: #1f2937;
 }
 
 /* 搜索过滤器容器 */
