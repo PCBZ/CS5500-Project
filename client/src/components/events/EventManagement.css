@@ -1,3 +1,22 @@
+/* Event Management Page Styles */
+:root {
+  --primary-color: #4a6bfd;
+  --primary-light: #eef1ff;
+  --primary-dark: #3a4cb1;
+  --secondary-color: #6c7293;
+  --success-color: #28c76f;
+  --warning-color: #ff9f43;
+  --danger-color: #ea5455;
+  --dark-color: #4b4b4b;
+  --light-color: #f8f8f8;
+  --bg-color: #f9fafc;
+  --card-bg: #ffffff;
+  --card-shadow: 0 4px 24px 0 rgba(34, 41, 47, 0.1);
+  --card-radius: 10px;
+  --header-height: 64px;
+  --transition: all 0.3s ease;
+}
+
 .event-management-container {
   width: 100%;
   max-width: 1200px;
@@ -15,30 +34,43 @@
 .event-management-header h1 {
   font-size: 28px;
   font-weight: 600;
-  color: #333;
+  color: var(--dark-color);
   margin: 0 0 5px 0;
 }
 
 .event-management-header p {
   font-size: 16px;
-  color: #666;
+  color: var(--secondary-color);
   margin: 0;
 }
 
 .create-event-button {
-  background-color: #6366F1;
+  background-color: var(--primary-color);
   color: white;
   border: none;
   border-radius: 8px;
-  padding: 12px 20px;
+  padding: 15px 30px;
   font-size: 16px;
   font-weight: 500;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 180px;
+  justify-content: center;
+  box-shadow: 0 2px 4px rgba(74, 107, 253, 0.2);
 }
 
 .create-event-button:hover {
-  background-color: #4F46E5;
+  background-color: var(--primary-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(74, 107, 253, 0.3);
+}
+
+.create-event-button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(74, 107, 253, 0.2);
 }
 
 .event-tabs {
@@ -66,7 +98,7 @@
 }
 
 .event-tab.active {
-  color: #6366F1;
+  color: var(--primary-color);
   font-weight: 600;
 }
 
@@ -77,7 +109,7 @@
   left: 0;
   right: 0;
   height: 3px;
-  background-color: #6366F1;
+  background-color: var(--primary-color);
 }
 
 .event-search-filter {
@@ -207,42 +239,49 @@
 
 .event-actions {
   display: flex;
-  gap: 5px;
+  gap: 8px;
+  justify-content: flex-end;
 }
 
-.event-action-button {
-  padding: 5px 10px;
+.event-button {
+  padding: 6px;
+  border-radius: 50%;
   border: none;
-  border-radius: 4px;
+  background: none;
   cursor: pointer;
-  font-size: 12px;
+  transition: all 0.2s ease;
   display: flex;
   align-items: center;
-  gap: 5px;
-  background-color: #2196f3;
-  color: white;
+  justify-content: center;
+  opacity: 0.7;
 }
 
-.event-action-button:hover {
-  background-color: #0d8bf2;
+.event-button svg {
+  width: 1rem;
+  height: 1rem;
 }
 
-.event-action-button.edit {
-  background-color: #0d8bf2;
-  color: white;
+.edit-button {
+  color: #4a6bfd;
 }
 
-.event-action-button.edit:hover {
-  background-color: #388e3c;
+.edit-button:hover {
+  background-color: rgba(74, 107, 253, 0.1);
+  opacity: 1;
 }
 
-.event-action-button.delete {
-  background-color: #4f46e5;
-  color: white;
+.delete-button {
+  color: #ea5455;
 }
 
-.event-action-button.delete:hover {
-  background-color: #d32f2f;
+.delete-button:hover {
+  background-color: rgba(234, 84, 85, 0.1);
+  opacity: 1;
+}
+
+.event-button:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
 }
 
 /* Filter Banner Enhancements */
@@ -264,13 +303,13 @@
 }
 
 .filter-header .filter-icon {
-  color: #4f46e5;
+  color: var(--primary-color);
   margin-right: 8px;
 }
 
 .filter-header span {
   font-weight: 600;
-  color: #4f46e5;
+  color: var(--primary-color);
   font-size: 16px;
 }
 
@@ -308,25 +347,25 @@
 
 .filter-item select:focus {
   outline: none;
-  border-color: #6366f1;
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(74, 107, 253, 0.15);
 }
 
 .apply-filters-button {
-  background-color: #4f46e5;
+  background-color: var(--primary-color);
   color: white;
   border: none;
   border-radius: 6px;
   padding: 10px 16px;
   font-weight: 500;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: var(--transition);
   margin-top: 16px;
   width: 100%;
 }
 
 .apply-filters-button:hover {
-  background-color: #4338ca;
+  background-color: var(--primary-dark);
 }
 
 .event-search {
@@ -390,8 +429,6 @@
 .activity-status {
   padding: 6px 12px;
   border-radius: 20px;
-  background-color: #EEF2FF;
-  color: #4F46E5;
   font-size: 14px;
   font-weight: 500;
   display: inline-block;
@@ -399,30 +436,34 @@
   white-space: nowrap;
 }
 
-/* 为不同状态添加不同的颜色 */
+/* Planning - Light Orange */
 .activity-status.planning {
-  background-color: #FEF3C7;
-  color: #D97706;
+  background-color: #FFE5CC;
+  color: #FF8C42;
 }
 
+/* ListGeneration - Light Yellow */
 .activity-status.listgeneration {
-  background-color: #DBEAFE;
-  color: #2563EB;
+  background-color: #FFF3CD;
+  color: #FFB100;
 }
 
+/* Review - Light Blue */
 .activity-status.review {
-  background-color: #E0E7FF;
-  color: #4F46E5;
+  background-color: #E1F0FF;
+  color: #3B82F6;
 }
 
-.activity-status.ready {
+/* Ready - Light Green */
+.activity-status.active {
   background-color: #D1FAE5;
-  color: #059669;
+  color: #10B981;
 }
 
+/* Complete - Light Red */
 .activity-status.complete {
-  background-color: #ECFDF5;
-  color: #10B981;
+  background-color: #FFE4E6;
+  color: #F43F5E;
 }
 
 .deadline-info {
@@ -510,7 +551,7 @@
   background-color: #388e3c;
 }
 
-.delete-button {
+.modal-delete-button {
   padding: 8px 16px;
   border: none;
   background-color: #f44336;
@@ -519,7 +560,7 @@
   cursor: pointer;
 }
 
-.delete-button:hover {
+.modal-delete-button:hover {
   background-color: #d32f2f;
 }
 
@@ -620,7 +661,7 @@
 
 .reset-filters-button {
   flex:1;
-  background-color: #4f46e5;
+  background-color: var(--primary-color);
   color: white;
   border: none;
   border-radius: 6px;
@@ -633,7 +674,7 @@
 }
 
 .reset-filters-button:hover {
-  background-color: #4338ca;
+  background-color: var(--primary-dark);
 }
 
 /* 搜索过滤器容器 */
