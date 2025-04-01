@@ -380,7 +380,7 @@ const EventManagement = () => {
           <h1>Event Management</h1>
           <p>Plan, organize and track fundraising events</p>
         </div>
-        <button className="create-event-button" onClick={handleCreateEvent}>
+        <button className="event-create-button" onClick={handleCreateEvent}>
           Create New Event
         </button>
       </header>
