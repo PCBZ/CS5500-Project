@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { register } from '../../services/authService';
+import { register, login } from '../../services/authService';
 import './Auth.css';
+import { useHistory } from 'react-router-dom';
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -12,6 +13,7 @@ const Register = () => {
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ text: '', type: '' });
+  const history = useHistory();
 
   // Handle input changes
   const handleChange = (e) => {
@@ -63,37 +65,29 @@ const Register = () => {
   // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    // Validate form
-    if (!validateForm()) {
-      return;
-    }
-    
     setLoading(true);
     setMessage({ text: '', type: '' });
-    
+
     try {
+      // First register the user
       await register(formData);
+      
+      console.log('formData', formData.email, formData.password);
+      // Then automatically login with the same credentials
+      await login(formData.email, formData.password);
+
       setMessage({ 
-        text: 'Registration successful! Please proceed to login', 
+        text: 'Registration successful! Redirecting...', 
         type: 'success' 
       });
       
-      // Reset form
-      setFormData({
-        name: '',
-        email: '',
-        password: '',
-        role: ''
-      });
-      
-      // Redirect to login page after 3 seconds
+      // Redirect to home page after successful login
       setTimeout(() => {
-        window.location.href = '/login';
-      }, 3000);
-    } catch (error) {
+        history.push('/dashboard');
+      }, 1500);
+    } catch (err) {
       setMessage({ 
-        text: error.message || 'Registration failed, please try again later', 
+        text: err.message || 'Registration failed. Please try again.', 
         type: 'error' 
       });
     } finally {
