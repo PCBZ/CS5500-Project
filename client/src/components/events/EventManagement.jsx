@@ -12,6 +12,7 @@ const EventManagement = () => {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [success, setSuccess] = useState('');
   const history = useHistory();
 
   const [filters, setFilters] = useState({
@@ -218,13 +219,13 @@ const EventManagement = () => {
     
     if (activeTab === 'upcoming') {
       return events.filter(event => {
-        if (!event.date) return false;
+        if (!event || !event.date) return false;
         const eventDate = new Date(event.date);
         return eventDate >= currentDate;
       });
     } else if (activeTab === 'past') {
       return events.filter(event => {
-        if (!event.date) return false;
+        if (!event || !event.date) return false;
         const eventDate = new Date(event.date);
         return eventDate < currentDate;
       });
@@ -350,6 +351,10 @@ const EventManagement = () => {
     setEvents(prevEvents => [...prevEvents, newEvent]);
     setOriginalEvents(prevEvents => [...prevEvents, newEvent]);
     setShowCreateModal(false);
+    setSuccess('Event created successfully!');
+    setTimeout(() => {
+      setSuccess('');
+    }, 3000);
   };
 
   const handleClickOutside = () => {
@@ -379,6 +384,12 @@ const EventManagement = () => {
           Create New Event
         </button>
       </header>
+
+      {success && (
+        <div className="success-message">
+          {success}
+        </div>
+      )}
 
       <div className="event-tabs">
         <button
