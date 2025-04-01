@@ -603,15 +603,17 @@ const EventManagement = () => {
                       </div>
                     </td>
                     <td>
-                        <div className="event-actions">
-                          <button className="event-action-button" onClick={() => handleViewEvent(event.id)}>View</button>
-                          <button className="event-action-button edit" onClick={() => openEditModal(event)}>
-                            <FaEdit /> Edit
-                          </button>
-                          <button className="event-action-button delete" onClick={() => openDeleteConfirm(event)}>
-                            <FaTrash /> 
-                          </button>
-                        </div>
+                      <div className="event-actions">
+                        <button className="event-button edit-button" onClick={() => openEditModal(event)}>
+                          <FaEdit />
+                        </button>
+                        <button 
+                          className="event-button delete-button"
+                          onClick={() => openDeleteConfirm(event)}
+                        >
+                          <FaTrash />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))
@@ -735,7 +737,7 @@ const EventManagement = () => {
             <p className="warning-text">This action cannot be undone.</p>
             <div className="modal-buttons">
               <button className="cancel-button" onClick={() => setShowDeleteConfirm(false)}>Cancel</button>
-              <button className="delete-button" onClick={handleDeleteEvent}>Delete</button>
+              <button className="modal-delete-button" onClick={handleDeleteEvent}>Delete</button>
             </div>
           </div>
         </div>
