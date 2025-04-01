@@ -434,7 +434,7 @@ button {
 }
 
 .donors-error-message button {
-  background-color: #4a90e2;
+  background-color: #2563eb;
   color: white;
   border: none;
   padding: 10px 20px;
@@ -476,7 +476,7 @@ button {
 }
 
 .donors-refresh-button {
-  background-color: #4a90e2;
+  background-color: #2563eb;
   color: white;
   border: none;
   padding: 10px 20px;
@@ -498,7 +498,7 @@ button {
 }
 
 .donors-add-button {
-  background-color: #4a90e2;
+  background-color: #2563eb;
   color: white;
   border: none;
   padding: 10px 20px;
@@ -595,7 +595,7 @@ button {
 }
 
 .donors-save-button {
-  background-color: #4a90e2;
+  background-color: #2563eb;
   color: white;
   border: none;
 }
