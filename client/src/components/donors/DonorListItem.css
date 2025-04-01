@@ -3,10 +3,11 @@
 /* Row styling */
 .donor-row {
   transition: all 0.2s ease;
+  border-bottom: 1px solid var(--border-color);
 }
 
 .donor-row:hover {
-  background-color: rgba(37, 99, 235, 0.05);
+  background-color: var(--hover-bg);
 }
 
 /* Cell styling */
@@ -27,7 +28,7 @@
 /* Donation and pledge amount styling */
 .donation-amount,
 .pledge-amount {
-  font-family: 'Monaco', 'Courier New', monospace;
+  font-family: var(--monospace-font);
   font-weight: 500;
   text-align: right;
 }
@@ -42,26 +43,38 @@
 
 /* Actions cell styling */
 .actions-cell {
-  width: 60px;
-  text-align: center;
+  width: 100px;
+  text-align: right;
+  padding-right: 1rem !important;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
 }
 
 .edit-button {
   background: none;
   border: none;
-  color: #64748b;
   cursor: pointer;
-  transition: all 0.2s ease;
-  padding: 0.5rem;
-  border-radius: 4px;
-  display: inline-flex;
+  padding: 6px;
+  border-radius: 50%;
+  display: flex;
   align-items: center;
   justify-content: center;
+  opacity: 0.7;
+  transition: all 0.2s ease;
 }
 
 .edit-button:hover {
-  color: #2563eb;
-  background-color: rgba(37, 99, 235, 0.1);
+  background-color: rgba(0, 0, 0, 0.05);
+  opacity: 1;
+}
+
+.edit-button:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
 }
 
 .edit-button svg {

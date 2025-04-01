@@ -15,13 +15,15 @@ const DonorListItem = ({ donor, onEdit }) => {
       <td className="pledge-amount">{formatCurrency(donor.totalPledges || 0)}</td>
       <td>{formatAddress(donor)}</td>
       <td className="actions-cell">
-        <button 
-          className="edit-button" 
-          onClick={() => onEdit(donor)}
-          title="Edit donor"
-        >
-          <FaEdit />
-        </button>
+        <div className="action-buttons">
+          <button 
+            className="edit-button" 
+            onClick={() => onEdit(donor)}
+            title="编辑捐赠者"
+          >
+            <FaEdit />
+          </button>
+        </div>
       </td>
     </tr>
   );
