@@ -45,7 +45,7 @@
   margin: 0;
 }
 
-.create-event-button {
+.event-create-button {
   background-color: var(--primary-color);
   color: white;
   border: none;
@@ -63,13 +63,13 @@
   box-shadow: 0 2px 4px rgba(74, 107, 253, 0.2);
 }
 
-.create-event-button:hover {
+.event-create-button:hover {
   background-color: var(--primary-dark);
   transform: translateY(-2px);
   box-shadow: 0 4px 8px rgba(74, 107, 253, 0.3);
 }
 
-.create-event-button:active {
+.event-create-button:active {
   transform: translateY(0);
   box-shadow: 0 2px 4px rgba(74, 107, 253, 0.2);
 }
