@@ -120,7 +120,7 @@
 .form-group select:focus,
 .form-group textarea:focus {
   outline: none;
-  border-color: #4a90e2;
+  border-color: #2563eb;
 }
 
 .form-group textarea {
@@ -203,7 +203,7 @@
 }
 
 .donors-save-button {
-  background-color: #4a90e2;
+  background-color: #2563eb;
   border: none;
   color: white;
 }
@@ -220,7 +220,7 @@
 .donors-login-again-button {
   background: none;
   border: none;
-  color: #4a90e2;
+  color: #2563eb;
   text-decoration: underline;
   cursor: pointer;
   padding: 0;

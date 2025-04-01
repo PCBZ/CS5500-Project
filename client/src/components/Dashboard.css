@@ -110,7 +110,7 @@
 }
 
 .active-events .stat-icon {
-  color: #4F46E5;
+  color: #2563eb;
 }
 
 .donors-reviewed .stat-icon {
@@ -163,7 +163,7 @@
   height: 40px;
   border-radius: 8px;
   background-color: #EEF2FF;
-  color: #4F46E5;
+  color: #2563eb;
   margin-right: 15px;
 }
 
@@ -187,7 +187,7 @@
   padding: 6px 12px;
   border-radius: 20px;
   background-color: #EEF2FF;
-  color: #4F46E5;
+  color: #2563eb;
   font-size: 14px;
   font-weight: 500;
 }
