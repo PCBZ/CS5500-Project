@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FaCalendarAlt, FaMapMarkerAlt, FaUsers, FaClock, FaTrash, FaFilter, FaSearch, FaEdit } from 'react-icons/fa';
+import { FaCalendarAlt, FaMapMarkerAlt, FaUsers, FaClock, FaTrash, FaFilter, FaSearch, FaEdit, FaEye } from 'react-icons/fa';
 import { useHistory } from 'react-router-dom';
 import './EventManagement.css';
 import { getEvents, updateEvent, deleteEvent } from '../../services/eventService';
@@ -604,6 +604,9 @@ const EventManagement = () => {
                     </td>
                     <td>
                       <div className="event-actions">
+                      <button className="event-button view-button" onClick={() => handleViewEvent(event.id)}>
+                        <FaEye />
+                      </button>
                         <button className="event-button edit-button" onClick={() => openEditModal(event)}>
                           <FaEdit />
                         </button>
