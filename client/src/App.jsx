@@ -11,6 +11,7 @@ import Donors from './components/donors/Donors.jsx';
 import AllDonors from './components/donors/AllDonors.jsx';
 import Navbar from './components/common/Navbar.jsx';
 import ProtectedRoute from './components/auth/ProtectedRoute.jsx';
+import AddDonor from './components/donors/AddDonor';
 import './App.css';
 
 function App() {
@@ -29,6 +30,7 @@ function App() {
             <ProtectedRoute path="/events" component={EventManagement} />
             <ProtectedRoute path="/donors" component={Donors} />
             <ProtectedRoute path="/all-donors" component={AllDonors} />
+            <Route path="/donors/add" element={<AddDonor />} />
             <Redirect from="/" to="/login" />
           </Switch>
         </div>
