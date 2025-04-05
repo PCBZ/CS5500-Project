@@ -842,29 +842,64 @@ export const exportEventDonorsToCsv = async (eventId) => {
  */
 export const exportDonorsToCsv = async () => {
   try {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      throw new Error('Authentication token not found');
+    // First get all donors
+    const response = await getAllDonors({ limit: 1000 });
+    
+    if (!response || !response.data) {
+      throw new Error('No donor data received');
     }
 
-    const response = await fetch(`${API_URL}/api/donors/export`, {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      }
+    const donors = response.data;
+    
+    if (!donors || donors.length === 0) {
+      throw new Error('No donors to export');
+    }
+
+    // Get all unique keys from donors, excluding complex objects
+    const headers = [...new Set(donors.flatMap(donor => 
+      Object.keys(donor).filter(key => 
+        !Array.isArray(donor[key]) && 
+        typeof donor[key] !== 'object' &&
+        key !== 'eventDonors'
+      )
+    ))].sort();
+
+    // Convert donors to CSV rows
+    const rows = donors.map(donor => 
+      headers.map(header => {
+        const value = donor[header];
+        const cellStr = String(value || '');
+        if (cellStr.includes(',') || cellStr.includes('"') || cellStr.includes('\n')) {
+          return `"${cellStr.replace(/"/g, '""')}"`;
+        }
+        return cellStr;
+      })
+    );
+
+    // Combine headers and rows
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.join(','))
+    ].join('\n');
+
+    // Create blob with BOM for Excel compatibility
+    const BOM = '\uFEFF';
+    const blob = new Blob([BOM + csvContent], { 
+      type: 'text/csv;charset=utf-8'
     });
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.message || `Failed to export donors: ${response.status}`);
-    }
+    // Create object URL
+    const url = window.URL.createObjectURL(blob);
+    
+    // Open in new window to trigger download
+    window.open(url);
+    
+    // Cleanup URL after a delay
+    setTimeout(() => {
+      window.URL.revokeObjectURL(url);
+    }, 1000);
 
-    const blob = await response.blob();
-    return {
-      success: true,
-      data: blob,
-      fileName: `donors_export_${new Date().toISOString().split('T')[0]}.csv`
-    };
+    return { success: true };
   } catch (error) {
     console.error('Error exporting donors:', error);
     throw error;
