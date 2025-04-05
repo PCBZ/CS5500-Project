@@ -5,6 +5,7 @@ import { formatCurrency } from '../../utils/formatters';
 import DonorListItem from './DonorListItem';
 import EditDonorModal from './EditDonorModal';
 import './AllDonors.css';
+import { useHistory } from 'react-router-dom';
 
 const AllDonors = () => {
   const [donors, setDonors] = useState([]);
@@ -36,6 +37,8 @@ const AllDonors = () => {
     tags: ''
   });
   const [showFilters, setShowFilters] = useState(false);
+  
+  const history = useHistory();
   
   // Fetch all donor data
   useEffect(() => {
@@ -430,7 +433,7 @@ const AllDonors = () => {
 
           <button 
             className="add-donor-button"
-            onClick={() => setIsEditModalOpen(true)}
+            onClick={() => history.push('/donors/add')}
           >
             <FaPlus /> Add Donor
           </button>
