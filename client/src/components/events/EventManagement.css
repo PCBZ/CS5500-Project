@@ -756,6 +756,14 @@
   margin-left: 10px;
 }
 
+.view-button {
+  color: #4a90e2; /* blue color for view action */
+}
+
+.view-button:hover {
+  color: #3a70b2;
+}
+
 @keyframes slideIn {
   from {
     transform: translateY(-20px);

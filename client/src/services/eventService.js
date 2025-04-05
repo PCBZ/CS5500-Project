@@ -2,6 +2,8 @@
 // import { PrismaClient } from '@prisma/client';
 
 import { fetchWithAuthMiddleware } from '../middleware/authMiddleware';
+import { toFrontendStatus, toBackendStatus } from '../utils/statusConversion';
+
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000';
 
@@ -517,13 +519,19 @@ export const updateEvent = async (eventId, eventData) => {
       throw new Error('No authentication token found');
     }
 
+    // Convert frontend status to backend status
+    const modifiedEventData = {
+      ...eventData,
+      status: toBackendStatus(eventData.status)
+    };
+
     const response = await fetchWithAuthMiddleware(`${API_URL}/api/events/${eventId}`, {
       method: 'PUT',
       headers: {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify(eventData)
+      body: JSON.stringify(modifiedEventData)
     });
 
     if (!response.ok) {
@@ -531,7 +539,12 @@ export const updateEvent = async (eventId, eventData) => {
     }
 
     const updatedEvent = await response.json();
-    return updatedEvent;
+    
+    // Convert backend status back to frontend status
+    return {
+      ...updatedEvent,
+      status: toFrontendStatus(updatedEvent.status)
+    };
   } catch (error) {
     console.error('Error updating event:', error);
     throw error;
