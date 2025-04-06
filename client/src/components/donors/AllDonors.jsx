@@ -433,13 +433,6 @@ const AllDonors = () => {
           >
             {loading ? <FaSpinner className="spinner" /> : <FaSync />} Refresh
           </button>
-
-          <button 
-            className="add-donor-button"
-            onClick={() => history.push('/donors/add')}
-          >
-            <FaPlus /> Add Donor
-          </button>
         </div>
       </div>
       
