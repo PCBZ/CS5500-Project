@@ -6,6 +6,47 @@ const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000';
 
 const getAuthToken = () => localStorage.getItem('token');
 
+// Helper function to convert JSON data to CSV
+const jsonToCsv = (data, options = {}) => {
+  if (!data || data.length === 0) {
+    throw new Error('No data to export');
+  }
+
+  // Get all unique keys from data, excluding complex objects
+  const headers = [...new Set(data.flatMap(item => 
+    Object.keys(item).filter(key => 
+      !Array.isArray(item[key]) && 
+      typeof item[key] !== 'object' &&
+      !options.excludeFields?.includes(key)
+    )
+  ))].sort();
+
+  // Convert data to CSV rows
+  const rows = data.map(item => 
+    headers.map(header => {
+      const value = item[header];
+      // Handle special characters and wrap in quotes if needed
+      const cellStr = String(value || '');
+      if (cellStr.includes(',') || cellStr.includes('"') || cellStr.includes('\n')) {
+        return `"${cellStr.replace(/"/g, '""')}"`;
+      }
+      return cellStr;
+    })
+  );
+
+  // Combine headers and rows
+  const csvContent = [
+    headers.join(','),
+    ...rows.map(row => row.join(','))
+  ].join('\n');
+
+  // Create blob with BOM for Excel compatibility
+  const BOM = '\uFEFF';
+  return new Blob([BOM + csvContent], { 
+    type: 'text/csv;charset=utf-8'
+  });
+};
+
 /**
  * Import donors from CSV or Excel file
  * @param {FormData} formData - FormData containing the file to import
@@ -552,6 +593,35 @@ export const updateEventDonor = async (eventId, eventDonorId, updateData) => {
 };
 
 /**
+ * Export all donors to CSV
+ * @returns {Promise<Blob>} CSV file as a blob
+ */
+export const exportDonorsToCsv = async () => {
+  try {
+    // First get all donors
+    const response = await getAllDonors({ limit: 1000 });
+    
+    if (!response || !response.data) {
+      throw new Error('No donor data received');
+    }
+
+    const donors = response.data;
+    
+    if (!donors || donors.length === 0) {
+      throw new Error('No donors to export');
+    }
+
+    // Use the generic jsonToCsv function
+    return jsonToCsv(donors, {
+      excludeFields: ['eventDonors']
+    });
+  } catch (error) {
+    console.error('Error exporting donors:', error);
+    throw error;
+  }
+};
+
+/**
  * Export event donors list to CSV
  * @param {string} eventId - Event ID
  * @returns {Promise<Blob>} CSV file as a blob
@@ -657,251 +727,16 @@ export const exportEventDonorsToCsv = async (eventId) => {
     
     console.log(`All donor data fetched, valid data: ${enrichedDonors.length} records`);
     
-    // Print sample data to check structure
-    if (enrichedDonors.length > 0) {
-      console.log('Sample donor data structure:', JSON.stringify(enrichedDonors[0], null, 2));
-    } else {
+    if (enrichedDonors.length === 0) {
       throw new Error('No valid donors to export');
     }
-    
-    // Generate safe filename
-    const safeName = eventName
-      .replace(/[^a-z0-9]/gi, '_')
-      .toLowerCase();
-    const fileName = `${safeName}_donor_data_${new Date().toISOString().slice(0, 10)}.csv`;
-    
-    // Define standard fields (in order) - only include donor fields
-    const standardFields = [
-      { key: 'id', header: 'Donor ID' },
-      { key: ['firstName', 'first_name'], header: 'First Name' },
-      { key: ['lastName', 'last_name'], header: 'Last Name' },
-      { key: ['organizationName', 'organization_name'], header: 'Organization' },
-      { key: 'email', header: 'Email' },
-      { key: 'phone', header: 'Phone' },
-      { key: 'address', header: 'Address' },
-      { key: 'city', header: 'City' },
-      { key: ['state', 'province'], header: 'State/Province' },
-      { key: ['postalCode', 'postal_code', 'zipCode', 'zip_code'], header: 'Postal Code' },
-      { key: 'country', header: 'Country' },
-      { key: ['totalDonations', 'total_donations'], header: 'Total Donations' },
-      { key: ['lastGiftDate', 'last_gift_date'], header: 'Last Gift Date', isDate: true },
-      { key: ['lastGiftAmount', 'last_gift_amount'], header: 'Last Gift Amount' },
-      { key: ['primaryContact', 'primary_contact'], header: 'Primary Contact' },
-      { key: 'notes', header: 'Notes' }
-    ];
-    
-    // List of event donor relationship fields to exclude
-    const eventDonorFields = [
-      'status', 'comments', 'exclude_reason', 'review_date', 'event_id', 
-      'donor_id', 'event_donor_id', 'created_at', 'updated_at', 'tags',
-      'eventDonors', 'auto_excluded', 'donor', 'donorId', 'donor_list_id',
-      'eventId', 'event_donor_list_id'
-    ];
-    
-    // Build available fields set
-    let availableFields = new Set();
-    let dynamicFields = new Map(); // Maps field names to their array index
-    
-    // Check all donors for available fields
-    enrichedDonors.forEach(donor => {
-      // Add all donor object fields to our set (excluding event donor fields)
-      Object.keys(donor).forEach(key => {
-        // Check if this is not an event donor field, not tags and not deceased field
-        if (!eventDonorFields.includes(key) && 
-            key !== 'tags' && 
-            key !== 'deceased' && 
-            key !== 'is_deceased') {
-          availableFields.add(key);
-        }
-      });
+
+    // Use the generic jsonToCsv function
+    return jsonToCsv(enrichedDonors, {
+      excludeFields: ['eventDonors', 'tags', 'deceased', 'is_deceased']
     });
-    
-    console.log('All available donor fields found:', 
-                Array.from(availableFields).sort().join(', '));
-    
-    // Create CSV headers and field mapping
-    const headers = [];
-    
-    // Add standard fields first
-    standardFields.forEach((field, index) => {
-      headers.push(field.header);
-      
-      // For array of possible keys, store the index for each possible key
-      if (Array.isArray(field.key)) {
-        field.key.forEach(k => {
-          dynamicFields.set(k, {
-            index,
-            isDate: field.isDate || false
-          });
-        });
-      } else {
-        dynamicFields.set(field.key, {
-          index,
-          isDate: field.isDate || false
-        });
-      }
-    });
-    
-    // Add any fields found in the data but not in our standard list (excluding event donor fields)
-    const additionalFields = Array.from(availableFields).filter(field => {
-      // Don't include any event donor fields or excluded fields
-      if (eventDonorFields.includes(field) || 
-          field === 'tags' || 
-          field === 'deceased' || 
-          field === 'is_deceased') {
-        return false;
-      }
-      
-      return !standardFields.some(sf => 
-        sf.key === field || (Array.isArray(sf.key) && sf.key.includes(field))
-      );
-    }).sort();
-    
-    // Add these fields to our headers
-    additionalFields.forEach(field => {
-      // Format header: convert snake_case or camelCase to Title Case
-      let header = field.replace(/_/g, ' ').replace(/([A-Z])/g, ' $1')
-                      .replace(/^./, str => str.toUpperCase());
-      
-      headers.push(header);
-      
-      // Add to our dynamic fields map
-      dynamicFields.set(field, {
-        index: headers.length - 1,
-        isDate: field.includes('date') || field.includes('Date')
-      });
-    });
-    
-    console.log('Final CSV headers:', headers);
-    
-    // Format CSV donor data
-    const rows = enrichedDonors.map(donor => {
-      // Prepare array for this row
-      const rowData = new Array(headers.length).fill('');
-      
-      // Process donor object fields
-      Object.entries(donor).forEach(([key, value]) => {
-        // Skip event donor fields
-        if (eventDonorFields.includes(key) || 
-            key === 'tags' || 
-            key === 'deceased' || 
-            key === 'is_deceased') {
-          return;
-        }
-        
-        if (dynamicFields.has(key)) {
-          const fieldInfo = dynamicFields.get(key);
-          let processedValue = value;
-          
-          // Format dates
-          if (fieldInfo.isDate && value) {
-            try {
-              processedValue = new Date(value).toLocaleDateString();
-            } catch (e) {
-              processedValue = value;
-            }
-          }
-          
-          // Handle arrays (although we're skipping tags, keep this for other array fields)
-          if (Array.isArray(value)) {
-            processedValue = value.join('; ');
-          }
-          
-          rowData[fieldInfo.index] = processedValue;
-        }
-      });
-      
-      return rowData;
-    });
-    
-    // Combine headers and rows into CSV content
-    const csvContent = [
-      headers.join(','),
-      ...rows.map(row => row.map(cell => {
-        // Ensure cell is a string
-        const cellStr = cell === null || cell === undefined ? '' : String(cell);
-        // Handle commas, quotes, and newlines in strings
-        if (cellStr.includes(',') || cellStr.includes('"') || cellStr.includes('\n')) {
-          return `"${cellStr.replace(/"/g, '""')}"`;
-        }
-        return cellStr;
-      }).join(','))
-    ].join('\n');
-    
-    // Create and return blob
-    return new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
   } catch (error) {
-    console.error('Error exporting donors to CSV:', error);
-    throw error;
-  }
-};
-
-/**
- * Export all donors to CSV
- * @returns {Promise<Object>} CSV data as blob and success status
- */
-export const exportDonorsToCsv = async () => {
-  try {
-    // First get all donors
-    const response = await getAllDonors({ limit: 1000 });
-    
-    if (!response || !response.data) {
-      throw new Error('No donor data received');
-    }
-
-    const donors = response.data;
-    
-    if (!donors || donors.length === 0) {
-      throw new Error('No donors to export');
-    }
-
-    // Get all unique keys from donors, excluding complex objects
-    const headers = [...new Set(donors.flatMap(donor => 
-      Object.keys(donor).filter(key => 
-        !Array.isArray(donor[key]) && 
-        typeof donor[key] !== 'object' &&
-        key !== 'eventDonors'
-      )
-    ))].sort();
-
-    // Convert donors to CSV rows
-    const rows = donors.map(donor => 
-      headers.map(header => {
-        const value = donor[header];
-        const cellStr = String(value || '');
-        if (cellStr.includes(',') || cellStr.includes('"') || cellStr.includes('\n')) {
-          return `"${cellStr.replace(/"/g, '""')}"`;
-        }
-        return cellStr;
-      })
-    );
-
-    // Combine headers and rows
-    const csvContent = [
-      headers.join(','),
-      ...rows.map(row => row.join(','))
-    ].join('\n');
-
-    // Create blob with BOM for Excel compatibility
-    const BOM = '\uFEFF';
-    const blob = new Blob([BOM + csvContent], { 
-      type: 'text/csv;charset=utf-8'
-    });
-
-    // Create object URL
-    const url = window.URL.createObjectURL(blob);
-    
-    // Open in new window to trigger download
-    window.open(url);
-    
-    // Cleanup URL after a delay
-    setTimeout(() => {
-      window.URL.revokeObjectURL(url);
-    }, 1000);
-
-    return { success: true };
-  } catch (error) {
-    console.error('Error exporting donors:', error);
+    console.error('Error exporting event donors:', error);
     throw error;
   }
 };

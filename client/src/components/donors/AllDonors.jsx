@@ -199,26 +199,29 @@ const AllDonors = () => {
     setExporting(true);
     
     try {
-      const result = await exportDonorsToCsv();
+      // Call export function to generate CSV
+      const blob = await exportDonorsToCsv();
       
-      if (result.success) {
-        // Create download link
-        const url = window.URL.createObjectURL(new Blob([result.data]));
-        const link = document.createElement('a');
-        link.href = url;
-        link.setAttribute('download', result.fileName || 'all_donors.csv');
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        
-        setSuccess('Export successful!');
-        setTimeout(() => setSuccess(''), 3000);
-      } else {
-        throw new Error(result.message || 'Export failed');
-      }
-    } catch (err) {
-      console.error('Export failed:', err);
-      setError('Failed to export donor data: ' + (err.message || 'Unknown error'));
+      // Create download link
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      
+      // Set download attributes
+      link.href = url;
+      link.setAttribute('download', `all_donors_${new Date().toISOString().slice(0, 10)}.csv`);
+      document.body.appendChild(link);
+      
+      // Trigger download and clean up DOM
+      link.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(link);
+      
+      // Show success message
+      setSuccess('Successfully exported all donor data');
+      setTimeout(() => setSuccess(''), 5000);
+    } catch (error) {
+      console.error('Failed to export donors:', error);
+      setError('Failed to export donor data: ' + (error.message || 'Unknown error'));
       setTimeout(() => setError(null), 5000);
     } finally {
       setExporting(false);
