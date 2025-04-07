@@ -12,7 +12,7 @@ const Navbar = () => {
   return (
     <nav className="navbar">
       <div className="navbar-brand">
-        <Link to="/" className="brand-link">BC Cancer Foundation</Link>
+        <span className="brand-text">BC Cancer Foundation</span>
       </div>
       
       <div className="navbar-menu">
