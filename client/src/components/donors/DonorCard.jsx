@@ -47,7 +47,7 @@ const DonorCard = ({
           <button 
             className="remove-donor-button"
             onClick={(e) => {
-              e.stopPropagation(); // Prevent card expansion when clicking remove
+              e.stopPropagation(); // 只在删除按钮上阻止冒泡
               onRemove(eventDonorId);
             }}
             disabled={loading || !isEventReady}
@@ -74,7 +74,7 @@ const DonorCard = ({
               <button 
                 className="edit-status-button"
                 onClick={(e) => {
-                  e.stopPropagation(); // Prevent card expansion when clicking edit
+                  e.stopPropagation(); // 只在编辑按钮上阻止冒泡
                   onStatusUpdate({
                     ...donor,
                     id: eventDonorId,

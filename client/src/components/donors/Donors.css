@@ -414,8 +414,15 @@ button {
 
 .donors-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fill, 280px);
   gap: 24px;
+  justify-content: space-between;
+  align-items: start;
+}
+
+.donor-card {
+  height: fit-content;
+  align-self: start;
 }
 
 /* Loading and error states */
@@ -860,6 +867,12 @@ button {
 }
 
 /* Responsive design */
+@media (max-width: 1200px) {
+  .donors-grid {
+    justify-content: center;
+  }
+}
+
 @media (max-width: 992px) {
   .donors-content {
     grid-template-columns: 1fr;

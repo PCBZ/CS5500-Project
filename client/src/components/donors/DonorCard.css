@@ -1,5 +1,5 @@
 .donor-card {
-  background: white;
+  background: #F1F5FF;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
   margin-bottom: 1rem;
@@ -7,6 +7,8 @@
   cursor: pointer;
   border: 1px solid rgba(0, 0, 0, 0.05);
   overflow: hidden;
+  position: relative;
+  will-change: transform, height;
 }
 
 .donor-card:hover {
@@ -23,7 +25,9 @@
   justify-content: space-between;
   align-items: center;
   padding: 1rem;
-  background: #F1F5FF;
+  min-height: 3.5rem;
+  position: relative;
+  z-index: 1;
 }
 
 .donor-card-header-left {
@@ -95,6 +99,8 @@
   padding: 1rem;
   border-top: 1px solid #E3E8F4;
   animation: slideDown 0.3s ease-out;
+  position: relative;
+  z-index: 0;
 }
 
 @keyframes slideDown {
