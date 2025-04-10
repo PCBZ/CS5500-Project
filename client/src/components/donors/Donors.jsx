@@ -53,6 +53,8 @@ const Donors = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isAddingDonorToList, setIsAddingDonorToList] = useState(null);
   const [modalSearchQuery, setModalSearchQuery] = useState('');
+  const [recommendedDonors, setRecommendedDonors] = useState([]);
+  const [otherDonors, setOtherDonors] = useState([]);
 
   // Set up mock token for development
   useEffect(() => {
@@ -286,20 +288,21 @@ const Donors = () => {
   const handleOpenAddDonorModal = async () => {
     if (!selectedEvent) return;
     
-    setShowAddDonorModal(true); // 立即显示模态窗口，同时加载数据
+    setShowAddDonorModal(true);
     setLoading(prev => ({ ...prev, availableDonors: true }));
     setError(prev => ({ ...prev, availableDonors: null }));
     
     try {
-      // 获取未添加到事件的捐赠者
       const result = await getAvailableDonors(selectedEvent.id, {
         page: 1,
         limit: 100
       });
       
-      setAvailableDonors(result.data || []);
+      setRecommendedDonors(result.recommendedDonors || []);
+      setOtherDonors(result.otherDonors || []);
+      setAvailableDonors([...result.recommendedDonors, ...result.otherDonors]);
       
-      if (result.data.length === 0) {
+      if (result.recommendedDonors.length === 0 && result.otherDonors.length === 0) {
         setError(prev => ({ 
           ...prev, 
           availableDonors: 'No donors available to add. All donors may have already been added to this event.' 
@@ -311,8 +314,8 @@ const Donors = () => {
         ...prev, 
         availableDonors: 'Failed to fetch available donors: ' + (error.message || 'Unknown error')
       }));
-      
-      // 重置可用捐赠者列表
+      setRecommendedDonors([]);
+      setOtherDonors([]);
       setAvailableDonors([]);
     } finally {
       setLoading(prev => ({ ...prev, availableDonors: false }));
@@ -998,44 +1001,102 @@ const filteredAvailableDonors = availableDonors.filter(donor => {
                   )}
                 </button>
               </div>
-              
+
               {loading.availableDonors ? (
                 <div className="loading-container">
                   <div className="loading-spinner-large"></div>
                   <p>Loading available donors...</p>
                 </div>
-              ) : filteredAvailableDonors.length === 0 ? (
-                <div className="no-donors-message">
-                  <p>No donors available to add</p>
+              ) : error.availableDonors ? (
+                <div className="error-message">
+                  <p>{error.availableDonors}</p>
                 </div>
               ) : (
-                <div className="available-donors-list">
-                  {filteredAvailableDonors.map(donor => (
-                    <div key={donor.id} className="donor-item">
-                      <div className="donor-info">
-                        <p className="donor-name">
-                          {donor.firstName} {donor.lastName}
-                          {donor.organizationName && <span> ({donor.organizationName})</span>}
-                        </p>
-                        <p className="donor-details">
-                          <span>Total Donations: ${donor.totalDonations?.toLocaleString() || 0}</span>
-                          {donor.city && <span> | {donor.city}</span>}
-                        </p>
+                <>
+                  {/* Recommended Donors Section */}
+                  {recommendedDonors.length > 0 && (
+                    <div className="recommended-section">
+                      <h4>Recommended Donors</h4>
+                      <div className="donors-grid">
+                        {recommendedDonors
+                          .filter(donor => {
+                            const searchTerm = modalSearchQuery.toLowerCase();
+                            return (
+                              donor.firstName?.toLowerCase().includes(searchTerm) ||
+                              donor.lastName?.toLowerCase().includes(searchTerm) ||
+                              donor.organizationName?.toLowerCase().includes(searchTerm)
+                            );
+                          })
+                          .map(donor => (
+                            <div key={donor.id} className="donor-item recommended">
+                              <div className="donor-info">
+                                <p className="donor-name">
+                                  {donor.firstName} {donor.lastName}
+                                  {donor.organizationName && <span> ({donor.organizationName})</span>}
+                                </p>
+                                <p className="donor-details">
+                                  <span>Total Donations: ${donor.totalDonations?.toLocaleString() || 0}</span>
+                                  {donor.city && <span> | {donor.city}</span>}
+                                </p>
+                              </div>
+                              <button
+                                className="add-button"
+                                onClick={() => handleAddDonorToList(donor)}
+                                disabled={isAddingDonorToList === donor.id}
+                              >
+                                {isAddingDonorToList === donor.id ? (
+                                  <span className="button-loading">Adding...</span>
+                                ) : (
+                                  'Add to List'
+                                )}
+                              </button>
+                            </div>
+                          ))}
                       </div>
-                      <button
-                        className="add-button"
-                        onClick={() => handleAddDonorToList(donor)}
-                        disabled={isAddingDonorToList === donor.id}
-                      >
-                        {isAddingDonorToList === donor.id ? (
-                          <span className="button-loading">Adding...</span>
-                        ) : (
-                          'Add to List'
-                        )}
-                      </button>
                     </div>
-                  ))}
-                </div>
+                  )}
+
+                  {/* Other Available Donors Section */}
+                  <div className="all-donors-section">
+                    <h4>All Available Donors</h4>
+                    <div className="available-donors-list">
+                      {otherDonors
+                        .filter(donor => {
+                          const searchTerm = modalSearchQuery.toLowerCase();
+                          return (
+                            donor.firstName?.toLowerCase().includes(searchTerm) ||
+                            donor.lastName?.toLowerCase().includes(searchTerm) ||
+                            donor.organizationName?.toLowerCase().includes(searchTerm)
+                          );
+                        })
+                        .map(donor => (
+                          <div key={donor.id} className="donor-item">
+                            <div className="donor-info">
+                              <p className="donor-name">
+                                {donor.firstName} {donor.lastName}
+                                {donor.organizationName && <span> ({donor.organizationName})</span>}
+                              </p>
+                              <p className="donor-details">
+                                <span>Total Donations: ${donor.totalDonations?.toLocaleString() || 0}</span>
+                                {donor.city && <span> | {donor.city}</span>}
+                              </p>
+                            </div>
+                            <button
+                              className="add-button"
+                              onClick={() => handleAddDonorToList(donor)}
+                              disabled={isAddingDonorToList === donor.id}
+                            >
+                              {isAddingDonorToList === donor.id ? (
+                                <span className="button-loading">Adding...</span>
+                              ) : (
+                                'Add to List'
+                              )}
+                            </button>
+                          </div>
+                        ))}
+                    </div>
+                  </div>
+                </>
               )}
             </div>
           </div>

@@ -1653,4 +1653,79 @@ router.patch('/:eventId/donors/:donorId/status', protect, async (req, res) => {
   }
 });
 
+/**
+ * Get available donors for an event with recommendations
+ * 
+ * @name GET /api/events/:eventId/available-donors
+ * @function
+ * @memberof module:EventAPI
+ * @inner
+ * @param {string} req.params.eventId - Event ID
+ * @returns {Object} 200 - Available donors with recommendations
+ */
+router.get('/:eventId/available-donors', protect, async (req, res) => {
+  try {
+    const eventId = parseInt(req.params.eventId);
+
+    // 获取事件信息
+    const event = await prisma.event.findUnique({
+      where: { id: eventId }
+    });
+
+    if (!event) {
+      return res.status(404).json({ message: 'Event not found' });
+    }
+
+    // 获取已添加到事件的捐赠者ID列表
+    const existingDonors = await prisma.eventDonor.findMany({
+      where: {
+        donorList: {
+          eventId: eventId
+        }
+      },
+      select: {
+        donorId: true
+      }
+    });
+
+    const existingDonorIds = existingDonors.map(d => d.donorId);
+
+    // 获取可用捐赠者
+    const availableDonors = await prisma.donor.findMany({
+      where: {
+        AND: [
+          { excluded: false },
+          { deceased: false },
+          { 
+            id: {
+              notIn: existingDonorIds
+            }
+          }
+        ]
+      },
+      orderBy: {
+        totalDonations: 'desc'
+      }
+    });
+
+    // 分类捐赠者
+    const recommendedDonors = availableDonors
+      .filter(donor => donor.city === event.location)
+      .slice(0, 5);
+
+    const otherDonors = availableDonors
+      .filter(donor => donor.city !== event.location);
+
+    res.json({
+      event,
+      recommendedDonors,
+      otherDonors
+    });
+
+  } catch (error) {
+    console.error('Error fetching available donors:', error);
+    res.status(500).json({ message: 'Internal server error', error: error.message });
+  }
+});
+
 export default router;

@@ -1606,4 +1606,43 @@ button {
   to {
     transform: rotate(360deg);
   }
+}
+
+/* Recommended Donors Section */
+.recommended-section {
+  margin-bottom: 24px;
+  padding: 16px;
+  background-color: #f0f4ff;
+  border-radius: 8px;
+  border: 1px solid #e0e7ff;
+}
+
+.recommended-section h4 {
+  color: #4a5568;
+  margin-bottom: 16px;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.donor-item.recommended {
+  background-color: white;
+  border: 2px solid #4f46e5;
+  transition: all 0.3s ease;
+}
+
+.donor-item.recommended:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.15);
+}
+
+/* All Donors Section */
+.all-donors-section {
+  margin-top: 24px;
+}
+
+.all-donors-section h4 {
+  color: #4a5568;
+  margin-bottom: 16px;
+  font-size: 16px;
+  font-weight: 600;
 } 
