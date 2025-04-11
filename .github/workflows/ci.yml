@@ -1,0 +1,39 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, FE_dev ]
+  pull_request:
+    branches: [ main, FE_dev ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm run install:all
+
+    - name: Run client tests
+      working-directory: ./client
+      run: npm test -- --watchAll=false
+
+    - name: Run server tests
+      working-directory: ./Server
+      run: npm test
+
+    - name: Build client
+      working-directory: ./client
+      run: npm run build
+
+    - name: Build server
+      working-directory: ./Server
+      run: npm run build 
