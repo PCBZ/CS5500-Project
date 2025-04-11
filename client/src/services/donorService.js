@@ -46,13 +46,13 @@ const jsonToCsv = (data, options = {}) => {
     type: 'text/csv;charset=utf-8'
   });
 };
-
 /**
- * Import donors from CSV or Excel file
+ * Import donors from CSV or Excel file with progress tracking
  * @param {FormData} formData - FormData containing the file to import
+ * @param {Function} onProgress - Callback function for progress updates (0-100)
  * @returns {Promise<Object>} Import results
  */
-export const importDonors = async (formData) => {
+export const importDonors = async (formData, onProgress) => {
   try {
     const token = localStorage.getItem('token');
     if (!token) {
@@ -61,48 +61,103 @@ export const importDonors = async (formData) => {
 
     console.log('Starting donor import process');
     
-    // Make the API call to the import endpoint
-    const response = await fetch(`${API_URL}/api/donors/import`, {
-      method: 'POST',
-      headers: {
-        // Don't set Content-Type header when using FormData
-        // The browser will set the correct Content-Type with boundary
-        'Authorization': `Bearer ${token}`
-      },
-      body: formData
-    });
-
-    // Check if response is not JSON (e.g., HTML error page from session timeout)
-    const contentType = response.headers.get('content-type');
-    if (!contentType || !contentType.includes('application/json')) {
-      // Get full response for debugging
-      const responseText = await response.text();
-      console.error('Received non-JSON response:', responseText);
+    // Create XMLHttpRequest to track upload progress
+    return new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
       
-      // Check if it's a login page redirect
-      if (responseText.includes('<!DOCTYPE') || responseText.includes('<html')) {
-        throw new Error('Your session has expired. Please refresh the page and login again.');
-      } else {
-        throw new Error(`Server returned non-JSON response. Status: ${response.status}`);
-      }
-    }
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      console.error('Import failed:', errorData);
-      throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
-    }
-
-    const data = await response.json();
-    console.log('Import completed successfully:', data);
-    
-    return {
-      success: true,
-      imported: data.imported || 0,
-      updated: data.updated || 0, 
-      errors: data.errors || [],
-      message: data.message || 'Import completed successfully'
-    };
+      // Set up progress tracking
+      xhr.upload.onprogress = (event) => {
+        if (event.lengthComputable && onProgress) {
+          // First 50% of progress is for the file upload
+          const uploadProgress = (event.loaded / event.total) * 50;
+          onProgress(uploadProgress);
+        }
+      };
+      
+      // Set up completion handler
+      xhr.onreadystatechange = async () => {
+        if (xhr.readyState !== 4) return;
+        
+        if (xhr.status >= 200 && xhr.status < 300) {
+          try {
+            // Check if response is JSON
+            const contentType = xhr.getResponseHeader('content-type');
+            if (!contentType || !contentType.includes('application/json')) {
+              const responseText = xhr.responseText;
+              console.error('Received non-JSON response:', responseText);
+              
+              if (responseText.includes('<!DOCTYPE') || responseText.includes('<html')) {
+                reject(new Error('Your session has expired. Please refresh the page and login again.'));
+              } else {
+                reject(new Error(`Server returned non-JSON response. Status: ${xhr.status}`));
+              }
+              return;
+            }
+            
+            // Parse the response
+            const data = JSON.parse(xhr.responseText);
+            console.log('Import completed successfully:', data);
+            
+            // Set progress to 100% when complete
+            if (onProgress) onProgress(100);
+            
+            resolve({
+              success: true,
+              imported: data.imported || 0,
+              updated: data.updated || 0, 
+              errors: data.errors || [],
+              message: data.message || 'Import completed successfully'
+            });
+          } catch (error) {
+            console.error('Error processing response:', error);
+            reject(error);
+          }
+        } else {
+          // Handle error response
+          try {
+            const errorData = JSON.parse(xhr.responseText);
+            reject(new Error(errorData.message || `HTTP error! status: ${xhr.status}`));
+          } catch (e) {
+            reject(new Error(`HTTP error! status: ${xhr.status}`));
+          }
+        }
+      };
+      
+      // Set up error handler
+      xhr.onerror = () => {
+        reject(new Error('Network error occurred during file upload'));
+      };
+      
+      // Set up simulated processing progress (for the server-side processing part)
+      let processingInterval;
+      xhr.onloadstart = () => {
+        if (onProgress) {
+          // Start a timer to simulate processing progress from 50% to 90%
+          // (the final 10% will be set when the response is received)
+          let currentProgress = 50;
+          processingInterval = setInterval(() => {
+            // Increment progress in smaller steps for smoother experience
+            currentProgress += 0.5;
+            if (currentProgress < 90) {
+              onProgress(currentProgress);
+            } else {
+              clearInterval(processingInterval);
+            }
+          }, 300); // Update every 300ms
+        }
+      };
+      
+      xhr.onloadend = () => {
+        if (processingInterval) {
+          clearInterval(processingInterval);
+        }
+      };
+      
+      // Open and send the request
+      xhr.open('POST', `${API_URL}/api/donors/import`, true);
+      xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+      xhr.send(formData);
+    });
   } catch (error) {
     console.error('Error importing donors:', error);
     return {

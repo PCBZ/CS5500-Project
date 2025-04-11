@@ -24,6 +24,7 @@ const AllDonors = () => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [selectedDonor, setSelectedDonor] = useState(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [importProgress, setImportProgress] = useState(0);
 
   const fileInputRef = useRef(null);
   
@@ -85,7 +86,6 @@ const AllDonors = () => {
     fileInputRef.current.click();
   };
 
-  // Handle import file change
   const handleFileChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -110,6 +110,7 @@ const AllDonors = () => {
     
     setImporting(true);
     setError(null);
+    setImportProgress(0); // Initialize progress to 0
     
     try {
       const formData = new FormData();
@@ -122,7 +123,10 @@ const AllDonors = () => {
         formData.append('fileType', 'excel');
       }
       
-      const result = await importDonors(formData);
+      // Pass the progress callback to importDonors
+      const result = await importDonors(formData, (progress) => {
+        setImportProgress(progress);
+      });
       
       if (result.success) {
         setSuccess(`Import successful! Imported ${result.imported} records, updated ${result.updated} records.`);
@@ -147,6 +151,7 @@ const AllDonors = () => {
       setTimeout(() => setError(null), 5000);
     } finally {
       setImporting(false);
+      setImportProgress(0); // Reset progress
       e.target.value = null; // Reset file input
     }
   };
@@ -399,6 +404,27 @@ const AllDonors = () => {
               </>
             )}
           </button>
+
+          {importing && (
+          <div className="import-progress-container">
+            <div className="import-progress-info">
+              <span className="import-progress-percentage">
+                {Math.round(importProgress)}%
+              </span>
+              <span className="import-progress-status">
+                {importProgress < 50 ? 'Uploading file...' : 
+                importProgress < 90 ? 'Processing donors...' : 
+                importProgress < 100 ? 'Finalizing...' : 'Complete!'}
+              </span>
+            </div>
+            <div className="import-progress-bar-wrapper">
+              <div 
+                className="import-progress-bar" 
+                style={{ width: `${importProgress}%` }}
+              ></div>
+            </div>
+          </div>
+        )}
 
           <input
             type="file"
