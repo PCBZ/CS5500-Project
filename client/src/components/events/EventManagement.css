@@ -18,6 +18,30 @@
   --transition: all 0.3s ease;
 }
 
+.custom-date-range {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.date-input-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.date-input-group label {
+  font-size: 0.8rem;
+  margin-bottom: 3px;
+  color: #666;
+}
+
+.date-input-group input {
+  padding: 6px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
 .event-management-container {
   width: 100%;
   max-width: 1200px;
