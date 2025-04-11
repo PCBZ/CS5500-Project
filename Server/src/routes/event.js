@@ -1,6 +1,7 @@
 import express from 'express';
 import { PrismaClient } from '@prisma/client';
 import { protect } from '../middleware/auth.js';
+import { formatDonor } from './donor.js';
 
 /**
  * @module EventAPI
@@ -1650,6 +1651,172 @@ router.patch('/:eventId/donors/:donorId/status', protect, async (req, res) => {
   } catch (error) {
     console.error('Error updating event donor status:', error);
     res.status(500).json({ message: 'Failed to update event donor status: ' + error.message });
+  }
+});
+
+/**
+ * Get available donors for an event
+ * 
+ * @name GET /api/events/:id/available-donors
+ * @function
+ * @memberof module:EventAPI
+ * @inner
+ * @param {string} req.params.id - Event ID
+ * @param {string} [req.query.page=1] - Page number for pagination
+ * @param {string} [req.query.limit=20] - Number of items per page
+ * @param {string} [req.query.search] - Search term for donor name or attributes
+ * @param {string} [req.query.city] - Filter by city
+ * @param {string} [req.query.minDonation] - Filter by minimum total donation amount
+ * @param {string} [req.query.tags] - Filter by tags (comma-separated)
+ * @param {string} req.headers.authorization - Bearer token for authentication
+ * @returns {Object} 200 - Available donors with pagination info
+ * @returns {Error} 400 - Invalid event ID format
+ * @returns {Error} 401 - Unauthorized access
+ * @returns {Error} 404 - Event not found
+ * @returns {Error} 500 - Server error
+ * 
+ * @example
+ * // Request
+ * GET /api/events/1/available-donors?page=1&limit=10&search=John&city=Vancouver
+ * Authorization: Bearer <token>
+ * 
+ * // Success Response
+ * {
+ *   "donors": [
+ *     {
+ *       "id": 201,
+ *       "first_name": "John",
+ *       "last_name": "Doe",
+ *       "organization_name": null,
+ *       "total_donations": 5000,
+ *       "city": "Vancouver",
+ *       "tags": ["High Priority", "Cancer Research Interest"]
+ *     }
+ *   ],
+ *   "total": 1,
+ *   "page": 1,
+ *   "limit": 10,
+ *   "pages": 1
+ * }
+ */
+router.get('/:id/available-donors', protect, async (req, res) => {
+  try {
+    let eventId;
+    try {
+      eventId = parseInt(req.params.id); 
+      if (isNaN(eventId)) {
+        return res.status(400).json({ message: 'Invalid event ID format' });
+      }
+    } catch (error) {
+      return res.status(400).json({ message: 'Invalid event ID format' });
+    }
+
+    // Verify event exists
+    const event = await prisma.event.findUnique({
+      where: { id: eventId, isDeleted: false }
+    });
+
+    if (!event) {
+      return res.status(404).json({ message: 'Event not found' });
+    }
+
+    // Get pagination and filter parameters
+    const {
+      page = '1',
+      limit = '20',
+      search = '',
+      city = '',
+      minDonation = '',
+      tags = ''
+    } = req.query;
+
+    const pageNum = parseInt(page);
+    const limitNum = parseInt(limit);
+    const skip = (pageNum - 1) * limitNum;
+
+    // Build base where clause for donors
+    const where = {
+      excluded: false,
+      deceased: false
+    };
+
+    // Add search conditions
+    if (search) {
+      const searchLower = search.toLowerCase();
+      where.OR = [
+        { firstName: { contains: searchLower } },
+        { lastName: { contains: searchLower } },
+        { organizationName: { contains: searchLower } }
+      ];
+    }
+
+    // Add city filter
+    if (city) {
+      where.city = city;
+    }
+
+    // Add minimum donation filter
+    if (minDonation) {
+      where.totalDonations = {
+        gte: parseFloat(minDonation)
+      };
+    }
+
+    // Add tags filter
+    if (tags) {
+      const tagArray = tags.split(',').map(tag => tag.trim());
+      where.tags = {
+        contains: tagArray.join(',')
+      };
+    }
+
+    // Get donors already in the event
+    const eventDonors = await prisma.eventDonor.findMany({
+      where: {
+        donorList: {
+          eventId: eventId
+        }
+      },
+      select: {
+        donorId: true
+      }
+    });
+
+    const existingDonorIds = eventDonors.map(ed => ed.donorId);
+
+    // Add exclusion for existing donors
+    if (existingDonorIds.length > 0) {
+      where.NOT = {
+        id: {
+          in: existingDonorIds
+        }
+      };
+    }
+
+    // Get total count for pagination
+    const total = await prisma.donor.count({ where });
+
+    // Get available donors
+    const donors = await prisma.donor.findMany({
+      where,
+      skip,
+      take: limitNum,
+      orderBy: {
+        totalDonations: 'desc'
+      }
+    });
+
+    // Format response
+    res.json({
+      donors: formatDonor(donors),
+      total,
+      page: pageNum,
+      limit: limitNum,
+      pages: Math.ceil(total / limitNum)
+    });
+  } catch (error) {
+    console.error('Error fetching available donors:', error);
+    res.status(500).json({ message: 'Internal server error', error: error.message });
   }
 });
 
