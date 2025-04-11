@@ -36,7 +36,7 @@ const upload = multer({ storage });
  * @returns {Object} Formatted donor object with stringified ID
  * @private
  */
-const formatDonor = (donor) => {
+export const formatDonor = (donor) => {
   if (!donor) return null;
   
   // Handle single donor
