@@ -6,6 +6,7 @@ import { useLocation } from 'react-router-dom';
 import './Donors.css';
 import DonorCard from './DonorCard';
 import EventDetail from './EventDetail';
+import AddDonorModal from './AddDonorModal';
 
 // Temporary workaround to ensure mock data works without authentication
 // REMOVE THIS FOR PRODUCTION
@@ -57,6 +58,7 @@ const Donors = () => {
   const [modalTotalPages, setModalTotalPages] = useState(1);
   const [modalTotalDonors, setModalTotalDonors] = useState(0);
   const [modalItemsPerPage, setModalItemsPerPage] = useState(10);
+  const [selectedDonors, setSelectedDonors] = useState([]);
 
   // Set up mock token for development
   useEffect(() => {
@@ -192,8 +194,6 @@ const Donors = () => {
           return; // Exit early
         }
       }
-
-      console.log('$$$$$response.data$$$$$', response.data);
       
       // Process the donors data normally
       setEventDonors(response.data || []);
@@ -720,18 +720,21 @@ const Donors = () => {
 
   // 过滤可用捐赠者列表
   const filteredAvailableDonors = availableDonors.filter(donor => {
+    if (!donor || typeof donor !== 'object') {
+      console.warn('Invalid donor object:', donor);
+      return false;
+    }
+    
     const searchTerm = modalSearchQuery.toLowerCase();
     
     // 安全地访问可能为null的字段
-    const firstName = donor.firstName || '';
-    const lastName = donor.lastName || '';
-    const organizationName = donor.organizationName || '';
+    const firstName = String(donor.firstName || '').toLowerCase();
+    const lastName = String(donor.lastName || '').toLowerCase();
+    const organizationName = String(donor.organizationName || '').toLowerCase();
     
-    return (
-      firstName.toLowerCase().includes(searchTerm) ||
-      lastName.toLowerCase().includes(searchTerm) ||
-      organizationName.toLowerCase().includes(searchTerm)
-    );
+    return firstName.includes(searchTerm) ||
+      lastName.includes(searchTerm) ||
+      organizationName.includes(searchTerm);
   });
 
   const handleAddDonorToList = async (donor) => {
@@ -778,6 +781,56 @@ const Donors = () => {
     } finally {
       setLoading(prev => ({ ...prev, availableDonors: false }));
     }
+  };
+
+  // 添加批量添加捐赠者的函数
+  const handleAddMultipleDonors = async () => {
+    if (!selectedEvent || selectedDonors.length === 0) return;
+    
+    try {
+      setLoading(prev => ({ ...prev, donors: true }));
+      
+      // 批量添加捐赠者
+      await Promise.all(selectedDonors.map(donor => 
+        addDonorToEvent(selectedEvent.id, donor.id)
+      ));
+      
+      setSuccess(`${selectedDonors.length} donors added successfully!`);
+      setTimeout(() => setSuccess(''), 3000);
+      
+      // 更新UI
+      await Promise.all([
+        fetchEventDonors(),
+        handleRefreshAvailableDonors(),
+        fetchEventStats()
+      ]);
+      
+      // 清空选中状态
+      setSelectedDonors([]);
+    } catch (err) {
+      setError(prev => ({ ...prev, donors: err.message }));
+    } finally {
+      setLoading(prev => ({ ...prev, donors: false }));
+    }
+  };
+
+  // 添加处理选中状态的函数
+  const handleDonorSelect = (donor) => {
+    setSelectedDonors(prev => {
+      const isSelected = prev.some(d => d.id === donor.id);
+      if (isSelected) {
+        return prev.filter(d => d.id !== donor.id);
+      } else {
+        return [...prev, donor];
+      }
+    });
+  };
+
+  const handleDonorAdded = (donor) => {
+    // Implement the logic to add the new donor to the available donors list
+    setAvailableDonors(prev => [...prev, donor]);
+    setSuccess('Donor added successfully!');
+    setTimeout(() => setSuccess(''), 3000);
   };
 
   return (
@@ -1015,103 +1068,12 @@ const Donors = () => {
       </div>
 
       {/* Add Donor Modal */}
-      {showAddDonorModal && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <div className="modal-header">
-              <h3>Add Donor</h3>
-              <button className="close-button" onClick={handleCloseModal}>×</button>
-            </div>
-            <div className="modal-body">
-              <div className="modal-header-actions">
-                <div className="modal-search-container">
-                  <input
-                    type="text"
-                    placeholder="Search available donors..."
-                    value={modalSearchQuery}
-                    onChange={handleModalSearch}
-                    className="modal-search-input"
-                  />
-                </div>
-                <button 
-                  className="refresh-button-icon" 
-                  onClick={handleRefreshAvailableDonors}
-                  disabled={isRefreshing}
-                  title="Refresh List"
-                >
-                  {isRefreshing ? (
-                    <FaSpinner className="spinner" />
-                  ) : (
-                    <FaSync />
-                  )}
-                </button>
-              </div>
-              
-              {loading.availableDonors ? (
-                <div className="loading-container">
-                  <div className="loading-spinner-large"></div>
-                  <p>Loading available donors...</p>
-                </div>
-              ) : filteredAvailableDonors.length === 0 ? (
-                <div className="no-donors-message">
-                  <p>No donors available to add</p>
-                </div>
-              ) : (
-                <>
-                  <div className="available-donors-list">
-                    {filteredAvailableDonors.map(donor => (
-                      <div key={donor.id} className="donor-item">
-                        <div className="donor-info">
-                          <p className="donor-name">
-                            {donor.firstName} {donor.lastName}
-                            {donor.organizationName && <span> ({donor.organizationName})</span>}
-                          </p>
-                          <p className="donor-details">
-                            <span>Total Donations: ${donor.totalDonations?.toLocaleString() || 0}</span>
-                            {donor.city && <span> | {donor.city}</span>}
-                          </p>
-                        </div>
-                        <button
-                          className="add-button"
-                          onClick={() => handleAddDonorToList(donor)}
-                          disabled={isAddingDonorToList === donor.id}
-                        >
-                          {isAddingDonorToList === donor.id ? (
-                            <span className="button-loading">Adding...</span>
-                          ) : (
-                            'Add to List'
-                          )}
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                  
-                  {/* Pagination controls */}
-                  <div className="modal-pagination">
-                    <button
-                      className="pagination-button"
-                      onClick={() => handleModalPageChange(modalCurrentPage - 1)}
-                      disabled={modalCurrentPage === 1}
-                    >
-                      Previous
-                    </button>
-                    <span className="pagination-info">
-                      Page {modalCurrentPage} of {modalTotalPages}
-                    </span>
-                    <button
-                      className="pagination-button"
-                      onClick={() => handleModalPageChange(modalCurrentPage + 1)}
-                      disabled={modalCurrentPage === modalTotalPages}
-                    >
-                      Next
-                    </button>
-                  </div>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
+      <AddDonorModal
+        isOpen={showAddDonorModal}
+        onClose={() => setShowAddDonorModal(false)}
+        eventId={selectedEvent?.id}
+        onDonorAdded={handleDonorAdded}
+      />
 
       {/* Status Edit Modal */}
       {showStatusModal && selectedDonor && (
