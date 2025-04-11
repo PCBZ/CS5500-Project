@@ -126,6 +126,15 @@ const Donors = () => {
     }
   };
 
+  const handleRelatedEventSelect = (event) => {
+    if (!event || event.id === selectedEvent?.id) return;
+    
+    setSelectedEvent(event);
+    setCurrentPage(1);
+    setSearchQuery('');
+    setStatusFilter('');
+  };
+
   // Fetch donors for selected event
   const fetchEventDonors = async () => {
     if (!selectedEvent) return;
@@ -1064,6 +1073,8 @@ const Donors = () => {
           error={error}
           fetchEvents={fetchEvents}
           formatDate={formatDate}
+          events={events} // 添加所有事件数据
+          onEventSelect={handleRelatedEventSelect} // 添加事件选择处理函数
         />
       </div>
 
