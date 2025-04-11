@@ -1,6 +1,23 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { FaSearch, FaSpinner, FaDownload, FaSync, FaCheckCircle, FaFilter, FaUpload, FaEdit, FaTrash } from 'react-icons/fa';
-import { getAllDonors, exportDonorsToCsv, updateDonor, deleteDonor } from '../../services/donorService';
+import {
+  FaSearch,
+  FaSpinner,
+  FaDownload,
+  FaSync,
+  FaCheckCircle,
+  FaFilter,
+  FaUpload,
+  FaEdit,
+  FaTrash,
+  FaPlus
+} from 'react-icons/fa';
+import {
+  getAllDonors,
+  exportDonorsToCsv,
+  updateDonor,
+  importDonors,
+  deleteDonor
+} from '../../services/donorService';
 import { formatCurrency } from '../../utils/formatters';
 import DonorListItem from './DonorListItem';
 import EditDonorModal from './EditDonorModal';
@@ -31,7 +48,7 @@ const AllDonors = () => {
 
   const fileInputRef = useRef(null);
   
-  // 添加过滤器状态
+  // Filter state
   const [filters, setFilters] = useState({
     city: '',
     minDonation: '',
@@ -40,20 +57,19 @@ const AllDonors = () => {
     deceased: '',
     tags: ''
   });
-  const [showFilters, setShowFilters] = useState(false);
-  
+  // Remove toggling; the filter panel will always be visible.
+  // (If you still have a toggleFilters function/state elsewhere, ignore it.)
+
   const history = useHistory();
   
-  // Fetch all donor data
+  // Fetch all donor data when searchQuery, currentPage, or filters change
   useEffect(() => {
     fetchDonors();
   }, [searchQuery, currentPage, filters]);
   
-  // Get donor list
   const fetchDonors = async () => {
     setLoading(true);
     setError(null);
-
     try {
       const queryParams = {
         page: currentPage,
@@ -83,7 +99,76 @@ const AllDonors = () => {
       setLoading(false);
     }
   };
+  
+  // Import handlers
+  const handleImportClick = () => {
+    fileInputRef.current.click();
+  };
 
+  const handleFileChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    // Check file extension
+    const fileExtension = file.name.split('.').pop().toLowerCase();
+    if (fileExtension !== 'csv' && fileExtension !== 'xlsx' && fileExtension !== 'xls') {
+      setError('Please select a CSV or Excel file.');
+      setTimeout(() => setError(null), 5000);
+      e.target.value = null; // Reset file input
+      return;
+    }
+    
+    // Check file size (limit to 10MB)
+    const maxSize = 10 * 1024 * 1024;
+    if (file.size > maxSize) {
+      setError('File size exceeds the limit (10MB). Please select a smaller file.');
+      setTimeout(() => setError(null), 5000);
+      e.target.value = null;
+      return;
+    }
+    
+    setImporting(true);
+    setError(null);
+    setImportProgress(0);
+    
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      
+      // Hint for server processing
+      formData.append('fileType', fileExtension === 'csv' ? 'csv' : 'excel');
+      
+      const result = await importDonors(formData, (progress) => {
+        setImportProgress(progress);
+      });
+      
+      if (result.success) {
+        setSuccess(`Import successful! Imported ${result.imported} records, updated ${result.updated} records.`);
+        
+        if (result.errors && result.errors.length > 0) {
+          console.warn('Import completed with errors:', result.errors);
+          setError(`Import completed with ${result.errors.length} errors. Check the console for details.`);
+          setTimeout(() => setError(null), 8000);
+        }
+        
+        setTimeout(() => setSuccess(''), 5000);
+        
+        fetchDonors();
+      } else {
+        throw new Error(result.message || 'Import failed');
+      }
+    } catch (err) {
+      console.error('Import failed:', err);
+      setError('Import failed: ' + (err.message || 'Unknown error'));
+      setTimeout(() => setError(null), 5000);
+    } finally {
+      setImporting(false);
+      setImportProgress(0);
+      e.target.value = null;
+    }
+  };
+
+  // Filter and search handlers
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
     setFilters(prev => ({
@@ -94,7 +179,7 @@ const AllDonors = () => {
   
   const applyFilters = (e) => {
     e.preventDefault();
-    setCurrentPage(1); // 重置到第一页
+    setCurrentPage(1);
     fetchDonors();
   };
   
@@ -110,46 +195,30 @@ const AllDonors = () => {
     setCurrentPage(1);
   };
   
-  const toggleFilters = () => {
-    setShowFilters(!showFilters);
-  };
-  
-  // Handle search
   const handleSearch = (e) => {
     e.preventDefault();
-    setCurrentPage(1); // Reset to first page
+    setCurrentPage(1);
     fetchDonors();
   };
   
-  // Handle page change
   const handlePageChange = (page) => {
     if (page < 1 || page > totalPages) return;
     setCurrentPage(page);
   };
   
-  // Export to CSV
+  // Export handler
   const handleExport = async () => {
     setExporting(true);
-    
     try {
-      // Call export function to generate CSV
       const blob = await exportDonorsToCsv();
-      
-      // Create download link
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
-      
-      // Set download attributes
       link.href = url;
       link.setAttribute('download', `all_donors_${new Date().toISOString().slice(0, 10)}.csv`);
       document.body.appendChild(link);
-      
-      // Trigger download and clean up DOM
       link.click();
       window.URL.revokeObjectURL(url);
       document.body.removeChild(link);
-      
-      // Show success message
       setSuccess('Successfully exported all donor data');
       setTimeout(() => setSuccess(''), 5000);
     } catch (error) {
@@ -161,34 +230,28 @@ const AllDonors = () => {
     }
   };
   
-  // Generate pagination array
   const generatePaginationArray = () => {
     const maxPageButtons = 5;
     const pageButtons = [];
     
     if (totalPages <= maxPageButtons) {
-      // If total pages is less than or equal to max buttons, show all pages
       for (let i = 1; i <= totalPages; i++) {
         pageButtons.push(i);
       }
     } else {
-      // If total pages is greater than max buttons, need smart display
       if (currentPage <= 3) {
-        // Current page is near the beginning
         for (let i = 1; i <= 4; i++) {
           pageButtons.push(i);
         }
         pageButtons.push('...');
         pageButtons.push(totalPages);
       } else if (currentPage >= totalPages - 2) {
-        // Current page is near the end
         pageButtons.push(1);
         pageButtons.push('...');
         for (let i = totalPages - 3; i <= totalPages; i++) {
           pageButtons.push(i);
         }
       } else {
-        // Current page is in the middle
         pageButtons.push(1);
         pageButtons.push('...');
         for (let i = currentPage - 1; i <= currentPage + 1; i++) {
@@ -202,47 +265,35 @@ const AllDonors = () => {
     return pageButtons;
   };
   
-  // Retry loading
   const handleRetry = () => {
     fetchDonors();
   };
   
-  // Handle edit button click
+  // Edit & delete donor handlers
   const handleEditClick = (donor) => {
     setSelectedDonor(donor);
     setIsEditModalOpen(true);
   };
   
-  // Handle save donor changes
   const handleSaveDonor = async (donorId, donorData) => {
     try {
       console.log('Saving donor changes:', donorId, donorData);
       const updatedDonor = await updateDonor(donorId, donorData);
-      
-      // Update the donor in the local state
       setDonors(prevDonors => 
         prevDonors.map(donor => 
           donor.id === donorId ? { ...donor, ...updatedDonor } : donor
         )
       );
-      
       setSuccess('Donor updated successfully!');
       setTimeout(() => setSuccess(''), 3000);
-      
       return updatedDonor;
     } catch (err) {
       console.error('Failed to update donor:', err);
-      
-      // Check if we need to refresh the token/session
-      if (err.message && (
-        err.message.includes('session') || 
-        err.message.includes('token') || 
-        err.message.includes('non-JSON'))) {
+      if (err.message && (err.message.includes('session') || err.message.includes('token') || err.message.includes('non-JSON'))) {
         setError('Session error: ' + err.message);
       } else {
         setError('Failed to update donor: ' + (err.message || 'Unknown error'));
       }
-      
       setTimeout(() => setError(null), 5000);
       throw err;
     }
@@ -258,23 +309,15 @@ const AllDonors = () => {
       setIsDeleting(true);
       setError(null);
       console.log('Deleting donor:', donorToDelete);
-
       if (!donorToDelete || !donorToDelete.id) {
         throw new Error('Invalid donor data');
       }
-
       const result = await deleteDonor(donorToDelete.id);
-      
       if (result.success) {
-        // Close modal and reset state
         setShowDeleteConfirm(false);
         setDonorToDelete(null);
-        
-        // Show success message
         setSuccess('Donor deleted successfully');
         setTimeout(() => setSuccess(''), 3000);
-        
-        // Refresh donor list
         fetchDonors();
       } else {
         throw new Error(result.message || 'Failed to delete donor');
@@ -298,163 +341,210 @@ const AllDonors = () => {
 
   return (
     <div className="all-donors-container">
-      <div className="all-donors-header">
-        <h1>All Donors</h1>
-        
-        <div className="all-donors-actions">
-          <div className="search-bar">
-            <form onSubmit={handleSearch}>
-              <input
-                type="text"
-                placeholder="Search donors..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="search-input"
-              />
-              <button type="submit" className="search-button">
-                <FaSearch />
-              </button>
+      {/* Unified Top Panel: Merges header, search/actions, and filter panel */}
+      <div className="all-donors-top-panel" style={{
+        backgroundColor: '#ffffff',
+        padding: '1.5rem',
+        borderRadius: '0.75rem',
+        boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+        marginBottom: '1.5rem'
+      }}>
+        <h1 style={{ marginBottom: '1rem' }}>All Donors</h1>
+        <div className="top-controls" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          {/* Search and Action Buttons Section */}
+          <div className="all-donors-actions" style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+            <div className="search-bar">
+              <form onSubmit={handleSearch} style={{ display: 'flex', gap: '0.5rem' }}>
+                <input
+                  type="text"
+                  placeholder="Search donors..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="search-input"
+                />
+                <button type="submit" className="search-button">
+                  <FaSearch />
+                </button>
+              </form>
+            </div>
+
+            {/* Removed toggle filters button; filter panel is always shown */}
+            <button 
+              className="action-button import-button" 
+              onClick={handleImportClick} 
+              disabled={importing}
+              title="From CSV or Excel import donors data"
+            >
+              {importing ? (
+                <div className="import-loading">
+                  <FaSpinner className="spinner" /> importing...
+                </div>
+              ) : (
+                <>
+                  <FaUpload /> Import
+                </>
+              )}
+            </button>
+
+            {importing && (
+              <div className="import-progress-container">
+                <div className="import-progress-info">
+                  <span className="import-progress-percentage">
+                    {Math.round(importProgress)}%
+                  </span>
+                  <span className="import-progress-status">
+                    {importProgress < 50 ? 'Uploading file...' : 
+                    importProgress < 90 ? 'Processing donors...' : 
+                    importProgress < 100 ? 'Finalizing...' : 'Complete!'}
+                  </span>
+                </div>
+                <div className="import-progress-bar-wrapper">
+                  <div 
+                    className="import-progress-bar" 
+                    style={{ width: `${importProgress}%` }}
+                  ></div>
+                </div>
+              </div>
+            )}
+
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleFileChange}
+              style={{ display: 'none' }}
+              accept=".csv,.xlsx,.xls"
+            />
+            
+            <button 
+              className="action-button export-button" 
+              onClick={handleExport} 
+              disabled={exporting || donors.length === 0}
+              title="Export data to CSV"
+            >
+              {exporting ? (
+                <div className="export-loading">
+                  <FaSpinner className="spinner" /> Exporting...
+                </div>
+              ) : (
+                <>
+                  <FaDownload /> Export
+                </>
+              )}
+            </button>
+            
+            <button 
+              className="action-button refresh-button" 
+              onClick={handleRetry} 
+              disabled={loading}
+              title="Refresh data"
+            >
+              {loading ? <FaSpinner className="spinner" /> : <FaSync />} Refresh
+            </button>
+          </div>
+
+          {/* Filter Panel (Always Open) */}
+          <div className="filter-container" style={{ width: '100%' }}>
+            <form onSubmit={applyFilters}>
+              <div className="filter-form" style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem' }}>
+                <div className="filter-group">
+                  <label htmlFor="city">City</label>
+                  <input
+                    type="text"
+                    id="city"
+                    name="city"
+                    className="filter-input"
+                    value={filters.city}
+                    onChange={handleFilterChange}
+                    placeholder="Enter city"
+                  />
+                </div>
+                
+                <div className="filter-group">
+                  <label htmlFor="minDonation">Min Donation</label>
+                  <input
+                    type="number"
+                    id="minDonation"
+                    name="minDonation"
+                    className="filter-input"
+                    value={filters.minDonation}
+                    onChange={handleFilterChange}
+                    placeholder="Enter minimum amount"
+                    min="0"
+                  />
+                </div>
+                
+                <div className="filter-group">
+                  <label htmlFor="pmm">PMM</label>
+                  <select
+                    id="pmm"
+                    name="pmm"
+                    className="filter-select"
+                    value={filters.pmm}
+                    onChange={handleFilterChange}
+                  >
+                    <option value="">All</option>
+                    <option value="true">Yes</option>
+                    <option value="false">No</option>
+                  </select>
+                </div>
+                
+                <div className="filter-group">
+                  <label htmlFor="excluded">Excluded</label>
+                  <select
+                    id="excluded"
+                    name="excluded"
+                    className="filter-select"
+                    value={filters.excluded}
+                    onChange={handleFilterChange}
+                  >
+                    <option value="">All</option>
+                    <option value="true">Yes</option>
+                    <option value="false">No</option>
+                  </select>
+                </div>
+                
+                <div className="filter-group">
+                  <label htmlFor="deceased">Deceased</label>
+                  <select
+                    id="deceased"
+                    name="deceased"
+                    className="filter-select"
+                    value={filters.deceased}
+                    onChange={handleFilterChange}
+                  >
+                    <option value="">All</option>
+                    <option value="true">Yes</option>
+                    <option value="false">No</option>
+                  </select>
+                </div>
+                
+                <div className="filter-group">
+                  <label htmlFor="tags">Tags</label>
+                  <input
+                    type="text"
+                    id="tags"
+                    name="tags"
+                    className="filter-input"
+                    value={filters.tags}
+                    onChange={handleFilterChange}
+                    placeholder="Tags (comma separated)"
+                  />
+                </div>
+              </div>
+              
+              <div className="filter-actions" style={{ marginTop: '1rem' }}>
+                <button type="submit" className="apply-filter-button">
+                  Apply Filters
+                </button>
+                <button type="button" className="reset-filter-button" onClick={resetFilters}>
+                  Reset
+                </button>
+              </div>
             </form>
           </div>
-          
-          <button
-            className="action-button filter-button"
-            onClick={toggleFilters}
-            title="Toggle filter options"
-          >
-            <FaFilter /> Filters
-          </button>
-
-          <ImportDonors 
-            onImportSuccess={(result) => {
-              console.log('Import completed:', result);
-              // 处理导入成功
-            }}
-            onImportError={(error) => {
-              console.error('Import failed:', error);
-              // 处理导入错误
-            }}
-          />
-
-          <button 
-            className="action-button export-button" 
-            onClick={handleExport} 
-            disabled={exporting || donors.length === 0}
-            title="Export data to CSV"
-          >
-            {exporting ? (
-              <div className="export-loading">
-                <FaSpinner className="spinner" /> Exporting...
-              </div>
-            ) : (
-              <>
-                <FaDownload /> Export
-              </>
-            )}
-          </button>
-          <button 
-            className="action-button refresh-button" 
-            onClick={handleRetry} 
-            disabled={loading}
-            title="Refresh data"
-          >
-            {loading ? <FaSpinner className="spinner" /> : <FaSync />} Refresh
-          </button>
         </div>
       </div>
-      {showFilters && (
-        <div className="filter-container">
-          <form onSubmit={applyFilters}>
-            <div className="filter-form">
-              <div className="filter-group">
-                <label htmlFor="city">City</label>
-                <input
-                  type="text"
-                  id="city"
-                  name="city"
-                  className="filter-input"
-                  value={filters.city}
-                  onChange={handleFilterChange}
-                  placeholder="Enter city"
-                />
-              </div>
-              <div className="filter-group">
-                <label htmlFor="minDonation">Min Donation</label>
-                <input
-                  type="number"
-                  id="minDonation"
-                  name="minDonation"
-                  className="filter-input"
-                  value={filters.minDonation}
-                  onChange={handleFilterChange}
-                  placeholder="Enter minimum amount"
-                  min="0"
-                />
-              </div>
-              <div className="filter-group">
-                <label htmlFor="pmm">PMM</label>
-                <select
-                  id="pmm"
-                  name="pmm"
-                  className="filter-select"
-                  value={filters.pmm}
-                  onChange={handleFilterChange}
-                >
-                  <option value="">All</option>
-                  <option value="true">Yes</option>
-                  <option value="false">No</option>
-                </select>
-              </div>
-              <div className="filter-group">
-                <label htmlFor="excluded">Excluded</label>
-                <select
-                  id="excluded"
-                  name="excluded"
-                  className="filter-select"
-                  value={filters.excluded}
-                  onChange={handleFilterChange}
-                >
-                  <option value="">All</option>
-                  <option value="true">Yes</option>
-                  <option value="false">No</option>
-                </select>
-              </div>
-              <div className="filter-group">
-                <label htmlFor="deceased">Deceased</label>
-                <select
-                  id="deceased"
-                  name="deceased"
-                  className="filter-select"
-                  value={filters.deceased}
-                  onChange={handleFilterChange}
-                >
-                  <option value="">All</option>
-                  <option value="true">Yes</option>
-                  <option value="false">No</option>
-                </select>
-              </div>
-              <div className="filter-group">
-                <label htmlFor="tags">Tags</label>
-                <input
-                  type="text"
-                  id="tags"
-                  name="tags"
-                  className="filter-input"
-                  value={filters.tags}
-                  onChange={handleFilterChange}
-                  placeholder="Tags (comma separated)"
-                />
-              </div>
-            </div>
-            
-            <div className="filter-actions">
-              <button type="submit" className="apply-filter-button">Apply Filters</button>
-              <button type="button" className="reset-filter-button" onClick={resetFilters}>Reset</button>
-            </div>
-          </form>
-        </div>
-      )}
-      
+
       {success && (
         <div className="success-message">
           <FaCheckCircle style={{ marginRight: '0.5rem' }} />

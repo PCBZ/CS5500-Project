@@ -8,6 +8,7 @@ import DonorCard from './DonorCard';
 import EventDetail from './EventDetail';
 import AddDonorModal from './AddDonorModal';
 
+
 // Temporary workaround to ensure mock data works without authentication
 // REMOVE THIS FOR PRODUCTION
 const setupMockToken = () => {
@@ -59,6 +60,8 @@ const Donors = () => {
   const [modalTotalDonors, setModalTotalDonors] = useState(0);
   const [modalItemsPerPage, setModalItemsPerPage] = useState(10);
   const [selectedDonors, setSelectedDonors] = useState([]);
+  const [dropdownSearch, setDropdownSearch] = useState('');
+
 
   // Set up mock token for development
   useEffect(() => {
@@ -841,6 +844,10 @@ const Donors = () => {
     setSuccess('Donor added successfully!');
     setTimeout(() => setSuccess(''), 3000);
   };
+  
+  const filteredEvents = events.filter(event =>
+    event.name.toLowerCase().includes(dropdownSearch.toLowerCase())
+  );
 
   return (
     <div className="donors-container">
@@ -882,29 +889,37 @@ const Donors = () => {
                 </div>
                 {showEventDropdown && (
                   <div className="event-dropdown">
-                    {loading.events ? (
-                      <div className="loading-indicator">
-                        <FaSpinner className="spinner" /> Loading events...
+                  {/* NEW: Dropdown search input */}
+                  <input
+                    type="text"
+                    placeholder="Search events..."
+                    value={dropdownSearch}
+                    onChange={(e) => setDropdownSearch(e.target.value)}
+                    className="dropdown-search-input"
+                  />
+                  {loading.events ? (
+                    <div className="loading-indicator">
+                      <FaSpinner className="spinner" /> Loading events...
+                    </div>
+                  ) : error.events ? (
+                    <div className="error-message">
+                      {error.events}
+                      <button onClick={fetchEvents} className="retry-button-small">Retry</button>
+                    </div>
+                  ) : events.length === 0 ? (
+                    <div className="no-data-message">No events found</div>
+                  ) : (
+                    filteredEvents.map(event => (
+                      <div 
+                        key={event.id} 
+                        className={`event-option ${selectedEvent && selectedEvent.id === event.id ? 'active' : ''}`}
+                        onClick={() => handleEventSelect(event)}
+                      >
+                        {event.name}
                       </div>
-                    ) : error.events ? (
-                      <div className="error-message">
-                        {error.events}
-                        <button onClick={fetchEvents} className="retry-button-small">Retry</button>
-                      </div>
-                    ) : events.length === 0 ? (
-                      <div className="no-data-message">No events found</div>
-                    ) : (
-                      events.map(event => (
-                        <div 
-                          key={event.id} 
-                          className={`event-option ${selectedEvent && selectedEvent.id === event.id ? 'active' : ''}`}
-                          onClick={() => handleEventSelect(event)}
-                        >
-                          {event.name}
-                        </div>
-                      ))
-                    )}
-                  </div>
+                    ))
+                  )}
+                </div>
                 )}
               </div>
             </div>
