@@ -36,6 +36,8 @@
   },
   "proxy": "http://localhost:3000",
   "devDependencies": {
-    "cross-env": "^7.0.3"
+    "cross-env": "^7.0.3",
+    "@testing-library/react": "^12.1.5",
+    "@testing-library/jest-dom": "^5.16.5"
   }
 }
