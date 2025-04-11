@@ -10,7 +10,7 @@ const Navbar = () => {
   };
   
   return (
-    <nav className="navbar">
+    <nav className="navbar" data-testid="navbar">
       <div className="navbar-brand">
         <span className="brand-text">BC Cancer Foundation</span>
       </div>
