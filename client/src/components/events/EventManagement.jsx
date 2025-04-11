@@ -43,7 +43,7 @@ const EventManagement = () => {
   const [showCreateModal, setShowCreateModal] = useState(false);
 
   const openEditModal = (event) => {
-    setCurrentEvent({...event});
+    setCurrentEvent({ ...event });
     setShowEditModal(true);
   };
 
@@ -68,6 +68,9 @@ const EventManagement = () => {
       setOriginalEvents(updatedEvents);
       setShowEditModal(false);
       setCurrentEvent(null);
+      // Added notification for event editing:
+      setSuccess('Event saved successfully!');
+      setTimeout(() => setSuccess(''), 3000);
     } catch (error) {
       console.error('Error updating event:', error);
       setError(error.message || 'Failed to update event');
@@ -94,6 +97,9 @@ const EventManagement = () => {
       
       setShowDeleteConfirm(false);
       setEventToDelete(null);
+      // Added notification for event deletion:
+      setSuccess('Event deleted successfully!');
+      setTimeout(() => setSuccess(''), 3000);
     } catch (error) {
       console.error('Error deleting event:', error);
       setError(error.message || 'Failed to delete event');
@@ -244,8 +250,8 @@ const EventManagement = () => {
       const filterParams = {};
 
       if (filters.status) filterParams.status = filters.status;
-      if (filters.location) filterParams.location = filters.location; // 修改参数名，表示这是模糊匹配
-      if (filters.type) filterParams.type = filters.type; // 修改参数名，表示这是模糊匹配
+      if (filters.location) filterParams.location = filters.location;
+      if (filters.type) filterParams.type = filters.type;
       
       if (filters.dateRange) {
         const now = new Date();
@@ -316,7 +322,6 @@ const EventManagement = () => {
       );
     }
     
-    // Update the date filtering in applyLocalFilters
     if (filters.dateRange) {
       const now = new Date();
       let startDate = now;
@@ -395,6 +400,23 @@ const EventManagement = () => {
 
   return (
     <div className="event-management-container" onClick={handleClickOutside}>
+      {/* Notification pop-up added here */}
+      {success && (
+        <div className="notification-message" style={{
+          position: 'fixed',
+          top: '20px',
+          left: '20px',
+          backgroundColor: '#4CAF50',
+          color: 'white',
+          padding: '10px 20px',
+          borderRadius: '4px',
+          zIndex: 1001,
+          animation: 'slideIn 0.3s ease-out'
+        }}>
+          {success}
+        </div>
+      )}
+
       <header className="event-management-header">
         <div>
           <h1>Event Management</h1>
@@ -404,12 +426,6 @@ const EventManagement = () => {
           Create New Event
         </button>
       </header>
-
-      {success && (
-        <div className="success-message">
-          {success}
-        </div>
-      )}
 
       <div className="event-tabs">
         <button
@@ -451,7 +467,6 @@ const EventManagement = () => {
           <span>Filters</span>
         </div>
         <div className="filter-content">
-          {/* 修改后的事件类型筛选，支持模糊匹配 */}
           <div className="filter-item">
             <label>Event Type</label>
             <div className="search-filter-container">
@@ -488,7 +503,6 @@ const EventManagement = () => {
             </div>
           </div>
 
-          {/* 修改后的位置筛选，支持模糊匹配 */}
           <div className="filter-item">
             <label>Location</label>
             <div className="search-filter-container">
@@ -541,45 +555,44 @@ const EventManagement = () => {
             </select>
           </div>
 
-        <div className="filter-item">
-          <label>Date Range</label>
-          <select
-            name="dateRange"
-            value={filters.dateRange}
-            onChange={handleFilterChange}
-          >
-            <option value="">Any Date</option>
-            <option value="30days">Next 30 Days</option>
-            <option value="90days">Next 90 Days</option>
-            <option value="thisYear">This Year</option>
-            <option value="custom">Custom Range</option>
-          </select>
-          
-          {filters.dateRange === 'custom' && (
-            <div className="custom-date-range">
-              <div className="date-input-group">
-                <label>Start Date</label>
-                <input
-                  type="date"
-                  name="customStartDate"
-                  value={filters.customStartDate}
-                  onChange={handleFilterChange}
-                />
+          <div className="filter-item">
+            <label>Date Range</label>
+            <select
+              name="dateRange"
+              value={filters.dateRange}
+              onChange={handleFilterChange}
+            >
+              <option value="">Any Date</option>
+              <option value="30days">Next 30 Days</option>
+              <option value="90days">Next 90 Days</option>
+              <option value="thisYear">This Year</option>
+              <option value="custom">Custom Range</option>
+            </select>
+            
+            {filters.dateRange === 'custom' && (
+              <div className="custom-date-range">
+                <div className="date-input-group">
+                  <label>Start Date</label>
+                  <input
+                    type="date"
+                    name="customStartDate"
+                    value={filters.customStartDate}
+                    onChange={handleFilterChange}
+                  />
+                </div>
+                <div className="date-input-group">
+                  <label>End Date</label>
+                  <input
+                    type="date"
+                    name="customEndDate"
+                    value={filters.customEndDate}
+                    onChange={handleFilterChange}
+                  />
+                </div>
               </div>
-              <div className="date-input-group">
-                <label>End Date</label>
-                <input
-                  type="date"
-                  name="customEndDate"
-                  value={filters.customEndDate}
-                  onChange={handleFilterChange}
-                />
-              </div>
-            </div>
-          )}
-        </div>
+            )}
+          </div>
 
-          {/* 筛选按钮组 */}
           <div className="filter-buttons">
             <button className="apply-filters-button" onClick={applyLocalFilters}>
               Apply Filters
@@ -648,9 +661,9 @@ const EventManagement = () => {
                     </td>
                     <td>
                       <div className="event-actions">
-                      <button className="event-button view-button" onClick={() => handleViewEvent(event.id)}>
-                        <FaEye />
-                      </button>
+                        <button className="event-button view-button" onClick={() => handleViewEvent(event.id)}>
+                          <FaEye />
+                        </button>
                         <button className="event-button edit-button" onClick={() => openEditModal(event)}>
                           <FaEdit />
                         </button>
@@ -676,7 +689,6 @@ const EventManagement = () => {
         </div>
       )}
 
-      {/* 模态框保持不变 */}
       {showCreateModal && (
         <div className="modal-overlay">
           <div className="modal-container create-modal">
