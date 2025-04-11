@@ -108,6 +108,10 @@ button {
   box-shadow: var(--card-shadow);
   margin-top: 20px;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 500px; /* Ensure minimum height */
 }
 
 /* List title bar */
@@ -410,6 +414,9 @@ button {
 .donors-main-content {
   padding: 30px;
   min-height: 400px;
+  flex: 1; /* Takes up available space */
+  overflow-y: auto; /* Makes content scrollable if needed */
+  position: relative;
 }
 
 .donors-grid {
@@ -626,11 +633,27 @@ button {
   align-items: center;
   padding: 20px 30px;
   border-top: 1px solid rgba(0, 0, 0, 0.05);
+  margin-top: auto; /* Pushes to bottom */
+  padding: 15px 20px;
+  background: #f8f9fa;
+  border-top: 1px solid #e9ecef;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  position: sticky;
+  bottom: 0;
+  width: 100%;
 }
 
 .pagination-info {
   color: var(--secondary-color);
   font-size: 14px;
+  font-size: 14px;
+  color: #495057;
+  margin-bottom: 10px;
+  flex-basis: 100%;
+  text-align: center;
 }
 
 .pagination-controls {
@@ -665,6 +688,14 @@ button {
 
 .pagination-ellipsis {
   color: var(--secondary-color);
+}
+
+@media (min-width: 768px) {
+  .pagination-info {
+    flex-basis: auto;
+    margin-bottom: 0;
+    text-align: left;
+  }
 }
 
 /* Add donor modal */
@@ -1593,4 +1624,4 @@ button {
   to {
     transform: rotate(360deg);
   }
-} 
+}

@@ -380,43 +380,8 @@ router.put('/:id', protect, async (req, res) => {
     res.status(500).json({ message: 'Failed to update donor', error: error.message });
   }
 });
-
 /**
- * Import donors from CSV or Excel file
- * 
- * @name POST /api/donors/import
- * @function
- * @memberof module:DonorAPI
- * @inner
- * @param {File} req.file - CSV or Excel file
- * @param {string} req.headers.authorization - Bearer token for authentication
- * @returns {Object} 200 - Import results
- * @returns {Error} 400 - Missing file or invalid format
- * @returns {Error} 401 - Unauthorized access
- * @returns {Error} 500 - Server error
- * 
- * @example
- * // Request (multipart/form-data)
- * POST /api/donors/import
- * Authorization: Bearer <token>
- * [file data]
- * 
- * // Success Response
- * {
- *   "success": true,
- *   "imported": 127,
- *   "updated": 43,
- *   "errors": [
- *     {
- *       "row": 15,
- *       "error": "Missing required field: lastName"
- *     }
- *   ],
- *   "message": "Donor import completed with 1 error"
- * }
- */
-/**
- * Import donors from CSV or Excel file
+ * Import donors from CSV or Excel file - 无事务版本
  * 
  * @name POST /api/donors/import
  * @function
@@ -424,13 +389,15 @@ router.put('/:id', protect, async (req, res) => {
  * @inner
  */
 router.post('/import', protect, upload.single('file'), async (req, res) => {
+  let filePath = null;
+  
   try {
     // 验证是否有文件上传
     if (!req.file) {
       return res.status(400).json({ message: 'No file uploaded' });
     }
 
-    const filePath = req.file.path;
+    filePath = req.file.path;
     const fileExtension = path.extname(req.file.originalname).toLowerCase();
     
     let donorsData = [];
@@ -507,8 +474,8 @@ router.post('/import', protect, upload.single('file'), async (req, res) => {
       console.log('Sample data row:', JSON.stringify(donorsData[0], null, 2));
       console.log('Available fields:', Object.keys(donorsData[0]));
     }
-
-    // 处理捐赠者数据
+    
+    // 初始化导入统计数据
     let imported = 0;
     let updated = 0;
     let skipped = 0;
@@ -564,7 +531,33 @@ router.post('/import', protect, upload.single('file'), async (req, res) => {
       return false;
     };
 
-    // 处理每条记录
+    // 获取所有已存在的捐赠者，用于快速查找
+    console.log('Building donor lookup map...');
+    const existingDonors = await prisma.donor.findMany({
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        organizationName: true
+      }
+    });
+    
+    // 构建查找映射
+    const donorIdMap = new Map();
+    for (const donor of existingDonors) {
+      // 个人捐赠者
+      if (donor.firstName && donor.lastName) {
+        donorIdMap.set(`${donor.firstName.toLowerCase()}|${donor.lastName.toLowerCase()}`, donor.id);
+      }
+      
+      // 组织捐赠者
+      if (donor.organizationName) {
+        donorIdMap.set(`org|${donor.organizationName.toLowerCase()}`, donor.id);
+      }
+    }
+    console.log(`Built lookup map with ${donorIdMap.size} entries`);
+
+    // 逐个处理每条记录
     for (let i = 0; i < donorsData.length; i++) {
       const row = i + 2; // Excel行号（标题行为1）
       const donorData = donorsData[i];
@@ -586,21 +579,12 @@ router.post('/import', protect, upload.single('file'), async (req, res) => {
         }
         
         // 检查捐赠者是否已存在
-        let existingDonor = null;
+        let existingDonorId = null;
         
         if (firstName && lastName) {
-          existingDonor = await prisma.donor.findFirst({
-            where: {
-              firstName: firstName,
-              lastName: lastName
-            }
-          });
+          existingDonorId = donorIdMap.get(`${firstName.toLowerCase()}|${lastName.toLowerCase()}`);
         } else if (orgName) {
-          existingDonor = await prisma.donor.findFirst({
-            where: {
-              organizationName: orgName
-            }
-          });
+          existingDonorId = donorIdMap.get(`org|${orgName.toLowerCase()}`);
         }
 
         // 准备捐赠者数据对象
@@ -697,40 +681,68 @@ router.post('/import', protect, upload.single('file'), async (req, res) => {
           }
         });
 
-        if (existingDonor) {
-          console.log(`Row ${row}: Updating donor: ${firstName} ${lastName} ${orgName}`);
-          console.log(`Before update - Donor ID ${existingDonor.id}:`, JSON.stringify(donor, null, 2));
+        // 根据是否存在决定创建或更新
+        if (existingDonorId) {
+          console.log(`Row ${row}: Updating donor ID ${existingDonorId}`);
           
           try {
-            // 执行更新操作
-            const updatedDonor = await prisma.donor.update({
-              where: { id: existingDonor.id },
-              data: donor
+            // 先检查记录是否存在
+            const checkDonor = await prisma.donor.findUnique({
+              where: { id: existingDonorId },
+              select: { id: true }
             });
             
-            console.log(`After update - Donor ID ${existingDonor.id}:`, JSON.stringify(updatedDonor, null, 2));
-            updated++;
+            if (!checkDonor) {
+              console.log(`Donor ID ${existingDonorId} not found, creating instead...`);
+              const createdDonor = await prisma.donor.create({
+                data: donor
+              });
+              
+              console.log(`Created new donor with ID ${createdDonor.id}`);
+              imported++;
+              
+              // 更新映射
+              if (firstName && lastName) {
+                donorIdMap.set(`${firstName.toLowerCase()}|${lastName.toLowerCase()}`, createdDonor.id);
+              } else if (orgName) {
+                donorIdMap.set(`org|${orgName.toLowerCase()}`, createdDonor.id);
+              }
+            } else {
+              // 执行更新
+              await prisma.donor.update({
+                where: { id: existingDonorId },
+                data: donor
+              });
+              
+              console.log(`Updated donor ID ${existingDonorId}`);
+              updated++;
+            }
           } catch (updateError) {
-            console.error(`Error updating donor ID ${existingDonor.id}:`, updateError);
+            console.error(`Error updating donor at row ${row}:`, updateError);
             errors.push({
               row,
               error: `Error updating donor: ${updateError.message}`
             });
           }
         } else {
-          console.log(`Row ${row}: Creating new donor: ${firstName} ${lastName} ${orgName}`);
-          console.log('Before create - New donor:', JSON.stringify(donor, null, 2));
+          console.log(`Row ${row}: Creating new donor`);
           
           try {
-            // 执行创建操作
-            const newDonor = await prisma.donor.create({
+            const createdDonor = await prisma.donor.create({
               data: donor
             });
             
-            console.log('After create - New donor:', JSON.stringify(newDonor, null, 2));
+            console.log(`Created new donor with ID ${createdDonor.id}`);
             imported++;
+            
+            // 更新映射
+            if (firstName && lastName) {
+              donorIdMap.set(`${firstName.toLowerCase()}|${lastName.toLowerCase()}`, createdDonor.id);
+            } else if (orgName) {
+              donorIdMap.set(`org|${orgName.toLowerCase()}`, createdDonor.id);
+            }
           } catch (createError) {
-            console.error('Error creating new donor:', createError);
+            console.error(`Error creating donor at row ${row}:`, createError);
             errors.push({
               row,
               error: `Error creating donor: ${createError.message}`
@@ -746,7 +758,7 @@ router.post('/import', protect, upload.single('file'), async (req, res) => {
       }
     }
     
-    // 处理完成后，检查结果
+    // 处理完成后，验证结果
     console.log('Import completed. Imported:', imported, 'Updated:', updated, 'Skipped:', skipped, 'Errors:', errors.length);
     
     // 最近导入的记录验证
@@ -761,9 +773,6 @@ router.post('/import', protect, upload.single('file'), async (req, res) => {
       console.error('Error verifying recent imports:', verifyError);
     }
 
-    // 清理上传的文件
-    fs.unlinkSync(filePath);
-
     // 返回导入结果
     return res.json({
       success: true,
@@ -776,19 +785,20 @@ router.post('/import', protect, upload.single('file'), async (req, res) => {
   } catch (error) {
     console.error('Error importing donors:', error);
     
-    // 清理上传的文件（如果存在）
-    if (req.file && req.file.path) {
-      try {
-        fs.unlinkSync(req.file.path);
-      } catch (unlinkError) {
-        console.error('Error deleting uploaded file:', unlinkError);
-      }
-    }
-    
     return res.status(500).json({ 
       message: 'Internal server error', 
       error: error.message 
     });
+  } finally {
+    // 清理上传的文件（如果存在）
+    if (filePath) {
+      try {
+        fs.unlinkSync(filePath);
+        console.log(`Cleaned up temporary file: ${filePath}`);
+      } catch (unlinkError) {
+        console.error('Error deleting uploaded file:', unlinkError);
+      }
+    }
   }
 });
 
