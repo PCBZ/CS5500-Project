@@ -64,6 +64,7 @@ export const importDonors = async (formData, onProgress) => {
     // Create XMLHttpRequest to track upload progress
     return new Promise((resolve, reject) => {
       const xhr = new XMLHttpRequest();
+      let operationId = null;
       
       // Set up progress tracking
       xhr.upload.onprogress = (event) => {
@@ -96,18 +97,69 @@ export const importDonors = async (formData, onProgress) => {
             
             // Parse the response
             const data = JSON.parse(xhr.responseText);
-            console.log('Import completed successfully:', data);
+            console.log('Initial import response:', data);
             
-            // Set progress to 100% when complete
-            if (onProgress) onProgress(100);
+            // Get the operation ID for progress tracking
+            operationId = data.operationId;
             
-            resolve({
-              success: true,
-              imported: data.imported || 0,
-              updated: data.updated || 0, 
-              errors: data.errors || [],
-              message: data.message || 'Import completed successfully'
-            });
+            if (!operationId) {
+              throw new Error('No operation ID received from server');
+            }
+
+            // Start polling for progress
+            const pollProgress = async () => {
+              try {
+                const progressResponse = await fetch(`${API_URL}/api/progress/${operationId}`, {
+                  headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                  }
+                });
+
+                if (!progressResponse.ok) {
+                  throw new Error(`Progress API error: ${progressResponse.status}`);
+                }
+
+                const progressData = await progressResponse.json();
+                console.log('Progress update:', progressData);
+
+                if (progressData.status === 'cancelled') {
+                  console.log('Import operation was cancelled');
+                  resolve({
+                    success: false,
+                    message: 'Import operation was cancelled'
+                  });
+                  return;
+                }
+
+                // Update progress
+                if (onProgress) {
+                  // Scale server progress (0-100) to our 50-100 range
+                  const scaledProgress = 50 + (progressData.progress * 0.5);
+                  onProgress(scaledProgress);
+                }
+
+                if (['completed', 'completed_with_errors', 'error'].includes(progressData.status)) {
+                  console.log('Import completed with status:', progressData.status);
+                  resolve({
+                    success: progressData.status === 'completed',
+                    message: progressData.message,
+                    errors: progressData.errors || []
+                  });
+                } else if (progressData.status === 'processing') {
+                  // Continue polling if still processing
+                  setTimeout(pollProgress, 1000);
+                }
+              } catch (error) {
+                console.error('Error polling for progress:', error);
+                // Don't reject here, try again
+                setTimeout(pollProgress, 1000);
+              }
+            };
+
+            // Start polling
+            pollProgress();
+            
           } catch (error) {
             console.error('Error processing response:', error);
             reject(error);
@@ -126,31 +178,6 @@ export const importDonors = async (formData, onProgress) => {
       // Set up error handler
       xhr.onerror = () => {
         reject(new Error('Network error occurred during file upload'));
-      };
-      
-      // Set up simulated processing progress (for the server-side processing part)
-      let processingInterval;
-      xhr.onloadstart = () => {
-        if (onProgress) {
-          // Start a timer to simulate processing progress from 50% to 90%
-          // (the final 10% will be set when the response is received)
-          let currentProgress = 50;
-          processingInterval = setInterval(() => {
-            // Increment progress in smaller steps for smoother experience
-            currentProgress += 0.5;
-            if (currentProgress < 90) {
-              onProgress(currentProgress);
-            } else {
-              clearInterval(processingInterval);
-            }
-          }, 300); // Update every 300ms
-        }
-      };
-      
-      xhr.onloadend = () => {
-        if (processingInterval) {
-          clearInterval(processingInterval);
-        }
       };
       
       // Open and send the request

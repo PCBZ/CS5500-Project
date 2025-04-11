@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { FaSearch, FaSpinner, FaDownload, FaSync, FaCheckCircle, FaFilter, FaUpload, FaEdit, FaTrash, FaPlus } from 'react-icons/fa';
-import { getAllDonors, exportDonorsToCsv, updateDonor, importDonors, deleteDonor } from '../../services/donorService';
+import { FaSearch, FaSpinner, FaDownload, FaSync, FaCheckCircle, FaFilter, FaUpload, FaEdit, FaTrash } from 'react-icons/fa';
+import { getAllDonors, exportDonorsToCsv, updateDonor, deleteDonor } from '../../services/donorService';
 import { formatCurrency } from '../../utils/formatters';
 import DonorListItem from './DonorListItem';
 import EditDonorModal from './EditDonorModal';
+import ImportDonors from './ImportDonors'; // Import the component
 import './AllDonors.css';
 import { useHistory } from 'react-router-dom';
 
@@ -25,6 +26,8 @@ const AllDonors = () => {
   const [selectedDonor, setSelectedDonor] = useState(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [importProgress, setImportProgress] = useState(0);
+  const [poller, setPoller] = useState(null);
+  const [importStatus, setImportStatus] = useState('');
 
   const fileInputRef = useRef(null);
   
@@ -78,81 +81,6 @@ const AllDonors = () => {
       setError('Failed to load donor list: ' + (err.message || 'Unknown error'));
     } finally {
       setLoading(false);
-    }
-  };
-  
-  // Trigger file selection
-  const handleImportClick = () => {
-    fileInputRef.current.click();
-  };
-
-  const handleFileChange = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    
-    // Check file extension
-    const fileExtension = file.name.split('.').pop().toLowerCase();
-    if (fileExtension !== 'csv' && fileExtension !== 'xlsx' && fileExtension !== 'xls') {
-      setError('Please select a CSV or Excel file.');
-      setTimeout(() => setError(null), 5000);
-      e.target.value = null; // Reset file input
-      return;
-    }
-    
-    // Check file size (limit to 10MB)
-    const maxSize = 10 * 1024 * 1024; // 10MB
-    if (file.size > maxSize) {
-      setError('File size exceeds the limit (10MB). Please select a smaller file.');
-      setTimeout(() => setError(null), 5000);
-      e.target.value = null; // Reset file input
-      return;
-    }
-    
-    setImporting(true);
-    setError(null);
-    setImportProgress(0); // Initialize progress to 0
-    
-    try {
-      const formData = new FormData();
-      formData.append('file', file);
-      
-      // Add file type hint for server processing
-      if (fileExtension === 'csv') {
-        formData.append('fileType', 'csv');
-      } else {
-        formData.append('fileType', 'excel');
-      }
-      
-      // Pass the progress callback to importDonors
-      const result = await importDonors(formData, (progress) => {
-        setImportProgress(progress);
-      });
-      
-      if (result.success) {
-        setSuccess(`Import successful! Imported ${result.imported} records, updated ${result.updated} records.`);
-        
-        // If there are errors, show more details
-        if (result.errors && result.errors.length > 0) {
-          console.warn('Import completed with errors:', result.errors);
-          setError(`Import completed with ${result.errors.length} errors. Check the console for details.`);
-          setTimeout(() => setError(null), 8000);
-        }
-        
-        setTimeout(() => setSuccess(''), 5000);
-        
-        // Refresh donor list
-        fetchDonors();
-      } else {
-        throw new Error(result.message || 'Import failed');
-      }
-    } catch (err) {
-      console.error('Import failed:', err);
-      setError('Import failed: ' + (err.message || 'Unknown error'));
-      setTimeout(() => setError(null), 5000);
-    } finally {
-      setImporting(false);
-      setImportProgress(0); // Reset progress
-      e.target.value = null; // Reset file input
     }
   };
 
@@ -359,6 +287,15 @@ const AllDonors = () => {
     }
   };
 
+  // Add cleanup when component unmounts
+  useEffect(() => {
+    return () => {
+      if (poller) {
+        poller.stop();
+      }
+    };
+  }, [poller]);
+
   return (
     <div className="all-donors-container">
       <div className="all-donors-header">
@@ -388,52 +325,17 @@ const AllDonors = () => {
             <FaFilter /> Filters
           </button>
 
-          <button 
-            className="action-button import-button" 
-            onClick={handleImportClick} 
-            disabled={importing}
-            title="From CSV or Excel import donors data"
-          >
-            {importing ? (
-              <div className="import-loading">
-                <FaSpinner className="spinner" /> importing...
-              </div>
-            ) : (
-              <>
-                <FaUpload /> Import
-              </>
-            )}
-          </button>
-
-          {importing && (
-          <div className="import-progress-container">
-            <div className="import-progress-info">
-              <span className="import-progress-percentage">
-                {Math.round(importProgress)}%
-              </span>
-              <span className="import-progress-status">
-                {importProgress < 50 ? 'Uploading file...' : 
-                importProgress < 90 ? 'Processing donors...' : 
-                importProgress < 100 ? 'Finalizing...' : 'Complete!'}
-              </span>
-            </div>
-            <div className="import-progress-bar-wrapper">
-              <div 
-                className="import-progress-bar" 
-                style={{ width: `${importProgress}%` }}
-              ></div>
-            </div>
-          </div>
-        )}
-
-          <input
-            type="file"
-            ref={fileInputRef}
-            onChange={handleFileChange}
-            style={{ display: 'none' }}
-            accept=".csv,.xlsx,.xls"
+          <ImportDonors 
+            onImportSuccess={(result) => {
+              console.log('Import completed:', result);
+              // 处理导入成功
+            }}
+            onImportError={(error) => {
+              console.error('Import failed:', error);
+              // 处理导入错误
+            }}
           />
-          
+
           <button 
             className="action-button export-button" 
             onClick={handleExport} 
@@ -450,7 +352,6 @@ const AllDonors = () => {
               </>
             )}
           </button>
-          
           <button 
             className="action-button refresh-button" 
             onClick={handleRetry} 
@@ -461,7 +362,6 @@ const AllDonors = () => {
           </button>
         </div>
       </div>
-      
       {showFilters && (
         <div className="filter-container">
           <form onSubmit={applyFilters}>
@@ -478,7 +378,6 @@ const AllDonors = () => {
                   placeholder="Enter city"
                 />
               </div>
-              
               <div className="filter-group">
                 <label htmlFor="minDonation">Min Donation</label>
                 <input
@@ -492,7 +391,6 @@ const AllDonors = () => {
                   min="0"
                 />
               </div>
-              
               <div className="filter-group">
                 <label htmlFor="pmm">PMM</label>
                 <select
@@ -507,7 +405,6 @@ const AllDonors = () => {
                   <option value="false">No</option>
                 </select>
               </div>
-              
               <div className="filter-group">
                 <label htmlFor="excluded">Excluded</label>
                 <select
@@ -522,7 +419,6 @@ const AllDonors = () => {
                   <option value="false">No</option>
                 </select>
               </div>
-              
               <div className="filter-group">
                 <label htmlFor="deceased">Deceased</label>
                 <select
@@ -537,7 +433,6 @@ const AllDonors = () => {
                   <option value="false">No</option>
                 </select>
               </div>
-              
               <div className="filter-group">
                 <label htmlFor="tags">Tags</label>
                 <input
@@ -593,7 +488,6 @@ const AllDonors = () => {
             <div className="donors-count">
               Showing {donors.length} donors out of {totalDonors} total
             </div>
-            
             <div className="all-donors-table-container">
               <table className="all-donors-table">
                 <thead>
@@ -734,4 +628,4 @@ const AllDonors = () => {
   );
 };
 
-export default AllDonors; 
+export default AllDonors;

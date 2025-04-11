@@ -38,7 +38,7 @@ export const formatDonorName = (donor) => {
     return donor.organizationName;
   }
   
-  // Otherwise construct name from firstName and lastName
+  // Simply concatenate firstName and lastName
   let name = '';
   if (donor.firstName) name += donor.firstName;
   if (donor.firstName && donor.lastName) name += ' ';

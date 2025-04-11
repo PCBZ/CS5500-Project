@@ -1,0 +1,180 @@
+.import-donors-container {
+  position: relative;
+  display: inline-block;
+  z-index: 100;
+}
+
+.import-progress-container {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  padding: 16px;
+  width: 320px;
+  z-index: 1000;
+  border: 1px solid #e2e8f0;
+}
+
+.import-error {
+  display: flex;
+  align-items: center;
+  background-color: #fff3f3;
+  border: 1px solid #ffcdd2;
+  border-radius: 4px;
+  color: #d32f2f;
+  margin-bottom: 12px;
+  padding: 8px 12px;
+}
+
+.error-icon {
+  margin-right: 8px;
+  flex-shrink: 0;
+}
+
+.import-progress-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.import-progress-percentage {
+  font-weight: 600;
+  color: #2563eb;
+  font-size: 1.1em;
+}
+
+.import-progress-status {
+  color: #64748b;
+  font-size: 0.9em;
+  text-align: right;
+  flex: 1;
+  margin-left: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.import-progress-bar-wrapper {
+  background-color: #f3f4f6;
+  border-radius: 4px;
+  height: 8px;
+  margin-bottom: 16px;
+  overflow: hidden;
+  width: 100%;
+  position: relative;
+}
+
+.import-progress-bar {
+  background: #2563eb;
+  height: 100%;
+  transition: width 0.3s ease;
+  border-radius: 4px;
+}
+
+.import-progress-bar.processing {
+  background: linear-gradient(90deg, 
+    #2563eb 0%, 
+    #3b82f6 50%, 
+    #2563eb 100%);
+  background-size: 200% 100%;
+  animation: progress-animation 2s linear infinite;
+}
+
+.import-progress-bar.completed {
+  background: #10b981;
+}
+
+.import-progress-bar.error {
+  background: #ef4444;
+}
+
+.cancel-import-button {
+  background-color: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: 9999px;
+  color: #64748b;
+  cursor: pointer;
+  font-size: 0.9em;
+  padding: 8px 16px;
+  width: 100%;
+  transition: all 0.2s ease;
+}
+
+.cancel-import-button:hover {
+  background-color: #e2e8f0;
+  color: #475569;
+}
+
+.cancel-import-button:disabled {
+  background-color: #f8fafc;
+  border-color: #e2e8f0;
+  color: #94a3b8;
+  cursor: not-allowed;
+}
+
+.import-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.65rem 1.25rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #ffffff;
+  background-color: #2563eb;
+  border: none;
+  border-radius: 9999px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 100px;
+  justify-content: center;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+.import-button:hover:not(:disabled) {
+  background-color: #1d4ed8;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.import-button:disabled {
+  background-color: #93c5fd;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.import-loading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes progress-animation {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .import-progress-container {
+    width: 280px;
+    right: -20px;
+  }
+}
