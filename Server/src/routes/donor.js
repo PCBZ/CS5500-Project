@@ -407,9 +407,12 @@ router.post('/import', protect, upload.single('file'), async (req, res) => {
     if (fileExtension === '.csv') {
       // 解析CSV文件
       try {
-        const fileContent = fs.readFileSync(filePath, 'utf8');
-        // 移除可能干扰解析的字符
-        const cleanContent = fileContent.replace(/\r/g, '');
+        const fileContent = fs.readFileSync(filePath, { encoding: 'utf8' });
+        
+        const contentWithoutBOM = fileContent.replace(/^\uFEFF/, '');
+        
+        const cleanContent = contentWithoutBOM.replace(/\r/g, '');
+        
         const parseResult = Papa.parse(cleanContent, {
           header: true,
           skipEmptyLines: true,
@@ -417,7 +420,9 @@ router.post('/import', protect, upload.single('file'), async (req, res) => {
           delimiter: ",", 
           transformHeader: (header) => header.trim().toLowerCase(),
           quoteChar: '"', 
-          escapeChar: '"'
+          escapeChar: '"',
+          encoding: 'utf8',
+          detectEncoding: true
         });
         
         donorsData = parseResult.data;
@@ -426,7 +431,7 @@ router.post('/import', protect, upload.single('file'), async (req, res) => {
         if (parseResult.errors && parseResult.errors.length > 0) {
           parseResult.errors.forEach(error => {
             errors.push({
-              row: error.row + 1, // Excel行号从1开始
+              row: error.row + 1,
               error: error.message
             });
           });
@@ -597,10 +602,10 @@ router.post('/import', protect, upload.single('file'), async (req, res) => {
           deceased: parseBoolean(getFieldValue(donorData, ['deceased'])),
           
           // 个人/组织信息
-          firstName: firstName,
-          nickName: getFieldValue(donorData, ['nick_name', 'nickname'], ''),
-          lastName: lastName,
-          organizationName: orgName,
+          firstName: String(getFieldValue(donorData, ['first_name', 'firstname'], '')).normalize('NFKC'),
+          lastName: String(getFieldValue(donorData, ['last_name', 'lastname'], '')).normalize('NFKC'),
+          organizationName: String(getFieldValue(donorData, ['organization_name', 'organizationname'], '')).normalize('NFKC'),
+          nickName: String(getFieldValue(donorData, ['nick_name', 'nickname'], '')).normalize('NFKC'),
           
           // 捐赠信息
           totalDonations: parseNumber(getFieldValue(donorData, [
@@ -640,9 +645,9 @@ router.post('/import', protect, upload.single('file'), async (req, res) => {
           ], ''),
           
           // 地址信息
-          addressLine1: getFieldValue(donorData, ['address_line1', 'addressline1', 'addressLine1'], ''),
-          addressLine2: getFieldValue(donorData, ['address_line2', 'addressline2', 'addressLine2'], ''),
-          city: getFieldValue(donorData, ['city'], ''),
+          addressLine1: String(getFieldValue(donorData, ['address_line1', 'address1'], '')).normalize('NFKC'),
+          addressLine2: String(getFieldValue(donorData, ['address_line2', 'address2'], '')).normalize('NFKC'),
+          city: String(getFieldValue(donorData, ['city'], '')).normalize('NFKC'),
           
           // 通信偏好和限制
           contactPhoneType: getFieldValue(donorData, [
