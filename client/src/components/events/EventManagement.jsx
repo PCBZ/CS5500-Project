@@ -19,7 +19,9 @@ const EventManagement = () => {
     status: '',
     location: '',
     type: '',
-    dateRange: ''
+    dateRange: '',
+    customStartDate: '',
+    customEndDate: ''
   });
 
   const [eventTypes, setEventTypes] = useState([]);
@@ -247,7 +249,7 @@ const EventManagement = () => {
       
       if (filters.dateRange) {
         const now = new Date();
-
+      
         if (filters.dateRange === '30days') {
           const thirtyDaysLater = new Date();
           thirtyDaysLater.setDate(now.getDate() + 30);
@@ -262,6 +264,13 @@ const EventManagement = () => {
           const yearEnd = new Date(now.getFullYear(), 11, 31);
           filterParams.startDate = now.toISOString().split('T')[0];
           filterParams.endDate = yearEnd.toISOString().split('T')[0];
+        } else if (filters.dateRange === 'custom') {
+          if (filters.customStartDate) {
+            filterParams.startDate = filters.customStartDate;
+          }
+          if (filters.customEndDate) {
+            filterParams.endDate = filters.customEndDate;
+          }
         }
       }
       
@@ -307,8 +316,10 @@ const EventManagement = () => {
       );
     }
     
+    // Update the date filtering in applyLocalFilters
     if (filters.dateRange) {
       const now = new Date();
+      let startDate = now;
       let endDate;
       
       if (filters.dateRange === '30days') {
@@ -319,13 +330,20 @@ const EventManagement = () => {
         endDate.setDate(now.getDate() + 90);
       } else if (filters.dateRange === 'thisYear') {
         endDate = new Date(now.getFullYear(), 11, 31);
+      } else if (filters.dateRange === 'custom') {
+        if (filters.customStartDate) {
+          startDate = new Date(filters.customStartDate);
+        }
+        if (filters.customEndDate) {
+          endDate = new Date(filters.customEndDate);
+        }
       }
       
       if (endDate) {
         filteredEvents = filteredEvents.filter(event => {
           if (!event.date) return false;
           const eventDate = new Date(event.date);
-          return eventDate >= now && eventDate <= endDate;
+          return eventDate >= startDate && eventDate <= endDate;
         });
       }
     }
@@ -367,7 +385,9 @@ const EventManagement = () => {
       status: '',
       location: '',
       type: '',
-      dateRange: ''
+      dateRange: '',
+      customStartDate: '',
+      customEndDate: ''
     });
     setSearchQuery('');
     setEvents(originalEvents);
@@ -521,19 +541,43 @@ const EventManagement = () => {
             </select>
           </div>
 
-          <div className="filter-item">
-            <label>Date Range</label>
-            <select
-              name="dateRange"
-              value={filters.dateRange}
-              onChange={handleFilterChange}
-            >
-              <option value="">Any Date</option>
-              <option value="30days">Next 30 Days</option>
-              <option value="90days">Next 90 Days</option>
-              <option value="thisYear">This Year</option>
-            </select>
-          </div>
+        <div className="filter-item">
+          <label>Date Range</label>
+          <select
+            name="dateRange"
+            value={filters.dateRange}
+            onChange={handleFilterChange}
+          >
+            <option value="">Any Date</option>
+            <option value="30days">Next 30 Days</option>
+            <option value="90days">Next 90 Days</option>
+            <option value="thisYear">This Year</option>
+            <option value="custom">Custom Range</option>
+          </select>
+          
+          {filters.dateRange === 'custom' && (
+            <div className="custom-date-range">
+              <div className="date-input-group">
+                <label>Start Date</label>
+                <input
+                  type="date"
+                  name="customStartDate"
+                  value={filters.customStartDate}
+                  onChange={handleFilterChange}
+                />
+              </div>
+              <div className="date-input-group">
+                <label>End Date</label>
+                <input
+                  type="date"
+                  name="customEndDate"
+                  value={filters.customEndDate}
+                  onChange={handleFilterChange}
+                />
+              </div>
+            </div>
+          )}
+        </div>
 
           {/* 筛选按钮组 */}
           <div className="filter-buttons">
