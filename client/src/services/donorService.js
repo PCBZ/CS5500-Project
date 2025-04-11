@@ -299,19 +299,18 @@ export const getAvailableDonors = async (eventId, params = {}) => {
 
     console.log('Getting available donors for event ID', eventId);
     
-    // Step 1: Get all donors
-    const allDonorsUrl = new URL(`${API_URL}/api/donors`);
+    // Use the new API endpoint
+    const url = new URL(`${API_URL}/api/events/${eventId}/available-donors`);
     
     // Add pagination and search parameters
     Object.keys(params).forEach(key => {
       if (params[key] !== undefined && params[key] !== '') {
-        allDonorsUrl.searchParams.append(key, params[key]);
+        url.searchParams.append(key, params[key]);
       }
     });
     
-    // Get all donors list
-    console.log('Fetching all donors:', allDonorsUrl.toString());
-    const allDonorsResponse = await fetch(allDonorsUrl, {
+    console.log('Fetching available donors:', url.toString());
+    const response = await fetch(url, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -319,79 +318,21 @@ export const getAvailableDonors = async (eventId, params = {}) => {
       }
     });
     
-    if (!allDonorsResponse.ok) {
-      throw new Error(`Failed to get all donors: ${allDonorsResponse.status}`);
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || `Failed to fetch available donors: ${response.status}`);
     }
     
-    const allDonorsData = await allDonorsResponse.json();
-    console.log('Total donors fetched:', allDonorsData.donors.length);
+    const data = await response.json();
+    console.log('Available donors data received:', data);
     
-    // Step 2: Get donor IDs already in the event
-    let eventDonorIds = new Set();
-    try {
-      // Use /api/events/:id/donors endpoint to get event donors
-      const eventDonorsUrl = new URL(`${API_URL}/api/events/${eventId}/donors?limit=1000`);
-      // Add no_sort parameter to avoid server-side sorting errors
-      eventDonorsUrl.searchParams.set('no_sort', 'true');
-      console.log('Fetching event donors:', eventDonorsUrl.toString());
-      
-      const eventDonorsResponse = await fetch(eventDonorsUrl, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-      
-      if (eventDonorsResponse.ok) {
-        const eventDonorsData = await eventDonorsResponse.json();
-        console.log('Event donors data received');
-        
-        // Process event donors data to get all donor IDs that are already in the event
-        if (eventDonorsData.donors && Array.isArray(eventDonorsData.donors)) {
-          eventDonorsData.donors.forEach(ed => {
-            // Handle the nested structure for donor object
-            if (ed.donor && ed.donor.id) {
-              eventDonorIds.add(ed.donor.id.toString());
-            } 
-            // Handle the direct donor_id field
-            else if (ed.donor_id) {
-              eventDonorIds.add(ed.donor_id.toString());
-            }
-            // Handle the donorId field
-            else if (ed.donorId) {
-              eventDonorIds.add(ed.donorId.toString());
-            }
-          });
-          console.log('Donor IDs already in event:', Array.from(eventDonorIds));
-        }
-      } else if (eventDonorsResponse.status === 404) {
-        // If 404, the list may not exist
-        console.log('Event donor list may not exist, will return all donors');
-      } else {
-        console.error('Failed to get event donors:', eventDonorsResponse.status);
-      }
-    } catch (error) {
-      console.error('Error getting event donors:', error);
-      console.log('Ignoring error and continuing');
-    }
-
-    // Step 3: Filter out donors not in the event
-    const availableDonors = allDonorsData.donors.filter(donor => {
-      // Convert donor id to string for comparison
-      const donorId = donor.id.toString();
-      return !eventDonorIds.has(donorId);
-    });
-    
-    console.log('Number of available donors after filtering:', availableDonors.length);
-    
-    // Return filtered results
+    // Return formatted data
     return {
-      data: availableDonors || [],
-      page: allDonorsData.page || 1,
-      limit: allDonorsData.limit || 10,
-      total_count: availableDonors.length,
-      total_pages: Math.ceil(availableDonors.length / (allDonorsData.limit || 10))
+      data: data.donors || [],
+      page: data.page || 1,
+      limit: data.limit || 10,
+      total_count: data.total || 0,
+      total_pages: data.pages || 1
     };
   } catch (error) {
     console.error('Error fetching available donors:', error);

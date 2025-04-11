@@ -53,6 +53,10 @@ const Donors = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isAddingDonorToList, setIsAddingDonorToList] = useState(null);
   const [modalSearchQuery, setModalSearchQuery] = useState('');
+  const [modalCurrentPage, setModalCurrentPage] = useState(1);
+  const [modalTotalPages, setModalTotalPages] = useState(1);
+  const [modalTotalDonors, setModalTotalDonors] = useState(0);
+  const [modalItemsPerPage, setModalItemsPerPage] = useState(10);
 
   // Set up mock token for development
   useEffect(() => {
@@ -295,34 +299,30 @@ const Donors = () => {
   const handleOpenAddDonorModal = async () => {
     if (!selectedEvent) return;
     
-    setShowAddDonorModal(true); // 立即显示模态窗口，同时加载数据
-    setLoading(prev => ({ ...prev, availableDonors: true }));
-    setError(prev => ({ ...prev, availableDonors: null }));
-    
     try {
-      // 获取未添加到事件的捐赠者
+      // 先显示模态框
+      setShowAddDonorModal(true);
+      
+      // 重置搜索和分页状态
+      setModalSearchQuery('');
+      setModalCurrentPage(1);
+      
+      setLoading(prev => ({ ...prev, availableDonors: true }));
+      setError(prev => ({ ...prev, availableDonors: null }));
+      
+      // 获取第一页可用捐赠者
       const result = await getAvailableDonors(selectedEvent.id, {
         page: 1,
-        limit: 100
+        limit: modalItemsPerPage,
+        search: ''
       });
       
       setAvailableDonors(result.data || []);
-      
-      if (result.data.length === 0) {
-        setError(prev => ({ 
-          ...prev, 
-          availableDonors: 'No donors available to add. All donors may have already been added to this event.' 
-        }));
-      }
+      setModalTotalPages(result.total_pages || 1);
+      setModalTotalDonors(result.total_count || 0);
     } catch (error) {
       console.error('Error fetching available donors:', error);
-      setError(prev => ({ 
-        ...prev, 
-        availableDonors: 'Failed to fetch available donors: ' + (error.message || 'Unknown error')
-      }));
-      
-      // 重置可用捐赠者列表
-      setAvailableDonors([]);
+      setError(prev => ({ ...prev, availableDonors: error.message }));
     } finally {
       setLoading(prev => ({ ...prev, availableDonors: false }));
     }
@@ -699,26 +699,49 @@ const Donors = () => {
   };
 
   // 添加模态框搜索处理函数
-  const handleModalSearch = (e) => {
-    setModalSearchQuery(e.target.value);
+  const handleModalSearch = async (e) => {
+    const searchValue = e.target.value;
+    setModalSearchQuery(searchValue);
+    
+    if (!selectedEvent) return;
+    
+    try {
+      setLoading(prev => ({ ...prev, availableDonors: true }));
+      setError(prev => ({ ...prev, availableDonors: null }));
+      
+      const result = await getAvailableDonors(selectedEvent.id, {
+        page: 1,
+        limit: modalItemsPerPage,
+        search: searchValue
+      });
+      
+      setAvailableDonors(result.data || []);
+      setModalCurrentPage(1);
+      setModalTotalPages(result.total_pages || 1);
+      setModalTotalDonors(result.total_count || 0);
+    } catch (error) {
+      console.error('Error searching available donors:', error);
+      setError(prev => ({ ...prev, availableDonors: error.message }));
+    } finally {
+      setLoading(prev => ({ ...prev, availableDonors: false }));
+    }
   };
 
   // 过滤可用捐赠者列表
-// 过滤可用捐赠者列表
-const filteredAvailableDonors = availableDonors.filter(donor => {
-  const searchTerm = modalSearchQuery.toLowerCase();
-  
-  // 安全地访问可能为null的字段
-  const firstName = donor.firstName || '';
-  const lastName = donor.lastName || '';
-  const organizationName = donor.organizationName || '';
-  
-  return (
-    firstName.toLowerCase().includes(searchTerm) ||
-    lastName.toLowerCase().includes(searchTerm) ||
-    organizationName.toLowerCase().includes(searchTerm)
-  );
-});
+  const filteredAvailableDonors = availableDonors.filter(donor => {
+    const searchTerm = modalSearchQuery.toLowerCase();
+    
+    // 安全地访问可能为null的字段
+    const firstName = donor.firstName || '';
+    const lastName = donor.lastName || '';
+    const organizationName = donor.organizationName || '';
+    
+    return (
+      firstName.toLowerCase().includes(searchTerm) ||
+      lastName.toLowerCase().includes(searchTerm) ||
+      organizationName.toLowerCase().includes(searchTerm)
+    );
+  });
 
   const handleAddDonorToList = async (donor) => {
     if (!selectedEvent) return;
@@ -738,6 +761,31 @@ const filteredAvailableDonors = availableDonors.filter(donor => {
       setError(prev => ({ ...prev, donors: err.message }));
     } finally {
       setIsAddingDonorToList(null);
+    }
+  };
+
+  const handleModalPageChange = async (newPage) => {
+    if (!selectedEvent) return;
+    
+    try {
+      setLoading(prev => ({ ...prev, availableDonors: true }));
+      setError(prev => ({ ...prev, availableDonors: null }));
+      
+      const result = await getAvailableDonors(selectedEvent.id, {
+        page: newPage,
+        limit: modalItemsPerPage,
+        search: modalSearchQuery
+      });
+      
+      setAvailableDonors(result.data || []);
+      setModalCurrentPage(newPage);
+      setModalTotalPages(result.total_pages || 1);
+      setModalTotalDonors(result.total_count || 0);
+    } catch (error) {
+      console.error('Error fetching available donors:', error);
+      setError(prev => ({ ...prev, availableDonors: error.message }));
+    } finally {
+      setLoading(prev => ({ ...prev, availableDonors: false }));
     }
   };
 
@@ -1020,33 +1068,56 @@ const filteredAvailableDonors = availableDonors.filter(donor => {
                   <p>No donors available to add</p>
                 </div>
               ) : (
-                <div className="available-donors-list">
-                  {filteredAvailableDonors.map(donor => (
-                    <div key={donor.id} className="donor-item">
-                      <div className="donor-info">
-                        <p className="donor-name">
-                          {donor.firstName} {donor.lastName}
-                          {donor.organizationName && <span> ({donor.organizationName})</span>}
-                        </p>
-                        <p className="donor-details">
-                          <span>Total Donations: ${donor.totalDonations?.toLocaleString() || 0}</span>
-                          {donor.city && <span> | {donor.city}</span>}
-                        </p>
+                <>
+                  <div className="available-donors-list">
+                    {filteredAvailableDonors.map(donor => (
+                      <div key={donor.id} className="donor-item">
+                        <div className="donor-info">
+                          <p className="donor-name">
+                            {donor.firstName} {donor.lastName}
+                            {donor.organizationName && <span> ({donor.organizationName})</span>}
+                          </p>
+                          <p className="donor-details">
+                            <span>Total Donations: ${donor.totalDonations?.toLocaleString() || 0}</span>
+                            {donor.city && <span> | {donor.city}</span>}
+                          </p>
+                        </div>
+                        <button
+                          className="add-button"
+                          onClick={() => handleAddDonorToList(donor)}
+                          disabled={isAddingDonorToList === donor.id}
+                        >
+                          {isAddingDonorToList === donor.id ? (
+                            <span className="button-loading">Adding...</span>
+                          ) : (
+                            'Add to List'
+                          )}
+                        </button>
                       </div>
-                      <button
-                        className="add-button"
-                        onClick={() => handleAddDonorToList(donor)}
-                        disabled={isAddingDonorToList === donor.id}
-                      >
-                        {isAddingDonorToList === donor.id ? (
-                          <span className="button-loading">Adding...</span>
-                        ) : (
-                          'Add to List'
-                        )}
-                      </button>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                  
+                  {/* Pagination controls */}
+                  <div className="modal-pagination">
+                    <button
+                      className="pagination-button"
+                      onClick={() => handleModalPageChange(modalCurrentPage - 1)}
+                      disabled={modalCurrentPage === 1}
+                    >
+                      Previous
+                    </button>
+                    <span className="pagination-info">
+                      Page {modalCurrentPage} of {modalTotalPages}
+                    </span>
+                    <button
+                      className="pagination-button"
+                      onClick={() => handleModalPageChange(modalCurrentPage + 1)}
+                      disabled={modalCurrentPage === modalTotalPages}
+                    >
+                      Next
+                    </button>
+                  </div>
+                </>
               )}
             </div>
           </div>
