@@ -35,7 +35,3 @@ jobs:
     - name: Build client
       working-directory: ./client
       run: npm run build
-
-    - name: Build server
-      working-directory: ./Server
-      run: npm run build 
