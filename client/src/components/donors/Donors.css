@@ -772,11 +772,60 @@ button {
   padding: 10px 15px;
   background-color: #f9f9f9;
   border-radius: 4px;
-  transition: background-color 0.2s;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  margin-bottom: 5px;
 }
 
 .donor-item:hover {
   background-color: #f0f0f0;
+}
+
+.donor-item.selected {
+  background-color: #e6f7ff;
+  border: 1px solid #1890ff;
+}
+
+.donor-checkbox {
+  margin-left: 10px;
+}
+
+.donor-checkbox input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
+
+.bulk-actions {
+  position: sticky;
+  bottom: 0;
+  background-color: white;
+  padding: 15px;
+  border-top: 1px solid #e8e8e8;
+  display: flex;
+  justify-content: flex-end;
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.bulk-add-button {
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.bulk-add-button:hover:not(:disabled) {
+  background-color: var(--primary-dark);
+  transform: translateY(-1px);
+}
+
+.bulk-add-button:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
 }
 
 .donor-info {
