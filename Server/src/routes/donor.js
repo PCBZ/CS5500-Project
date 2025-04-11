@@ -1,6 +1,7 @@
 import express from 'express';
 import { PrismaClient } from '@prisma/client';
 import { protect } from '../middleware/auth.js';
+import  progressService  from '../routes/progressService.js';
 import multer from 'multer';
 import fs from 'fs';
 import Papa from 'papaparse';
@@ -380,8 +381,10 @@ router.put('/:id', protect, async (req, res) => {
     res.status(500).json({ message: 'Failed to update donor', error: error.message });
   }
 });
+// 更新的 donor.js 中的导入函数 - 添加了进度跟踪支持
+
 /**
- * Import donors from CSV or Excel file - 无事务版本
+ * Import donors from CSV or Excel file with progress tracking
  * 
  * @name POST /api/donors/import
  * @function
@@ -390,45 +393,69 @@ router.put('/:id', protect, async (req, res) => {
  */
 router.post('/import', protect, upload.single('file'), async (req, res) => {
   let filePath = null;
+  let trackingId = null;
+  
+  const cleanupFile = async () => {
+    if (filePath && fs.existsSync(filePath)) {
+      try {
+        await fs.promises.unlink(filePath);
+        console.log(`Cleaned up temporary file: ${filePath}`);
+      } catch (unlinkError) {
+        console.error('Error deleting uploaded file:', unlinkError);
+      }
+    }
+  };
   
   try {
-    // 验证是否有文件上传
+    // Create progress tracker
+    const { operation, trackingId: opTrackingId } = progressService.createOperation(
+      'donor_import',
+      req.user?.id || 'anonymous',
+      100
+    );
+    
+    trackingId = opTrackingId;
+    
+    // Send initial response
+    res.status(202).json({
+      success: true,
+      operationId: trackingId,
+      message: 'Import processing started',
+    });
+    
+    // Validate file upload
     if (!req.file) {
-      return res.status(400).json({ message: 'No file uploaded' });
+      await progressService.updateProgress(trackingId, 0, 'No file imported', 'error');
+      return;
     }
-
+    
+    await progressService.updateProgress(trackingId, 5, 'File uploaded successfully', 'processing');
     filePath = req.file.path;
     const fileExtension = path.extname(req.file.originalname).toLowerCase();
     
     let donorsData = [];
     let errors = [];
     
-    // 根据文件扩展名解析文件
+    // Parse file based on extension
     if (fileExtension === '.csv') {
-      // 解析CSV文件
       try {
-        const fileContent = fs.readFileSync(filePath, { encoding: 'utf8' });
+        await progressService.updateProgress(trackingId, 10, 'Parsing CSV file...', 'processing');
         
-        const contentWithoutBOM = fileContent.replace(/^\uFEFF/, '');
+        const fileContent = fs.readFileSync(filePath, 'utf8');
+        console.log('Raw file content:', fileContent.substring(0, 200)); // Log first 200 chars
         
-        const cleanContent = contentWithoutBOM.replace(/\r/g, '');
-        
-        const parseResult = Papa.parse(cleanContent, {
+        const parseResult = Papa.parse(fileContent, {
           header: true,
           skipEmptyLines: true,
-          dynamicTyping: true,
-          delimiter: ",", 
-          transformHeader: (header) => header.trim().toLowerCase(),
-          quoteChar: '"', 
-          escapeChar: '"',
           encoding: 'utf8',
-          detectEncoding: true
+          transformHeader: (header) => {
+            console.log('Original header:', header);
+            return header.toLowerCase().trim();
+          }
         });
         
-        donorsData = parseResult.data;
-        
-        // 检查解析错误
         if (parseResult.errors && parseResult.errors.length > 0) {
+          console.log('CSV parsing errors:', parseResult.errors);
           parseResult.errors.forEach(error => {
             errors.push({
               row: error.row + 1,
@@ -436,108 +463,82 @@ router.post('/import', protect, upload.single('file'), async (req, res) => {
             });
           });
         }
+
+        donorsData = parseResult.data;
+        console.log('Parsed data length:', donorsData.length);
+        
+        if (donorsData.length > 0) {
+          console.log('First row headers:', Object.keys(donorsData[0]));
+          console.log('First row data:', donorsData[0]);
+        } else {
+          console.log('No data rows found in the CSV');
+          errors.push({
+            row: 1,
+            error: 'No data rows found in the CSV file'
+          });
+        }
       } catch (csvError) {
         console.error('Error parsing CSV file:', csvError);
-        fs.unlinkSync(filePath);
-        return res.status(400).json({ message: `Error parsing CSV file: ${csvError.message}` });
+        await progressService.updateProgress(trackingId, 10, `CSV Parsing error: ${csvError.message}`, 'error');
+        return;
       }
     } else if (fileExtension === '.xlsx' || fileExtension === '.xls') {
-      // 解析Excel文件
       try {
+        await progressService.updateProgress(trackingId, 10, 'Parsing Excel File...', 'processing');
+        
         const workbook = xlsx.readFile(filePath);
         const sheetName = workbook.SheetNames[0];
         const worksheet = workbook.Sheets[sheetName];
+        
+        // Get the range of the worksheet
+        const range = xlsx.utils.decode_range(worksheet['!ref']);
+        console.log('Excel sheet range:', range);
+        
         donorsData = xlsx.utils.sheet_to_json(worksheet, { 
-          raw: false, // 获取格式化的字符串而不是类型化值
-          defval: '' // 为空单元格设置默认值为空字符串而不是undefined
+          raw: false,
+          defval: '',
+          header: 1
         });
         
-        // 标准化Excel数据的字段名
-        donorsData = donorsData.map(row => {
-          const normalizedRow = {};
-          Object.keys(row).forEach(key => {
-            normalizedRow[key.trim().toLowerCase()] = row[key];
+        // Get headers from first row
+        const headers = donorsData[0].map(header => header.toLowerCase().trim());
+        console.log('Excel headers:', headers);
+        
+        // Convert the data to objects with proper headers
+        donorsData = donorsData.slice(1).map(row => {
+          const obj = {};
+          headers.forEach((header, index) => {
+            obj[header] = row[index] || '';
           });
-          return normalizedRow;
+          return obj;
         });
+        
+        console.log('Parsed Excel data length:', donorsData.length);
+        if (donorsData.length > 0) {
+          console.log('First row data:', donorsData[0]);
+        }
       } catch (excelError) {
         console.error('Error parsing Excel file:', excelError);
-        fs.unlinkSync(filePath);
-        return res.status(400).json({ message: `Error parsing Excel file: ${excelError.message}` });
+        await progressService.updateProgress(trackingId, 10, `Excel parsing error: ${excelError.message}`, 'error');
+        return;
       }
     } else {
-      // 不支持的文件格式
-      fs.unlinkSync(filePath);
-      return res.status(400).json({ 
-        message: 'Unsupported file format. Please upload CSV or Excel file.' 
-      });
+      await progressService.updateProgress(trackingId, 10, 'Unsupported file format', 'error');
+      return;
     }
 
-    // 记录导入的数据行以进行调试
-    console.log(`Processing ${donorsData.length} donor records from imported file`);
-    if (donorsData.length > 0) {
-      console.log('Sample data row:', JSON.stringify(donorsData[0], null, 2));
-      console.log('Available fields:', Object.keys(donorsData[0]));
-    }
+    // Get total count for progress calculation
+    const totalItems = donorsData.length;
+    const progressPerRecord = 70 / totalItems;
     
-    // 初始化导入统计数据
+    await progressService.updateProgress(trackingId, 20, `Found ${totalItems} records to process`, 'processing');
+
+    // Process records
     let imported = 0;
     let updated = 0;
     let skipped = 0;
-
-    // 定义辅助函数
-    const getFieldValue = (donorData, fieldNames, defaultValue = null) => {
-      for (const name of fieldNames) {
-        if (donorData[name] !== undefined && donorData[name] !== '') {
-          return donorData[name];
-        }
-      }
-      return defaultValue;
-    };
-
-    const parseDate = (value) => {
-      if (!value) return null;
-      
-      // 如果是数字（可能是时间戳），尝试转换
-      if (typeof value === 'number' || !isNaN(value)) {
-        // 尝试作为Unix时间戳（秒）处理
-        const timestamp = parseInt(value);
-        if (timestamp > 1000000000) { // 确保是合理的时间戳（2001年以后）
-          return new Date(timestamp * 1000);
-        }
-      }
-      
-      // 尝试作为标准日期字符串处理
-      const date = new Date(value);
-      if (!isNaN(date.getTime())) {
-        return date;
-      }
-      
-      return null;
-    };
-
-    const parseNumber = (value, defaultValue = 0) => {
-      if (value === undefined || value === null || value === '') return defaultValue;
-      
-      const num = parseFloat(value);
-      return isNaN(num) ? defaultValue : num;
-    };
-
-    const parseBoolean = (value) => {
-      if (typeof value === 'boolean') return value;
-      if (typeof value === 'string') {
-        const lowercaseValue = value.toLowerCase();
-        return lowercaseValue === 'yes' || 
-              lowercaseValue === 'true' || 
-              lowercaseValue === '1' || 
-              lowercaseValue === 'y';
-      }
-      if (typeof value === 'number') return value === 1;
-      return false;
-    };
-
-    // 获取所有已存在的捐赠者，用于快速查找
-    console.log('Building donor lookup map...');
+    
+    // Get existing donors for lookup
     const existingDonors = await prisma.donor.findMany({
       select: {
         id: true,
@@ -547,263 +548,163 @@ router.post('/import', protect, upload.single('file'), async (req, res) => {
       }
     });
     
-    // 构建查找映射
     const donorIdMap = new Map();
     for (const donor of existingDonors) {
-      // 个人捐赠者
       if (donor.firstName && donor.lastName) {
-        donorIdMap.set(`${donor.firstName.toLowerCase()}|${donor.lastName.toLowerCase()}`, donor.id);
+        donorIdMap.set(`${donor.firstName}|${donor.lastName}`, donor.id);
       }
-      
-      // 组织捐赠者
       if (donor.organizationName) {
-        donorIdMap.set(`org|${donor.organizationName.toLowerCase()}`, donor.id);
+        donorIdMap.set(`org|${donor.organizationName}`, donor.id);
       }
     }
-    console.log(`Built lookup map with ${donorIdMap.size} entries`);
 
-    // 逐个处理每条记录
     for (let i = 0; i < donorsData.length; i++) {
-      const row = i + 2; // Excel行号（标题行为1）
-      const donorData = donorsData[i];
-      
+      // Check if operation was cancelled
+      const operation = progressService.getProgress(trackingId);
+      if (operation?.status === 'cancelled') {
+        await progressService.updateProgress(
+          trackingId,
+          Math.round((i / donorsData.length) * 100),
+          'Operation cancelled by user',
+          'cancelled'
+        );
+        return;
+      }
+
+      const currentProgress = Math.min(95, 25 + (i * progressPerRecord));
+      if (i % 10 === 0) {
+        await progressService.updateProgress(
+          trackingId,
+          currentProgress,
+          `Processing record ${i + 1} of ${totalItems}`,
+          'processing'
+        );
+      }
+
       try {
-        // 验证基本必需字段
-        const firstName = getFieldValue(donorData, ['first_name', 'firstname'], '');
-        const lastName = getFieldValue(donorData, ['last_name', 'lastname'], '');
-        const orgName = getFieldValue(donorData, ['organization_name', 'organizationname'], '');
+        const firstName = donorsData[i].first_name || donorsData[i].firstname || '';
+        const lastName = donorsData[i].last_name || donorsData[i].lastname || '';
+        const orgName = donorsData[i].organization_name || donorsData[i].organizationname || '';
         
         if (!firstName && !lastName && !orgName) {
-          console.log(`Row ${row}: Skipping - missing required identification fields`);
           errors.push({
-            row,
-            error: 'Missing required identification fields (first name, last name, or organization name)'
+            row: i + 2,
+            error: 'Missing required identification fields'
           });
           skipped++;
           continue;
         }
-        
-        // 检查捐赠者是否已存在
-        let existingDonorId = null;
-        
-        if (firstName && lastName) {
-          existingDonorId = donorIdMap.get(`${firstName.toLowerCase()}|${lastName.toLowerCase()}`);
-        } else if (orgName) {
-          existingDonorId = donorIdMap.get(`org|${orgName.toLowerCase()}`);
-        }
 
-        // 准备捐赠者数据对象
-        const donor = {
-          // 基本信息字段
-          pmm: getFieldValue(donorData, ['pmm'], ''),
-          smm: getFieldValue(donorData, ['smm'], ''),
-          vmm: getFieldValue(donorData, ['vmm'], ''),
-          excluded: parseBoolean(getFieldValue(donorData, ['exclude', 'excluded'])),
-          deceased: parseBoolean(getFieldValue(donorData, ['deceased'])),
-          
-          // 个人/组织信息
-          firstName: String(getFieldValue(donorData, ['first_name', 'firstname'], '')).normalize('NFKC'),
-          lastName: String(getFieldValue(donorData, ['last_name', 'lastname'], '')).normalize('NFKC'),
-          organizationName: String(getFieldValue(donorData, ['organization_name', 'organizationname'], '')).normalize('NFKC'),
-          nickName: String(getFieldValue(donorData, ['nick_name', 'nickname'], '')).normalize('NFKC'),
-          
-          // 捐赠信息
-          totalDonations: parseNumber(getFieldValue(donorData, [
-            'total_donations', 'totaldonations', 'totalDonations'
-          ])),
-          
-          totalPledges: parseNumber(getFieldValue(donorData, [
-            'total_pledge', 'totalpledge', 'totalPledges'
-          ])),
-          
-          largestGift: parseNumber(getFieldValue(donorData, [
-            'largest_gift', 'largestgift', 'largestGift'
-          ])),
-          
-          largestGiftAppeal: getFieldValue(donorData, [
-            'largest_gift_appeal', 'largestgiftappeal', 'largestGiftAppeal'
-          ], ''),
-          
-          firstGiftDate: parseDate(getFieldValue(donorData, [
-            'first_gift_date', 'firstgiftdate', 'firstGiftDate'
-          ])),
-          
-          lastGiftDate: parseDate(getFieldValue(donorData, [
-            'last_gift_date', 'lastgiftdate', 'lastGiftDate'
-          ])),
-          
-          lastGiftAmount: parseNumber(getFieldValue(donorData, [
-            'last_gift_amount', 'lastgiftamount', 'lastGiftAmount'
-          ])),
-          
-          lastGiftRequest: String(getFieldValue(donorData, [
-            'last_gift_request', 'lastgiftrequest', 'lastGiftRequest'
-          ], '')),
-          
-          lastGiftAppeal: getFieldValue(donorData, [
-            'last_gift_appeal', 'lastgiftappeal', 'lastGiftAppeal'
-          ], ''),
-          
-          // 地址信息
-          addressLine1: String(getFieldValue(donorData, ['address_line1', 'address1'], '')).normalize('NFKC'),
-          addressLine2: String(getFieldValue(donorData, ['address_line2', 'address2'], '')).normalize('NFKC'),
-          city: String(getFieldValue(donorData, ['city'], '')).normalize('NFKC'),
-          
-          // 通信偏好和限制
-          contactPhoneType: getFieldValue(donorData, [
-            'contact_phone_type', 'contactphonetype', 'contactPhoneType'
-          ], ''),
-          
-          phoneRestrictions: getFieldValue(donorData, [
-            'phone_restrictions', 'phonerestrictions', 'phoneRestrictions'
-          ], ''),
-          
-          emailRestrictions: getFieldValue(donorData, [
-            'email_restrictions', 'emailrestrictions', 'emailRestrictions'
-          ], ''),
-          
-          communicationRestrictions: getFieldValue(donorData, [
-            'communication_restrictions', 'communicationrestrictions', 'communicationRestrictions'
-          ], ''),
-          
-          subscriptionEventsInPerson: getFieldValue(donorData, [
-            'subscription_events_in_person', 'subscriptioneventsinperson', 'subscriptionEventsInPerson'
-          ], ''),
-          
-          subscriptionEventsMagazine: getFieldValue(donorData, [
-            'subscription_events_magazine', 'subscriptioneventsmagazine', 'subscriptionEventsMagazine'
-          ], ''),
-          
-          communicationPreference: getFieldValue(donorData, [
-            'communication_preference', 'communicationpreference', 'communicationPreference'
-          ], '')
+        // Convert Unix timestamp to ISO date string
+        const convertToISODate = (timestamp) => {
+          if (!timestamp || timestamp === '0') return null;
+          try {
+            // Check if it's a Unix timestamp (number)
+            const num = parseInt(timestamp);
+            if (!isNaN(num)) {
+              const date = new Date(num * 1000); // Convert seconds to milliseconds
+              if (!isNaN(date.getTime())) {
+                return date.toISOString();
+              }
+            }
+            return null;
+          } catch (error) {
+            return null;
+          }
         };
 
-        // 移除undefined值但保留null和空字符串
+        const donor = {
+          pmm: donorsData[i].pmm || null,
+          smm: donorsData[i].smm || null,
+          vmm: donorsData[i].vmm || null,
+          excluded: donorsData[i].exclude === 'yes' || donorsData[i].excluded === 'true' || false,
+          deceased: donorsData[i].deceased === 'yes' || donorsData[i].deceased === 'true' || false,
+          firstName: firstName || null,
+          lastName: lastName || null,
+          organizationName: orgName || null,
+          nickName: donorsData[i].nick_name || donorsData[i].nickname || null,
+          totalDonations: parseFloat(donorsData[i].total_donations || donorsData[i].totaldonations || 0) || 0,
+          totalPledges: parseFloat(donorsData[i].total_pledges || donorsData[i].totalpledges || 0) || 0,
+          largestGift: parseFloat(donorsData[i].largest_gift || donorsData[i].largestgift || 0) || 0,
+          largestGiftAppeal: donorsData[i].largest_gift_appeal || donorsData[i].largestgiftappeal || null,
+          firstGiftDate: convertToISODate(donorsData[i].first_gift_date),
+          lastGiftDate: convertToISODate(donorsData[i].last_gift_date),
+          lastGiftAmount: parseFloat(donorsData[i].last_gift_amount || donorsData[i].lastgiftamount || 0) || 0,
+          lastGiftRequest: donorsData[i].last_gift_request || donorsData[i].lastgiftrequest || null,
+          lastGiftAppeal: donorsData[i].last_gift_appeal || donorsData[i].lastgiftappeal || null,
+          addressLine1: donorsData[i].address_line1 || donorsData[i].address1 || null,
+          addressLine2: donorsData[i].address_line2 || donorsData[i].address2 || null,
+          city: donorsData[i].city || null,
+          contactPhoneType: donorsData[i].contact_phone_type || donorsData[i].contactphonetype || null,
+          phoneRestrictions: donorsData[i].phone_restrictions || donorsData[i].phonerestrictions || null,
+          emailRestrictions: donorsData[i].email_restrictions || donorsData[i].emailrestrictions || null,
+          communicationRestrictions: donorsData[i].communication_restrictions || donorsData[i].communicationrestrictions || null,
+          subscriptionEventsInPerson: donorsData[i].subscription_events_in_person || donorsData[i].subscriptioneventsinperson || null,
+          subscriptionEventsMagazine: donorsData[i].subscription_events_magazine || donorsData[i].subscriptioneventsmagazine || null,
+          communicationPreference: donorsData[i].communication_preference || donorsData[i].communicationpreference || null
+        };
+
+        // Clean up any null values to undefined to prevent Prisma validation errors
         Object.keys(donor).forEach(key => {
-          if (donor[key] === undefined) {
-            delete donor[key];
+          if (donor[key] === null) {
+            donor[key] = undefined;
           }
         });
 
-        // 根据是否存在决定创建或更新
+        let existingDonorId = null;
+        if (firstName && lastName) {
+          existingDonorId = donorIdMap.get(`${firstName}|${lastName}`);
+        } else if (orgName) {
+          existingDonorId = donorIdMap.get(`org|${orgName}`);
+        }
+
         if (existingDonorId) {
-          console.log(`Row ${row}: Updating donor ID ${existingDonorId}`);
-          
-          try {
-            // 先检查记录是否存在
-            const checkDonor = await prisma.donor.findUnique({
-              where: { id: existingDonorId },
-              select: { id: true }
-            });
-            
-            if (!checkDonor) {
-              console.log(`Donor ID ${existingDonorId} not found, creating instead...`);
-              const createdDonor = await prisma.donor.create({
-                data: donor
-              });
-              
-              console.log(`Created new donor with ID ${createdDonor.id}`);
-              imported++;
-              
-              // 更新映射
-              if (firstName && lastName) {
-                donorIdMap.set(`${firstName.toLowerCase()}|${lastName.toLowerCase()}`, createdDonor.id);
-              } else if (orgName) {
-                donorIdMap.set(`org|${orgName.toLowerCase()}`, createdDonor.id);
-              }
-            } else {
-              // 执行更新
-              await prisma.donor.update({
-                where: { id: existingDonorId },
-                data: donor
-              });
-              
-              console.log(`Updated donor ID ${existingDonorId}`);
-              updated++;
-            }
-          } catch (updateError) {
-            console.error(`Error updating donor at row ${row}:`, updateError);
-            errors.push({
-              row,
-              error: `Error updating donor: ${updateError.message}`
-            });
-          }
+          await prisma.donor.update({
+            where: { id: existingDonorId },
+            data: donor
+          });
+          updated++;
         } else {
-          console.log(`Row ${row}: Creating new donor`);
+          const newDonor = await prisma.donor.create({
+            data: donor
+          });
+          imported++;
           
-          try {
-            const createdDonor = await prisma.donor.create({
-              data: donor
-            });
-            
-            console.log(`Created new donor with ID ${createdDonor.id}`);
-            imported++;
-            
-            // 更新映射
-            if (firstName && lastName) {
-              donorIdMap.set(`${firstName.toLowerCase()}|${lastName.toLowerCase()}`, createdDonor.id);
-            } else if (orgName) {
-              donorIdMap.set(`org|${orgName.toLowerCase()}`, createdDonor.id);
-            }
-          } catch (createError) {
-            console.error(`Error creating donor at row ${row}:`, createError);
-            errors.push({
-              row,
-              error: `Error creating donor: ${createError.message}`
-            });
+          if (firstName && lastName) {
+            donorIdMap.set(`${firstName}|${lastName}`, newDonor.id);
+          } else if (orgName) {
+            donorIdMap.set(`org|${orgName}`, newDonor.id);
           }
         }
       } catch (error) {
-        console.error(`Error processing donor at row ${row}:`, error);
+        console.error(`Error processing donor at row ${i + 2}:`, error);
         errors.push({
-          row,
+          row: i + 2,
           error: `Error processing donor: ${error.message}`
         });
       }
     }
     
-    // 处理完成后，验证结果
-    console.log('Import completed. Imported:', imported, 'Updated:', updated, 'Skipped:', skipped, 'Errors:', errors.length);
+    const finalMessage = `Import completed: ${imported} imported, ${updated} updated, ${skipped} skipped${errors.length > 0 ? `, ${errors.length} errors` : ''}`;
+    await progressService.updateProgress(
+      trackingId,
+      100,
+      finalMessage,
+      errors.length > 0 ? 'completed_with_errors' : 'completed'
+    );
     
-    // 最近导入的记录验证
-    try {
-      console.log('Verifying recent imports...');
-      const recentDonors = await prisma.donor.findMany({
-        take: 5,
-        orderBy: { id: 'desc' }
-      });
-      console.log('Most recent donors in database:', JSON.stringify(recentDonors, null, 2));
-    } catch (verifyError) {
-      console.error('Error verifying recent imports:', verifyError);
-    }
-
-    // 返回导入结果
-    return res.json({
-      success: true,
-      imported,
-      updated,
-      skipped,
-      errors,
-      message: `Donor import completed with ${errors.length} error${errors.length !== 1 ? 's' : ''}`
-    });
   } catch (error) {
-    console.error('Error importing donors:', error);
-    
-    return res.status(500).json({ 
-      message: 'Internal server error', 
-      error: error.message 
-    });
-  } finally {
-    // 清理上传的文件（如果存在）
-    if (filePath) {
-      try {
-        fs.unlinkSync(filePath);
-        console.log(`Cleaned up temporary file: ${filePath}`);
-      } catch (unlinkError) {
-        console.error('Error deleting uploaded file:', unlinkError);
-      }
+    console.error('Error during import:', error);
+    if (trackingId) {
+      await progressService.updateProgress(
+        trackingId,
+        0,
+        `Import failed: ${error.message}`,
+        'error'
+      );
     }
+  } finally {
+    await cleanupFile();
   }
 });
 
