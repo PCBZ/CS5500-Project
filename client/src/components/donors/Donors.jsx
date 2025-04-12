@@ -4,7 +4,7 @@ import { getEvents, getEventById, getEventDonors } from '../../services/eventSer
 import { getAvailableDonors, addDonorToEvent, removeDonorFromEvent, getEventDonorStats, updateDonorStatus, updateEventDonor, exportEventDonorsToCsv } from '../../services/donorService';
 import { useLocation } from 'react-router-dom';
 import './Donors.css';
-import DonorCard from './DonorCard';
+import DonorList from './DonorList';
 import EventDetail from './EventDetail';
 import AddDonorModal from './AddDonorModal';
 
@@ -1032,19 +1032,14 @@ const Donors = () => {
                     </button>
                   </div>
                 ) : (
-                  <div className="donors-grid">
-                    {filteredDonors.map(donor => (
-                      <DonorCard
-                        key={donor.id}
-                        donor={donor}
-                        onRemove={handleRemoveDonor}
-                        onStatusUpdate={handleOpenStatusModal}
-                        isEventReady={isEventReady()}
-                        loading={loading.donors}
-                        formatDate={formatDate}
-                      />
-                    ))}
-                  </div>
+                  <DonorList
+                    donors={filteredDonors}
+                    onRemove={handleRemoveDonor}
+                    onStatusUpdate={handleOpenStatusModal}
+                    isEventReady={isEventReady()}
+                    loading={loading.donors}
+                    formatDate={formatDate}
+                  />
                 )}
               </>
             )}
