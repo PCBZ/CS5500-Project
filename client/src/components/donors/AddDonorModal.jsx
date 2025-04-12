@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { FaTimes, FaSearch, FaSync, FaPlus, FaSpinner } from 'react-icons/fa';
 import { addDonorToEvent, getAvailableDonors } from '../../services/donorService';
+import RecommendedDonors from './RecommendedDonors';
 import './AddDonorModal.css';
 
 const AddDonorModal = ({ 
@@ -206,7 +207,7 @@ const AddDonorModal = ({
   if (!isOpen) return null;
 
   return (
-    <div className="modal-overlay">
+    <div className={`modal-overlay ${isOpen ? 'active' : ''}`}>
       <div className="modal-content">
         {loading && addingProgress > 0 && (
           <div className="adding-progress-container">
@@ -231,57 +232,73 @@ const AddDonorModal = ({
           </div>
         )}
         
-        <div className={`modal-header ${loading && addingProgress > 0 ? 'with-progress' : ''}`}>
-          <h3>Add Donors</h3>
-          <button className="close-button" onClick={onClose}>×</button>
+        <div className="modal-header">
+          <h2>Add Donors to Event</h2>
+          <button className="close-button" onClick={onClose}>
+            <FaTimes />
+          </button>
         </div>
-        
+
         <div className="modal-body">
+          <RecommendedDonors
+            eventId={eventId}
+            onDonorSelect={handleDonorSelect}
+            selectedDonors={selectedDonors}
+            currentEventDonors={currentEventDonors}
+          />
           {error && (
             <div className="error-message">
               {error}
             </div>
           )}
           
-          <div className="modal-header-actions">
-            <div className="modal-search-container">
-              <form onSubmit={handleSearchSubmit} className="search-input-wrapper">
-                <FaSearch className="search-icon" />
-                <input
-                  type="text"
-                  placeholder="Search donors' name..."
-                  value={tempSearchQuery}
-                  onChange={handleSearch}
-                  className="modal-search-input"
-                />
-                <button
-                  type="submit"
-                  className="modal-search-button"
-                  disabled={loading}
-                >
-                  Search
-                </button>
-              </form>
-            </div>
+          <div className="search-section">
+            {error && (
+              <div className="error-message">
+                {error}
+              </div>
+            )}
             
-            <div className="select-all-container">
-              <input
-                type="checkbox"
-                checked={selectedDonors.length === availableDonors.length && availableDonors.length > 0}
-                onChange={(e) => handleSelectAll(e.target.checked)}
-                id="select-all"
-              />
-              <label htmlFor="select-all">Select All</label>
-            </div>
+            <div className="modal-header-actions">
+              <div className="modal-search-container">
+                <form onSubmit={handleSearchSubmit} className="search-input-wrapper">
+                  <FaSearch className="search-icon" />
+                  <input
+                    type="text"
+                    placeholder="Search donors' name..."
+                    value={tempSearchQuery}
+                    onChange={handleSearch}
+                    className="modal-search-input"
+                  />
+                  <button
+                    type="submit"
+                    className="modal-search-button"
+                    disabled={loading}
+                  >
+                    Search
+                  </button>
+                </form>
+              </div>
+              
+              <div className="select-all-container">
+                <input
+                  type="checkbox"
+                  checked={selectedDonors.length === availableDonors.length && availableDonors.length > 0}
+                  onChange={(e) => handleSelectAll(e.target.checked)}
+                  id="select-all"
+                />
+                <label htmlFor="select-all">Select All</label>
+              </div>
 
-            <button
-              className="refresh-button-icon"
-              onClick={handleRefresh}
-              disabled={isRefreshing}
-              title="Refresh donor list"
-            >
-              <FaSync className={isRefreshing ? 'spinning' : ''} />
-            </button>
+              <button
+                className="refresh-button-icon"
+                onClick={handleRefresh}
+                disabled={isRefreshing}
+                title="Refresh donor list"
+              >
+                <FaSync className={isRefreshing ? 'spinning' : ''} />
+              </button>
+            </div>
           </div>
 
           {loading && !addingProgress ? (

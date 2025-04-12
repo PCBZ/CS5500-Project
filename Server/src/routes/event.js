@@ -1701,23 +1701,47 @@ router.patch('/:eventId/donors/:donorId/status', protect, async (req, res) => {
  */
 router.get('/:id/available-donors', protect, async (req, res) => {
   try {
-    let eventId;
-    try {
-      eventId = parseInt(req.params.id); 
-      if (isNaN(eventId)) {
-        return res.status(400).json({ message: 'Invalid event ID format' });
-      }
-    } catch (error) {
-      return res.status(400).json({ message: 'Invalid event ID format' });
-    }
+    const eventId = parseInt(req.params.id);
 
-    // Verify event exists
+    // Step 1: 获取事件信息
     const event = await prisma.event.findUnique({
-      where: { id: eventId, isDeleted: false }
+      where: { id: eventId }
     });
 
     if (!event) {
       return res.status(404).json({ message: 'Event not found' });
+    }
+
+    // Step 2: 获取事件中已有的捐赠者
+    const existingDonors = await prisma.eventDonor.findMany({
+      where: {
+        donorList: {
+          eventId: eventId
+        }
+      },
+      include: {
+        donor: true  // 包含完整的捐赠者信息
+      }
+    });
+
+    // 处理多种ID字段并确保唯一性
+    const currentEventDonorIds = [...new Set(
+      existingDonors
+        .map(donor => {
+          // 处理可能的不同ID字段
+          const id = donor.donorId || donor.donor_id || donor.donor?.id;
+          if (!id) {
+            console.warn(`Warning: Donor record missing ID:`, donor);
+          }
+          return id;
+        })
+        .filter(id => id != null)  // 过滤掉null值
+    )];
+
+    // 如果没有找到捐赠者列表
+    if (!existingDonors && !currentEventDonorIds.length) {
+      console.log(`No donors found for event ${eventId}, creating empty list`);
+      // 继续处理，但使用空数组
     }
 
     // Get pagination and filter parameters
