@@ -281,7 +281,7 @@ const AddDonorModal = ({
         )}
         
         <div className="modal-header">
-          <h2>Add Donors to Event</h2>
+          <h2>Add Donors</h2>
           <button className="close-button" onClick={onClose}>
             <FaTimes />
           </button>
