@@ -226,6 +226,14 @@ const AddDonorModal = ({
     }
   };
 
+  const handleSelectAll = (checked) => {
+    if (checked) {
+      setSelectedDonors(availableDonors);
+    } else {
+      setSelectedDonors([]);
+    }
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -271,13 +279,23 @@ const AddDonorModal = ({
               <FaSearch className="search-icon" />
               <input
                 type="text"
-                placeholder="Search donors..."
+                placeholder="Search donors' name..."
                 value={searchQuery}
                 onChange={handleSearch}
                 className="modal-search-input"
               />
             </div>
             
+            <div className="select-all-container">
+              <input
+                type="checkbox"
+                checked={selectedDonors.length === availableDonors.length && availableDonors.length > 0}
+                onChange={(e) => handleSelectAll(e.target.checked)}
+                id="select-all"
+              />
+              <label htmlFor="select-all">Select All</label>
+            </div>
+
             <button
               className="refresh-button-icon"
               onClick={handleRefresh}
@@ -341,8 +359,30 @@ const AddDonorModal = ({
                 )}
               </div>
 
-              {selectedDonors.length > 0 && (
-                <div className="bulk-actions">
+              <div className="modal-pagination">
+                {totalPages > 1 && (
+                  <>
+                    <button
+                      onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                      disabled={currentPage === 1}
+                      className="pagination-button"
+                    >
+                      Previous
+                    </button>
+                    <span className="page-info">
+                      Page {currentPage} of {totalPages}
+                    </span>
+                    <button
+                      onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                      disabled={currentPage === totalPages}
+                      className="pagination-button"
+                    >
+                      Next
+                    </button>
+                  </>
+                )}
+                
+                {selectedDonors.length > 0 && (
                   <button
                     className="bulk-add-button"
                     onClick={handleAddMultipleDonors}
@@ -356,30 +396,8 @@ const AddDonorModal = ({
                       `Add ${selectedDonors.length} Selected Donors`
                     )}
                   </button>
-                </div>
-              )}
-
-              {totalPages > 1 && (
-                <div className="pagination">
-                  <button
-                    onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                    disabled={currentPage === 1}
-                    className="pagination-button"
-                  >
-                    Previous
-                  </button>
-                  <span className="page-info">
-                    Page {currentPage} of {totalPages}
-                  </span>
-                  <button
-                    onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                    disabled={currentPage === totalPages}
-                    className="pagination-button"
-                  >
-                    Next
-                  </button>
-                </div>
-              )}
+                )}
+              </div>
             </>
           )}
         </div>
