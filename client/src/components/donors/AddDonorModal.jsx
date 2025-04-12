@@ -24,6 +24,7 @@ const AddDonorModal = ({
   const [loadingTime, setLoadingTime] = useState(-1);
   const [recommendedDonors, setRecommendedDonors] = useState([]);
   const [loadingRecommended, setLoadingRecommended] = useState(false);
+  const [filteredRecommendedDonors, setFilteredRecommendedDonors] = useState([]);
 
   useEffect(() => {
     if (isOpen) {
@@ -58,8 +59,26 @@ const AddDonorModal = ({
     }
   }, [eventId]);
 
+  useEffect(() => {
+    setFilteredRecommendedDonors(recommendedDonors);
+  }, [recommendedDonors]);
+
   const handleSearch = (e) => {
-    setTempSearchQuery(e.target.value);
+    const query = e.target.value;
+    setTempSearchQuery(query);
+    
+    // Filter recommended donors based on search query
+    if (query.trim() === '') {
+      setFilteredRecommendedDonors(recommendedDonors);
+    } else {
+      const filtered = recommendedDonors.filter(donor => {
+        const fullName = `${donor.firstName || ''} ${donor.lastName || ''}`.toLowerCase();
+        const orgName = (donor.organizationName || '').toLowerCase();
+        const searchTerm = query.toLowerCase();
+        return fullName.includes(searchTerm) || orgName.includes(searchTerm);
+      });
+      setFilteredRecommendedDonors(filtered);
+    }
   };
 
   const handleSearchSubmit = async (e) => {
@@ -339,12 +358,12 @@ const AddDonorModal = ({
 
           <div className="available-donors-list">
             {/* 推荐捐赠者部分 */}
-            {!loading && !loadingRecommended && recommendedDonors.length > 0 && (
+            {!loading && !loadingRecommended && filteredRecommendedDonors.length > 0 && (
               <>
                 <div className="donor-section-header">
                   <h4>Recommended Donors</h4>
                 </div>
-                {recommendedDonors.map(donor => (
+                {filteredRecommendedDonors.map(donor => (
                   <div 
                     key={donor.id}
                     className={`donor-item recommended ${selectedDonors.some(d => d.id === donor.id) ? 'selected' : ''}`}
