@@ -5,6 +5,7 @@ import userRoutes from './routes/user.js';
 import donorListRoutes from './routes/donorList.js';
 import donorRoutes from './routes/donor.js';
 import eventRoutes from './routes/event.js';
+import progressRoutes from './routes/progress.js';
 
 // 加载环境变量
 dotenv.config();
@@ -20,6 +21,8 @@ app.use('/api/user', userRoutes);
 app.use('/api/lists', donorListRoutes);
 app.use('/api/donors', donorRoutes);
 app.use('/api/events', eventRoutes);
+app.use('/api/progress', progressRoutes);
+
 
 // Error handling middleware
 app.use((err, req, res, next) => {

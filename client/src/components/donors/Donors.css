@@ -181,6 +181,15 @@ button {
   border: 1px solid rgba(0, 0, 0, 0.05);
 }
 
+.dropdown-search-input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  margin: 8px 0; 
+  font-size: 14px;
+}
+
 .event-option {
   padding: 12px 16px;
   cursor: pointer;
@@ -1710,4 +1719,33 @@ button {
 .modal-pagination .pagination-info {
   color: #6c757d;
   font-size: 14px;
+}
+
+.exclude-reason-input-container {
+  position: relative;
+  width: 100%;
+}
+
+.exclude-reason-suggestions {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 1000;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.suggestion-item {
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.suggestion-item:hover {
+  background-color: #f5f5f5;
 } 

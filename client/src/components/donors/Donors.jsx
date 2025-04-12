@@ -4,9 +4,10 @@ import { getEvents, getEventById, getEventDonors } from '../../services/eventSer
 import { getAvailableDonors, addDonorToEvent, removeDonorFromEvent, getEventDonorStats, updateDonorStatus, updateEventDonor, exportEventDonorsToCsv } from '../../services/donorService';
 import { useLocation } from 'react-router-dom';
 import './Donors.css';
-import DonorCard from './DonorCard';
+import DonorList from './DonorList';
 import EventDetail from './EventDetail';
 import AddDonorModal from './AddDonorModal';
+
 
 // Temporary workaround to ensure mock data works without authentication
 // REMOVE THIS FOR PRODUCTION
@@ -59,6 +60,19 @@ const Donors = () => {
   const [modalTotalDonors, setModalTotalDonors] = useState(0);
   const [modalItemsPerPage, setModalItemsPerPage] = useState(10);
   const [selectedDonors, setSelectedDonors] = useState([]);
+  const [dropdownSearch, setDropdownSearch] = useState('');
+  const [showExcludeSuggestions, setShowExcludeSuggestions] = useState(false);
+  
+
+  const excludeReasonSuggestions = [
+    'Donor declined',
+    'Not eligible',
+    'Duplicate entry',
+    'Inactive donor',
+    'Contact information invalid',
+    'Requested removal'
+  ];
+
 
   // Set up mock token for development
   useEffect(() => {
@@ -835,11 +849,29 @@ const Donors = () => {
     });
   };
 
-  const handleDonorAdded = (donor) => {
-    // Implement the logic to add the new donor to the available donors list
-    setAvailableDonors(prev => [...prev, donor]);
-    setSuccess('Donor added successfully!');
-    setTimeout(() => setSuccess(''), 3000);
+  const handleDonorAdded = async () => {
+    try {
+      // 重新获取活动的捐赠者列表
+      await fetchEventDonors();
+      // 更新统计信息
+      await fetchEventStats();
+      // 显示成功消息
+      setSuccess('Donor added successfully!');
+      setTimeout(() => setSuccess(''), 3000);
+    } catch (error) {
+      console.error('Error refreshing donor lists:', error);
+      setError(prev => ({ ...prev, donors: 'Failed to refresh donor list' }));
+    }
+  };
+  
+  const filteredEvents = events.filter(event =>
+    event.name.toLowerCase().includes(dropdownSearch.toLowerCase())
+  );
+
+  // 添加处理建议选择的函数
+  const handleSuggestionSelect = (suggestion) => {
+    setEditExcludeReason(suggestion);
+    setShowExcludeSuggestions(false);
   };
 
   return (
@@ -882,29 +914,37 @@ const Donors = () => {
                 </div>
                 {showEventDropdown && (
                   <div className="event-dropdown">
-                    {loading.events ? (
-                      <div className="loading-indicator">
-                        <FaSpinner className="spinner" /> Loading events...
+                  {/* NEW: Dropdown search input */}
+                  <input
+                    type="text"
+                    placeholder="Search events..."
+                    value={dropdownSearch}
+                    onChange={(e) => setDropdownSearch(e.target.value)}
+                    className="dropdown-search-input"
+                  />
+                  {loading.events ? (
+                    <div className="loading-indicator">
+                      <FaSpinner className="spinner" /> Loading events...
+                    </div>
+                  ) : error.events ? (
+                    <div className="error-message">
+                      {error.events}
+                      <button onClick={fetchEvents} className="retry-button-small">Retry</button>
+                    </div>
+                  ) : events.length === 0 ? (
+                    <div className="no-data-message">No events found</div>
+                  ) : (
+                    filteredEvents.map(event => (
+                      <div 
+                        key={event.id} 
+                        className={`event-option ${selectedEvent && selectedEvent.id === event.id ? 'active' : ''}`}
+                        onClick={() => handleEventSelect(event)}
+                      >
+                        {event.name}
                       </div>
-                    ) : error.events ? (
-                      <div className="error-message">
-                        {error.events}
-                        <button onClick={fetchEvents} className="retry-button-small">Retry</button>
-                      </div>
-                    ) : events.length === 0 ? (
-                      <div className="no-data-message">No events found</div>
-                    ) : (
-                      events.map(event => (
-                        <div 
-                          key={event.id} 
-                          className={`event-option ${selectedEvent && selectedEvent.id === event.id ? 'active' : ''}`}
-                          onClick={() => handleEventSelect(event)}
-                        >
-                          {event.name}
-                        </div>
-                      ))
-                    )}
-                  </div>
+                    ))
+                  )}
+                </div>
                 )}
               </div>
             </div>
@@ -1009,19 +1049,14 @@ const Donors = () => {
                     </button>
                   </div>
                 ) : (
-                  <div className="donors-grid">
-                    {filteredDonors.map(donor => (
-                      <DonorCard
-                        key={donor.id}
-                        donor={donor}
-                        onRemove={handleRemoveDonor}
-                        onStatusUpdate={handleOpenStatusModal}
-                        isEventReady={isEventReady()}
-                        loading={loading.donors}
-                        formatDate={formatDate}
-                      />
-                    ))}
-                  </div>
+                  <DonorList
+                    donors={filteredDonors}
+                    onRemove={handleRemoveDonor}
+                    onStatusUpdate={handleOpenStatusModal}
+                    isEventReady={isEventReady()}
+                    loading={loading.donors}
+                    formatDate={formatDate}
+                  />
                 )}
               </>
             )}
@@ -1084,6 +1119,7 @@ const Donors = () => {
         onClose={() => setShowAddDonorModal(false)}
         eventId={selectedEvent?.id}
         onDonorAdded={handleDonorAdded}
+        currentEventDonors={eventDonors}
       />
 
       {/* Status Edit Modal */}
@@ -1149,14 +1185,38 @@ const Donors = () => {
               {editStatus === 'Excluded' && (
                 <div className="exclude-reason-section">
                   <label htmlFor="exclude-reason">Exclusion Reason:</label>
-                  <input
-                    id="exclude-reason"
-                    type="text"
-                    placeholder="Enter reason for excluding this donor"
-                    value={editExcludeReason}
-                    onChange={(e) => setEditExcludeReason(e.target.value)}
-                    className="exclude-reason-input"
-                  />
+                  <div className="exclude-reason-input-container">
+                    <input
+                      id="exclude-reason"
+                      type="text"
+                      placeholder="Enter reason for excluding this donor"
+                      value={editExcludeReason}
+                      onChange={(e) => {
+                        setEditExcludeReason(e.target.value);
+                        setShowExcludeSuggestions(true);
+                      }}
+                      onFocus={() => setShowExcludeSuggestions(true)}
+                      className="exclude-reason-input"
+                    />
+                    {showExcludeSuggestions && (
+                      <div className="exclude-reason-suggestions">
+                        {excludeReasonSuggestions
+                          .filter(suggestion => 
+                            suggestion.toLowerCase().includes(editExcludeReason.toLowerCase())
+                          )
+                          .map((suggestion, index) => (
+                            <div
+                              key={index}
+                              className="suggestion-item"
+                              onClick={() => handleSuggestionSelect(suggestion)}
+                            >
+                              {suggestion}
+                            </div>
+                          ))
+                        }
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
               
