@@ -288,38 +288,46 @@ const AddDonorModal = ({
         </div>
 
         <div className="modal-body">
-          <div className="search-section">
-            <div className="modal-header-actions">
-              <div className="modal-search-container">
-                <form onSubmit={handleSearchSubmit} className="search-input-wrapper">
-                  <FaSearch className="search-icon" />
-                  <input
-                    type="text"
-                    placeholder="Search donors' name..."
-                    value={tempSearchQuery}
-                    onChange={handleSearch}
-                    className="modal-search-input"
-                  />
-                </form>
+          <div className="modal-header-actions">
+            <div className="modal-search-container">
+              <div className="search-input-wrapper">
+                <FaSearch className="search-icon" />
+                <input
+                  type="text"
+                  placeholder="Search donors' name..."
+                  value={tempSearchQuery}
+                  onChange={handleSearch}
+                  className="modal-search-input"
+                />
               </div>
-              <div className="modal-actions">
-                <label className="select-all-checkbox">
-                  <input
-                    type="checkbox"
-                    checked={selectedDonors.length > 0 && selectedDonors.length === (recommendedDonors.length + availableDonors.length)}
-                    onChange={(e) => handleSelectAll(e.target.checked)}
-                  />
-                  Select All
-                </label>
-                <button 
-                  className="refresh-button"
-                  onClick={handleRefresh}
-                  disabled={isRefreshing}
-                >
-                  <FaSync className={isRefreshing ? 'spinning' : ''} />
-                </button>
-              </div>
+              <button
+                type="submit"
+                className="modal-search-button"
+                onClick={handleSearchSubmit}
+                disabled={loading}
+              >
+                Search
+              </button>
             </div>
+            
+            <div className="select-all-container">
+              <input
+                type="checkbox"
+                checked={selectedDonors.length === availableDonors.length && availableDonors.length > 0}
+                onChange={(e) => handleSelectAll(e.target.checked)}
+                id="select-all"
+              />
+              <label htmlFor="select-all">Select All</label>
+            </div>
+
+            <button
+              className="refresh-button-icon"
+              onClick={handleRefresh}
+              disabled={isRefreshing}
+              title="Refresh donor list"
+            >
+              <FaSync className={isRefreshing ? 'spinning' : ''} />
+            </button>
           </div>
 
           {error && (
