@@ -205,7 +205,11 @@ const AddDonorModal = ({
 
   const handleSelectAll = (checked) => {
     if (checked) {
-      setSelectedDonors(availableDonors);
+      // 合并推荐捐赠者和其他捐赠者
+      const allDonors = [...recommendedDonors, ...availableDonors];
+      // 确保没有重复的捐赠者
+      const uniqueDonors = Array.from(new Map(allDonors.map(donor => [donor.id, donor])).values());
+      setSelectedDonors(uniqueDonors);
     } else {
       setSelectedDonors([]);
     }
@@ -302,7 +306,7 @@ const AddDonorModal = ({
                 <label className="select-all-checkbox">
                   <input
                     type="checkbox"
-                    checked={selectedDonors.length === availableDonors.length && availableDonors.length > 0}
+                    checked={selectedDonors.length > 0 && selectedDonors.length === (recommendedDonors.length + availableDonors.length)}
                     onChange={(e) => handleSelectAll(e.target.checked)}
                   />
                   Select All
