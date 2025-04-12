@@ -130,8 +130,9 @@ const AddDonorModal = ({
       if (onDonorAdded) {
         onDonorAdded();
       }
-      // Remove the added donor from available donors
+      // Remove the added donor from both available and recommended donors
       setAvailableDonors(prev => prev.filter(d => d.id !== donorId));
+      setRecommendedDonors(prev => prev.filter(d => d.id !== donorId));
       // Remove from selected donors
       setSelectedDonors(prev => prev.filter(d => d.id !== donorId));
     } catch (err) {
@@ -168,8 +169,11 @@ const AddDonorModal = ({
       }
       
       if (addedDonors.length > 0) {
-        // 立即从可用列表中移除已添加的捐赠者
+        // 从两个列表中移除已添加的捐赠者
         setAvailableDonors(prev => 
+          prev.filter(donor => !addedDonors.includes(donor.id))
+        );
+        setRecommendedDonors(prev => 
           prev.filter(donor => !addedDonors.includes(donor.id))
         );
         
@@ -183,9 +187,6 @@ const AddDonorModal = ({
         
         setAddingStatus('Donors added successfully!');
         setAddingProgress(100);
-        
-        // 重新获取可用捐赠者列表
-        await fetchAvailableDonors();
       }
       
       // 延迟重置进度条
