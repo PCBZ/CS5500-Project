@@ -1844,4 +1844,66 @@ router.get('/:id/available-donors', protect, async (req, res) => {
   }
 });
 
+/**
+ * Get recommended donors for an event based on location matching
+ * 
+ * @name GET /api/events/:eventId/recommended-donors
+ * @function
+ * @memberof module:EventAPI
+ * @inner
+ */
+router.get('/:eventId/recommended-donors', protect, async (req, res) => {
+  try {
+    const eventId = parseInt(req.params.eventId);
+
+    // 获取事件信息
+    const event = await prisma.event.findUnique({
+      where: { id: eventId }
+    });
+
+    if (!event) {
+      return res.status(404).json({ message: 'Event not found' });
+    }
+
+    // 获取与事件城市相同的捐赠者
+    const recommendedDonors = await prisma.donor.findMany({
+      where: {
+        city: event.location,
+        excluded: false,
+        deceased: false
+      },
+      orderBy: {
+        totalDonations: 'desc'
+      }
+    });
+
+    // 获取已添加到事件的捐赠者ID列表
+    const existingDonors = await prisma.eventDonor.findMany({
+      where: {
+        donorList: {
+          eventId: eventId
+        }
+      },
+      select: {
+        donorId: true
+      }
+    });
+
+    const existingDonorIds = existingDonors.map(d => d.donorId);
+
+    // 过滤掉已添加的捐赠者
+    const filteredRecommendedDonors = recommendedDonors.filter(
+      donor => !existingDonorIds.includes(donor.id)
+    );
+
+    res.json({
+      recommendedDonors: formatDonor(filteredRecommendedDonors)
+    });
+
+  } catch (error) {
+    console.error('Error getting recommended donors:', error);
+    res.status(500).json({ message: 'Failed to get recommended donors', error: error.message });
+  }
+});
+
 export default router;
