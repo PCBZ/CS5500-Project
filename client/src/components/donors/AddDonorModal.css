@@ -655,4 +655,109 @@
 .page-info {
   color: #4b5563;
   font-size: 0.875rem;
+}
+
+/* Recommended Donors Section */
+.recommended-donors-section {
+  margin-bottom: 20px;
+  padding: 15px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e1e4e8;
+}
+
+.recommended-donors-section h4 {
+  margin: 0 0 15px 0;
+  color: #2c3e50;
+  font-size: 1.1em;
+}
+
+.recommended-donors-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 15px;
+  margin-top: 10px;
+}
+
+.recommended-donor-item {
+  background: white;
+  border: 1px solid #e1e4e8;
+  border-radius: 6px;
+  padding: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.recommended-donor-item:hover {
+  border-color: #0366d6;
+  box-shadow: 0 2px 4px rgba(3, 102, 214, 0.1);
+}
+
+.recommended-donor-item.selected {
+  background-color: #f1f8ff;
+  border-color: #0366d6;
+}
+
+.donor-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.donor-name {
+  margin: 0;
+  font-weight: 600;
+  color: #24292e;
+}
+
+.organization-name {
+  margin-left: 5px;
+  color: #586069;
+  font-weight: normal;
+}
+
+.donor-details {
+  margin: 0;
+  font-size: 0.9em;
+  color: #586069;
+}
+
+.donor-city {
+  margin-left: 8px;
+}
+
+.loading-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #586069;
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
+}
+
+.error-message {
+  color: #cb2431;
+  padding: 10px;
+  background-color: #ffeef0;
+  border-radius: 6px;
+}
+
+.no-recommendations {
+  color: #586069;
+  text-align: center;
+  padding: 20px;
+  background-color: white;
+  border-radius: 6px;
+  border: 1px dashed #e1e4e8;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 } 
