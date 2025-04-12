@@ -67,13 +67,9 @@ const RelatedEvents = ({
             <div className="loading-spinner"></div>
             <p>Finding related events...</p>
           </div>
-        ) : similarEvents.length === 0 ? (
-          <div className="no-related-events">
-            <p>No related events found</p>
-          </div>
         ) : (
           <div className="related-events-list">
-            {similarEvents.map(({ event, commonCategories }) => (
+            {similarEvents.map(({ event, details }) => (
               <div 
                 key={event.id} 
                 className="related-event-item" 
@@ -106,15 +102,15 @@ const RelatedEvents = ({
                   </div>
                   
                   <div className="related-event-categories">
-                    {commonCategories.slice(0, 3).map(category => (
+                    {details.matchedCategories.slice(0, 3).map(category => (
                       <div key={category} className="category-tag">
                         <FaTag className="tag-icon" />
                         <span>{getCategoryDisplayName(category)}</span>
                       </div>
                     ))}
                     
-                    {commonCategories.length > 3 && (
-                      <div className="more-categories">+{commonCategories.length - 3} more</div>
+                    {details.matchedCategories.length > 3 && (
+                      <div className="more-categories">+{details.matchedCategories.length - 3} more</div>
                     )}
                   </div>
                 </div>
