@@ -64,27 +64,27 @@ const AddDonorModal = ({
   }, [recommendedDonors]);
 
   const handleSearch = (e) => {
-    const query = e.target.value;
-    setTempSearchQuery(query);
-    
-    // Filter recommended donors based on search query
-    if (query.trim() === '') {
-      setFilteredRecommendedDonors(recommendedDonors);
-    } else {
-      const filtered = recommendedDonors.filter(donor => {
-        const fullName = `${donor.firstName || ''} ${donor.lastName || ''}`.toLowerCase();
-        const orgName = (donor.organizationName || '').toLowerCase();
-        const searchTerm = query.toLowerCase();
-        return fullName.includes(searchTerm) || orgName.includes(searchTerm);
-      });
-      setFilteredRecommendedDonors(filtered);
-    }
+    setTempSearchQuery(e.target.value);
   };
 
   const handleSearchSubmit = async (e) => {
     e.preventDefault();
     setSearchQuery(tempSearchQuery);
     setCurrentPage(1);
+    
+    // Filter recommended donors based on search query
+    if (tempSearchQuery.trim() === '') {
+      setFilteredRecommendedDonors(recommendedDonors);
+    } else {
+      const filtered = recommendedDonors.filter(donor => {
+        const fullName = `${donor.firstName || ''} ${donor.lastName || ''}`.toLowerCase();
+        const orgName = (donor.organizationName || '').toLowerCase();
+        const searchTerm = tempSearchQuery.toLowerCase();
+        return fullName.includes(searchTerm) || orgName.includes(searchTerm);
+      });
+      setFilteredRecommendedDonors(filtered);
+    }
+    
     await fetchAvailableDonors();
   };
 
