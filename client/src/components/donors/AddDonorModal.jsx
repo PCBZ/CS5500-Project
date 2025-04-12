@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { FaTimes, FaSearch, FaSync, FaPlus, FaSpinner } from 'react-icons/fa';
 import { addDonorToEvent, getAvailableDonors } from '../../services/donorService';
-import RecommendedDonors from './RecommendedDonors';
 import './AddDonorModal.css';
 
 const AddDonorModal = ({ 
@@ -23,6 +22,8 @@ const AddDonorModal = ({
   const [addingProgress, setAddingProgress] = useState(null);
   const [addingStatus, setAddingStatus] = useState('');
   const [loadingTime, setLoadingTime] = useState(-1);
+  const [recommendedDonors, setRecommendedDonors] = useState([]);
+  const [loadingRecommended, setLoadingRecommended] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -50,6 +51,12 @@ const AddDonorModal = ({
       if (timer) clearInterval(timer);
     };
   }, [loading, addingProgress, loadingTime]);
+
+  useEffect(() => {
+    if (eventId) {
+      fetchRecommendedDonors();
+    }
+  }, [eventId]);
 
   const handleSearch = (e) => {
     setTempSearchQuery(e.target.value);
@@ -204,6 +211,43 @@ const AddDonorModal = ({
     }
   };
 
+  const fetchRecommendedDonors = async () => {
+    try {
+      setLoadingRecommended(true);
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
+
+      const response = await fetch(
+        `${process.env.REACT_APP_API_URL || 'http://localhost:3000'}/api/events/${eventId}/recommended-donors`,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      
+      // 过滤掉已经在活动中的捐赠者
+      const filteredDonors = data.recommendedDonors.filter(donor => 
+        !currentEventDonors.some(eventDonor => eventDonor.id === donor.id)
+      );
+      
+      setRecommendedDonors(filteredDonors);
+    } catch (err) {
+      console.error('Error fetching recommended donors:', err);
+    } finally {
+      setLoadingRecommended(false);
+    }
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -240,25 +284,7 @@ const AddDonorModal = ({
         </div>
 
         <div className="modal-body">
-          <RecommendedDonors
-            eventId={eventId}
-            onDonorSelect={handleDonorSelect}
-            selectedDonors={selectedDonors}
-            currentEventDonors={currentEventDonors}
-          />
-          {error && (
-            <div className="error-message">
-              {error}
-            </div>
-          )}
-          
           <div className="search-section">
-            {error && (
-              <div className="error-message">
-                {error}
-              </div>
-            )}
-            
             <div className="modal-header-actions">
               <div className="modal-search-container">
                 <form onSubmit={handleSearchSubmit} className="search-input-wrapper">
@@ -270,127 +296,143 @@ const AddDonorModal = ({
                     onChange={handleSearch}
                     className="modal-search-input"
                   />
-                  <button
-                    type="submit"
-                    className="modal-search-button"
-                    disabled={loading}
-                  >
-                    Search
-                  </button>
                 </form>
               </div>
-              
-              <div className="select-all-container">
-                <input
-                  type="checkbox"
-                  checked={selectedDonors.length === availableDonors.length && availableDonors.length > 0}
-                  onChange={(e) => handleSelectAll(e.target.checked)}
-                  id="select-all"
-                />
-                <label htmlFor="select-all">Select All</label>
+              <div className="modal-actions">
+                <label className="select-all-checkbox">
+                  <input
+                    type="checkbox"
+                    checked={selectedDonors.length === availableDonors.length && availableDonors.length > 0}
+                    onChange={(e) => handleSelectAll(e.target.checked)}
+                  />
+                  Select All
+                </label>
+                <button 
+                  className="refresh-button"
+                  onClick={handleRefresh}
+                  disabled={isRefreshing}
+                >
+                  <FaSync className={isRefreshing ? 'spinning' : ''} />
+                </button>
               </div>
-
-              <button
-                className="refresh-button-icon"
-                onClick={handleRefresh}
-                disabled={isRefreshing}
-                title="Refresh donor list"
-              >
-                <FaSync className={isRefreshing ? 'spinning' : ''} />
-              </button>
             </div>
           </div>
 
-          {loading && !addingProgress ? (
-            <div className="loading-container">
-              <div className="loading-spinner-large"></div>
-              <p>Loading{loadingTime >= 0 ? ` (${loadingTime}s)` : ''}...</p>
+          {error && (
+            <div className="error-message">
+              {error}
             </div>
-          ) : (
-            <>
-              <div className="available-donors-list">
-                {availableDonors.length === 0 ? (
-                  <div className="no-donors-message">
-                    No donors available to add
-                  </div>
-                ) : (
-                  availableDonors.map(donor => {
-                    if (!donor || typeof donor !== 'object') return null;
-                    
-                    const donorId = donor.id;
-                    if (!donorId) return null;
-                    
-                    const firstName = String(donor.firstName || '').normalize('NFKC');
-                    const lastName = String(donor.lastName || '').normalize('NFKC');
-                    const organizationName = donor.organizationName ? String(donor.organizationName).normalize('NFKC') : null;
-                    
-                    return (
-                      <div 
-                        key={donorId}
-                        className={`donor-item ${selectedDonors.some(d => d.id === donorId) ? 'selected' : ''}`}
-                        onClick={() => handleDonorSelect(donor)}
-                      >
-                        <div className="donor-info">
-                          <p className="donor-name">
-                            {firstName} {lastName}
-                            {organizationName && <span> ({organizationName})</span>}
-                          </p>
-                          <p className="donor-details">
-                            <span>Total Donations: ${Number(donor.totalDonations || 0).toLocaleString()}</span>
-                            {donor.city && <span> | {String(donor.city).normalize('NFKC')}</span>}
-                          </p>
-                        </div>
-                        <div className="donor-checkbox">
-                          <input
-                            type="checkbox"
-                            checked={selectedDonors.some(d => d.id === donorId)}
-                            onChange={() => handleDonorSelect(donor)}
-                            onClick={(e) => e.stopPropagation()}
-                          />
-                        </div>
-                      </div>
-                    );
-                  })
-                )}
-              </div>
+          )}
 
-              <div className="modal-pagination">
+          <div className="available-donors-list">
+            {/* 推荐捐赠者部分 */}
+            {!loading && !loadingRecommended && recommendedDonors.length > 0 && (
+              <>
+                <div className="donor-section-header">
+                  <h4>Recommended Donors</h4>
+                </div>
+                {recommendedDonors.map(donor => (
+                  <div 
+                    key={donor.id}
+                    className={`donor-item recommended ${selectedDonors.some(d => d.id === donor.id) ? 'selected' : ''}`}
+                    onClick={() => handleDonorSelect(donor)}
+                  >
+                    <div className="donor-info">
+                      <p className="donor-name">
+                        {String(donor.firstName || '').normalize('NFKC')} {String(donor.lastName || '').normalize('NFKC')}
+                        {donor.organizationName && (
+                          <span className="organization-name">
+                            ({String(donor.organizationName).normalize('NFKC')})
+                          </span>
+                        )}
+                      </p>
+                      <p className="donor-details">
+                        <span>Total Donations: ${Number(donor.totalDonations || 0).toLocaleString()}</span>
+                        {donor.city && <span> | {String(donor.city).normalize('NFKC')}</span>}
+                      </p>
+                    </div>
+                    <div className="donor-checkbox">
+                      <input
+                        type="checkbox"
+                        checked={selectedDonors.some(d => d.id === donor.id)}
+                        onChange={() => handleDonorSelect(donor)}
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </>
+            )}
+
+            {/* 其他捐赠者部分 */}
+            {!loading && availableDonors.length > 0 && (
+              <>
+                <div className="donor-section-header">
+                  <h4>Other Donors</h4>
+                </div>
+                {availableDonors.map(donor => (
+                  <div 
+                    key={donor.id}
+                    className={`donor-item ${selectedDonors.some(d => d.id === donor.id) ? 'selected' : ''}`}
+                    onClick={() => handleDonorSelect(donor)}
+                  >
+                    <div className="donor-info">
+                      <p className="donor-name">
+                        {String(donor.firstName || '').normalize('NFKC')} {String(donor.lastName || '').normalize('NFKC')}
+                        {donor.organizationName && (
+                          <span className="organization-name">
+                            ({String(donor.organizationName).normalize('NFKC')})
+                          </span>
+                        )}
+                      </p>
+                      <p className="donor-details">
+                        <span>Total Donations: ${Number(donor.totalDonations || 0).toLocaleString()}</span>
+                        {donor.city && <span> | {String(donor.city).normalize('NFKC')}</span>}
+                      </p>
+                    </div>
+                    <div className="donor-checkbox">
+                      <input
+                        type="checkbox"
+                        checked={selectedDonors.some(d => d.id === donor.id)}
+                        onChange={() => handleDonorSelect(donor)}
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </>
+            )}
+          </div>
+
+          <div className="modal-pagination">
+            {totalPages > 1 && (
+              <div className="pagination-controls">
                 <button
                   onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                  disabled={currentPage === 1}
-                  className="pagination-button"
+                  disabled={currentPage === 1 || loading}
                 >
                   Previous
                 </button>
-                <span className="page-info">
-                  Page {currentPage} of {totalPages}
-                </span>
+                <span>Page {currentPage} of {totalPages}</span>
                 <button
                   onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                  disabled={currentPage === totalPages}
-                  className="pagination-button"
+                  disabled={currentPage === totalPages || loading}
                 >
                   Next
                 </button>
-                
-                {selectedDonors.length > 0 && (
-                  <button
-                    className="bulk-add-button"
-                    onClick={handleAddMultipleDonors}
-                    disabled={loading}
-                  >
-                    {loading ? (
-                      <div className="button-loading">
-                        Adding {selectedDonors.length} Donors...
-                      </div>
-                    ) : (
-                      `Add ${selectedDonors.length} Selected Donors`
-                    )}
-                  </button>
-                )}
               </div>
-            </>
-          )}
+            )}
+            
+            {selectedDonors.length > 0 && (
+              <button
+                className="add-selected-button"
+                onClick={handleAddMultipleDonors}
+                disabled={loading}
+              >
+                <FaPlus /> Add Selected ({selectedDonors.length})
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </div>
