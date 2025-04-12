@@ -838,11 +838,19 @@ const Donors = () => {
     });
   };
 
-  const handleDonorAdded = (donor) => {
-    // Implement the logic to add the new donor to the available donors list
-    setAvailableDonors(prev => [...prev, donor]);
-    setSuccess('Donor added successfully!');
-    setTimeout(() => setSuccess(''), 3000);
+  const handleDonorAdded = async () => {
+    try {
+      // 重新获取活动的捐赠者列表
+      await fetchEventDonors();
+      // 更新统计信息
+      await fetchEventStats();
+      // 显示成功消息
+      setSuccess('Donor added successfully!');
+      setTimeout(() => setSuccess(''), 3000);
+    } catch (error) {
+      console.error('Error refreshing donor lists:', error);
+      setError(prev => ({ ...prev, donors: 'Failed to refresh donor list' }));
+    }
   };
   
   const filteredEvents = events.filter(event =>
@@ -1099,6 +1107,7 @@ const Donors = () => {
         onClose={() => setShowAddDonorModal(false)}
         eventId={selectedEvent?.id}
         onDonorAdded={handleDonorAdded}
+        currentEventDonors={eventDonors}
       />
 
       {/* Status Edit Modal */}

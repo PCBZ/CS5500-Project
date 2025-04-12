@@ -141,7 +141,16 @@ const ImportDonors = ({ onImportSuccess, onImportError }) => {
             onImportSuccess?.({ message: 'Import cancelled', imported: 0, updated: 0 });
           } else {
             const result = completeData.result || {};
-            onImportSuccess?.(result);
+            // Extract the counts from the result data
+            const imported = result.imported || result.importedCount || 0;
+            const updated = result.updated || result.updatedCount || 0;
+            
+            onImportSuccess?.({
+              message: 'Import completed successfully',
+              imported,
+              updated,
+              errors: result.errors
+            });
             
             if (result.errors && result.errors.length > 0) {
               console.warn('Import completed with errors:', result.errors);

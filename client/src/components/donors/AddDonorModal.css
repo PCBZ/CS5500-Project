@@ -21,6 +21,7 @@
   flex-direction: column;
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
   animation: slideIn 0.3s ease-out;
+  position: relative;
 }
 
 .modal-header {
@@ -55,6 +56,7 @@
   padding: 20px;
   overflow-y: auto;
   flex: 1;
+  position: relative;
 }
 
 .modal-header-actions {
@@ -143,7 +145,7 @@
 .loading-container p {
   color: var(--secondary-color);
   font-size: 14px;
-  margin: 0;
+  margin: 0 0 20px 0;
 }
 
 .error-message {
@@ -319,4 +321,253 @@
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+/* Progress Bar Styles */
+.adding-progress-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  background-color: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+  margin: 0;
+  padding: 10px 20px;
+  z-index: 10;
+}
+
+.adding-progress-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.adding-progress-percentage {
+  font-weight: 600;
+  color: #2563eb;
+  font-size: 1rem;
+}
+
+.adding-progress-status {
+  color: #64748b;
+  font-size: 0.875rem;
+  text-align: right;
+  flex: 1;
+  margin-left: 12px;
+}
+
+.adding-progress-bar-wrapper {
+  background-color: #f3f4f6;
+  border-radius: 4px;
+  height: 6px;
+  overflow: hidden;
+  width: 100%;
+  position: relative;
+}
+
+.adding-progress-bar {
+  height: 100%;
+  transition: width 0.3s ease;
+  border-radius: 4px;
+}
+
+.adding-progress-bar.processing {
+  background: linear-gradient(90deg, 
+    #2563eb 0%, 
+    #3b82f6 50%, 
+    #2563eb 100%);
+  background-size: 200% 100%;
+  animation: progress-animation 2s linear infinite;
+}
+
+.adding-progress-bar.completed {
+  background: #10b981;
+}
+
+.adding-progress-bar.error {
+  background: #ef4444;
+}
+
+@keyframes progress-animation {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* Loading Spinner */
+.loading-spinner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  color: #64748b;
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
+  margin-right: 8px;
+}
+
+.button-loading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Error Message */
+.error-message {
+  background-color: #fee2e2;
+  border: 1px solid #fecaca;
+  color: #ef4444;
+  padding: 12px;
+  border-radius: 6px;
+  margin-bottom: 15px;
+}
+
+/* When progress bar is showing, add padding to modal header */
+.modal-header.with-progress {
+  padding-top: 75px;
+}
+
+/* Initial Loading State */
+.initial-loading {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100%;
+  text-align: center;
+}
+
+.initial-loading .loading-spinner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 24px;
+  background-color: #f8fafc;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.initial-loading .spinner {
+  font-size: 24px;
+  color: #2563eb;
+}
+
+.initial-loading span {
+  color: #64748b;
+  font-size: 0.875rem;
+}
+
+/* Loading Progress Bar Styles */
+.loading-progress-container {
+  width: 100%;
+  max-width: 300px;
+  margin-top: 20px;
+}
+
+.loading-progress-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.loading-progress-percentage {
+  font-weight: 600;
+  color: #2563eb;
+  font-size: 0.875rem;
+}
+
+.loading-progress-status {
+  color: #64748b;
+  font-size: 0.75rem;
+  text-align: right;
+  flex: 1;
+  margin-left: 12px;
+}
+
+.loading-progress-bar-wrapper {
+  background-color: #f3f4f6;
+  border-radius: 4px;
+  height: 4px;
+  overflow: hidden;
+  width: 100%;
+  position: relative;
+}
+
+.loading-progress-bar {
+  height: 100%;
+  transition: width 0.3s ease;
+  border-radius: 4px;
+}
+
+.loading-progress-bar.processing {
+  background: linear-gradient(90deg, 
+    #2563eb 0%, 
+    #3b82f6 50%, 
+    #2563eb 100%);
+  background-size: 200% 100%;
+  animation: progress-animation 2s linear infinite;
+}
+
+.loading-progress-bar.completed {
+  background: #10b981;
+}
+
+.loading-progress-bar.error {
+  background: #ef4444;
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 1rem;
+  padding: 1rem 0;
+  border-top: 1px solid #e5e7eb;
+}
+
+.pagination-button {
+  padding: 0.5rem 1rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.375rem;
+  background-color: white;
+  color: #374151;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.pagination-button:hover:not(:disabled) {
+  background-color: #f3f4f6;
+  border-color: #d1d5db;
+}
+
+.pagination-button:disabled {
+  background-color: #f3f4f6;
+  color: #9ca3af;
+  cursor: not-allowed;
+}
+
+.page-info {
+  color: #4b5563;
+  font-size: 0.875rem;
 } 
