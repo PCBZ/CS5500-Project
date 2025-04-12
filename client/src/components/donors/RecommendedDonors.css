@@ -12,57 +12,89 @@
 }
 
 .recommended-donors-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 15px;
-  margin-top: 10px;
-}
-
-.recommended-donor-item {
-  background: white;
-  border: 1px solid #e1e4e8;
-  border-radius: 6px;
-  padding: 12px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.recommended-donor-item:hover {
-  border-color: #0366d6;
-  box-shadow: 0 2px 4px rgba(3, 102, 214, 0.1);
-}
-
-.recommended-donor-item.selected {
-  background-color: #f1f8ff;
-  border-color: #0366d6;
-}
-
-.donor-info {
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
+.recommended-donor-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 15px;
+  background-color: #f8fafc;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  border: 1px solid #e2e8f0;
+  margin-bottom: 8px;
+}
+
+.recommended-donor-item:hover {
+  background-color: #f1f5f9;
+  border-color: #cbd5e1;
+}
+
+.recommended-donor-item.selected {
+  background-color: #eff6ff;
+  border-color: #3b82f6;
+}
+
+.donor-info {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 0 10px;
+}
+
 .donor-name {
-  margin: 0;
   font-weight: 600;
-  color: #24292e;
+  margin: 0;
+  color: #1a1a1a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 150px;
+  max-width: 200px;
 }
 
 .organization-name {
-  margin-left: 5px;
-  color: #586069;
+  color: #4a5568;
   font-weight: normal;
 }
 
 .donor-details {
   margin: 0;
-  font-size: 0.9em;
-  color: #586069;
+  font-size: 14px;
+  color: #4a5568;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: flex;
+  gap: 20px;
+  align-items: center;
 }
 
-.donor-city {
-  margin-left: 8px;
+.donor-location {
+  min-width: 120px;
+  max-width: 150px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.donor-amount {
+  min-width: 80px;
+  max-width: 100px;
+  color: #2d3748;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .loading-container {
@@ -70,6 +102,8 @@
   align-items: center;
   gap: 10px;
   color: #586069;
+  padding: 20px;
+  justify-content: center;
 }
 
 .spinner {
@@ -81,6 +115,7 @@
   padding: 10px;
   background-color: #ffeef0;
   border-radius: 6px;
+  margin: 10px 0;
 }
 
 .no-recommendations {
