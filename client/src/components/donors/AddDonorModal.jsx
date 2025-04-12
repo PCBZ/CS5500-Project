@@ -14,13 +14,14 @@ const AddDonorModal = ({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [tempSearchQuery, setTempSearchQuery] = useState('');
   const [selectedDonors, setSelectedDonors] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [addingProgress, setAddingProgress] = useState(0);
+  const [addingProgress, setAddingProgress] = useState(null);
   const [addingStatus, setAddingStatus] = useState('');
-  const [loadingTime, setLoadingTime] = useState(3);
+  const [loadingTime, setLoadingTime] = useState(-1);
 
   useEffect(() => {
     if (isOpen) {
@@ -49,57 +50,25 @@ const AddDonorModal = ({
     };
   }, [loading, addingProgress, loadingTime]);
 
+  const handleSearch = (e) => {
+    setTempSearchQuery(e.target.value);
+  };
+
+  const handleSearchSubmit = async (e) => {
+    e.preventDefault();
+    setSearchQuery(tempSearchQuery);
+    setCurrentPage(1);
+    await fetchAvailableDonors();
+  };
+
   const fetchAvailableDonors = async () => {
     try {
       setLoading(true);
-      setLoadingTime(3);
       setError(null);
       const response = await getAvailableDonors(eventId, {
         page: currentPage,
         limit: 10,
-        search: searchQuery
-      });
-      
-      console.log('API Response:', response);
-      
-      if (response?.data && Array.isArray(response.data)) {
-        const filteredDonors = response.data.filter(donor => 
-          !currentEventDonors.some(eventDonor => eventDonor.id === donor.id)
-        );
-        
-        setAvailableDonors(filteredDonors);
-        const totalCount = Math.max(0, (response.total_count || 0) - currentEventDonors.length);
-        const limit = response.limit || 10;
-        const calculatedTotalPages = Math.ceil(totalCount / limit);
-        setTotalPages(calculatedTotalPages);
-        console.log('Calculated total pages:', calculatedTotalPages);
-      } else {
-        console.warn('Invalid response format:', response);
-        setAvailableDonors([]);
-        setTotalPages(1);
-      }
-    } catch (err) {
-      console.error('Error fetching donors:', err);
-      setError(err.message || 'Failed to fetch available donors');
-      setAvailableDonors([]);
-      setTotalPages(1);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSearch = async (e) => {
-    setSearchQuery(e.target.value);
-    setCurrentPage(1);
-    // Trigger a new fetch after state updates
-    const searchValue = e.target.value;
-    try {
-      setLoading(true);
-      setError(null);
-      const response = await getAvailableDonors(eventId, {
-        page: 1,
-        limit: 10,
-        search: searchValue
+        search: tempSearchQuery
       });
       
       if (response?.data && Array.isArray(response.data)) {
@@ -276,14 +245,23 @@ const AddDonorModal = ({
           
           <div className="modal-header-actions">
             <div className="modal-search-container">
-              <FaSearch className="search-icon" />
-              <input
-                type="text"
-                placeholder="Search donors' name..."
-                value={searchQuery}
-                onChange={handleSearch}
-                className="modal-search-input"
-              />
+              <form onSubmit={handleSearchSubmit} className="search-input-wrapper">
+                <FaSearch className="search-icon" />
+                <input
+                  type="text"
+                  placeholder="Search donors' name..."
+                  value={tempSearchQuery}
+                  onChange={handleSearch}
+                  className="modal-search-input"
+                />
+                <button
+                  type="submit"
+                  className="modal-search-button"
+                  disabled={loading}
+                >
+                  Search
+                </button>
+              </form>
             </div>
             
             <div className="select-all-container">
@@ -360,27 +338,23 @@ const AddDonorModal = ({
               </div>
 
               <div className="modal-pagination">
-                {totalPages > 1 && (
-                  <>
-                    <button
-                      onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                      disabled={currentPage === 1}
-                      className="pagination-button"
-                    >
-                      Previous
-                    </button>
-                    <span className="page-info">
-                      Page {currentPage} of {totalPages}
-                    </span>
-                    <button
-                      onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                      disabled={currentPage === totalPages}
-                      className="pagination-button"
-                    >
-                      Next
-                    </button>
-                  </>
-                )}
+                <button
+                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                  disabled={currentPage === 1}
+                  className="pagination-button"
+                >
+                  Previous
+                </button>
+                <span className="page-info">
+                  Page {currentPage} of {totalPages}
+                </span>
+                <button
+                  onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                  disabled={currentPage === totalPages}
+                  className="pagination-button"
+                >
+                  Next
+                </button>
                 
                 {selectedDonors.length > 0 && (
                   <button
