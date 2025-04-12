@@ -215,14 +215,38 @@ function CreateNewEvent({ onClose, onEventCreated }) {
       };
 
       const result = await createEvent(payload);
-      setMessage(result.message || 'Event created successfully!');
-      // Call the onEventCreated callback after successful creation
-      if (onEventCreated) {
-        onEventCreated();
+      console.log("Event creation result:", result);
+      
+      // 检查是否包含 "successfully" 关键词，表示成功创建
+      if (result.message && result.message.toLowerCase().includes('successfully')) {
+        // 创建成功
+        setMessage(result.message);
+        // 构造事件数据对象
+        const eventData = {
+          ...payload,
+          id: result.id, // 如果API返回了ID
+          status: formData.eventStage,
+        };
+        
+        // 调用父组件的回调函数
+        if (onEventCreated) {
+          onEventCreated({
+            success: true,
+            data: eventData,
+            message: result.message
+          });
+        }
+        // 关闭模态框
+        if (onClose) {
+          onClose();
+        }
+      } else {
+        // 如果没有成功消息，则视为错误
+        throw new Error(result.message || 'Failed to create event');
       }
     } catch (err) {
       console.error("Error in createEvent:", err);
-      setError('Error creating event: ' + err.message);
+      setError('Error creating event: ' + (err.message || 'Unknown error occurred'));
     } finally {
       setLoading(false);
     }

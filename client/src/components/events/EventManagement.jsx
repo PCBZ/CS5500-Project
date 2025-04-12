@@ -371,8 +371,15 @@ const EventManagement = () => {
   };
 
   const handleEventCreated = (newEvent) => {
-    setEvents(prevEvents => [...prevEvents, newEvent]);
-    setOriginalEvents(prevEvents => [...prevEvents, newEvent]);
+    if (!newEvent || !newEvent.data) {
+      console.error('Invalid event data received:', newEvent);
+      return;
+    }
+
+    const eventData = newEvent.data;
+    
+    setEvents(prevEvents => [...prevEvents, eventData]);
+    setOriginalEvents(prevEvents => [...prevEvents, eventData]);
     setShowCreateModal(false);
     setSuccess('Event created successfully!');
     setTimeout(() => {
