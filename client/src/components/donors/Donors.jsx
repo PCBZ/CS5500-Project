@@ -61,6 +61,17 @@ const Donors = () => {
   const [modalItemsPerPage, setModalItemsPerPage] = useState(10);
   const [selectedDonors, setSelectedDonors] = useState([]);
   const [dropdownSearch, setDropdownSearch] = useState('');
+  const [showExcludeSuggestions, setShowExcludeSuggestions] = useState(false);
+  
+
+  const excludeReasonSuggestions = [
+    'Donor declined',
+    'Not eligible',
+    'Duplicate entry',
+    'Inactive donor',
+    'Contact information invalid',
+    'Requested removal'
+  ];
 
 
   // Set up mock token for development
@@ -857,6 +868,12 @@ const Donors = () => {
     event.name.toLowerCase().includes(dropdownSearch.toLowerCase())
   );
 
+  // 添加处理建议选择的函数
+  const handleSuggestionSelect = (suggestion) => {
+    setEditExcludeReason(suggestion);
+    setShowExcludeSuggestions(false);
+  };
+
   return (
     <div className="donors-container">
       <header className="donors-header">
@@ -1168,14 +1185,38 @@ const Donors = () => {
               {editStatus === 'Excluded' && (
                 <div className="exclude-reason-section">
                   <label htmlFor="exclude-reason">Exclusion Reason:</label>
-                  <input
-                    id="exclude-reason"
-                    type="text"
-                    placeholder="Enter reason for excluding this donor"
-                    value={editExcludeReason}
-                    onChange={(e) => setEditExcludeReason(e.target.value)}
-                    className="exclude-reason-input"
-                  />
+                  <div className="exclude-reason-input-container">
+                    <input
+                      id="exclude-reason"
+                      type="text"
+                      placeholder="Enter reason for excluding this donor"
+                      value={editExcludeReason}
+                      onChange={(e) => {
+                        setEditExcludeReason(e.target.value);
+                        setShowExcludeSuggestions(true);
+                      }}
+                      onFocus={() => setShowExcludeSuggestions(true)}
+                      className="exclude-reason-input"
+                    />
+                    {showExcludeSuggestions && (
+                      <div className="exclude-reason-suggestions">
+                        {excludeReasonSuggestions
+                          .filter(suggestion => 
+                            suggestion.toLowerCase().includes(editExcludeReason.toLowerCase())
+                          )
+                          .map((suggestion, index) => (
+                            <div
+                              key={index}
+                              className="suggestion-item"
+                              onClick={() => handleSuggestionSelect(suggestion)}
+                            >
+                              {suggestion}
+                            </div>
+                          ))
+                        }
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
               
