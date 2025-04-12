@@ -313,7 +313,7 @@ const AddDonorModal = ({
             <div className="select-all-container">
               <input
                 type="checkbox"
-                checked={selectedDonors.length === availableDonors.length && availableDonors.length > 0}
+                checked={selectedDonors.length === (availableDonors.length + recommendedDonors.length) && (availableDonors.length + recommendedDonors.length) > 0}
                 onChange={(e) => handleSelectAll(e.target.checked)}
                 id="select-all"
               />
