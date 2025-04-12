@@ -9,7 +9,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ toLowerCase(github.repository) }}
+  IMAGE_NAME: ${{ j3rrrrry/cs5500-project }}
 
 jobs:
   build-and-push:
