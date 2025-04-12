@@ -36,17 +36,13 @@ const AllDonors = () => {
   const [error, setError] = useState(null);
   const [exporting, setExporting] = useState(false);
   const [success, setSuccess] = useState('');
-  const [importing, setImporting] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [donorToDelete, setDonorToDelete] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [selectedDonor, setSelectedDonor] = useState(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [importProgress, setImportProgress] = useState(0);
-  const [poller, setPoller] = useState(null);
-  const [importStatus, setImportStatus] = useState('');
 
-  const fileInputRef = useRef(null);
+  const history = useHistory();
   
   // Filter state
   const [filters, setFilters] = useState({
@@ -60,8 +56,6 @@ const AllDonors = () => {
   // Remove toggling; the filter panel will always be visible.
   // (If you still have a toggleFilters function/state elsewhere, ignore it.)
 
-  const history = useHistory();
-  
   // Fetch all donor data when searchQuery, currentPage, or filters change
   useEffect(() => {
     fetchDonors();
@@ -100,74 +94,6 @@ const AllDonors = () => {
     }
   };
   
-  // Import handlers
-  const handleImportClick = () => {
-    fileInputRef.current.click();
-  };
-
-  const handleFileChange = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    
-    // Check file extension
-    const fileExtension = file.name.split('.').pop().toLowerCase();
-    if (fileExtension !== 'csv' && fileExtension !== 'xlsx' && fileExtension !== 'xls') {
-      setError('Please select a CSV or Excel file.');
-      setTimeout(() => setError(null), 5000);
-      e.target.value = null; // Reset file input
-      return;
-    }
-    
-    // Check file size (limit to 10MB)
-    const maxSize = 10 * 1024 * 1024;
-    if (file.size > maxSize) {
-      setError('File size exceeds the limit (10MB). Please select a smaller file.');
-      setTimeout(() => setError(null), 5000);
-      e.target.value = null;
-      return;
-    }
-    
-    setImporting(true);
-    setError(null);
-    setImportProgress(0);
-    
-    try {
-      const formData = new FormData();
-      formData.append('file', file);
-      
-      // Hint for server processing
-      formData.append('fileType', fileExtension === 'csv' ? 'csv' : 'excel');
-      
-      const result = await importDonors(formData, (progress) => {
-        setImportProgress(progress);
-      });
-      
-      if (result.success) {
-        setSuccess(`Import successful! Imported ${result.imported} records, updated ${result.updated} records.`);
-        
-        if (result.errors && result.errors.length > 0) {
-          console.warn('Import completed with errors:', result.errors);
-          setError(`Import completed with ${result.errors.length} errors. Check the console for details.`);
-          setTimeout(() => setError(null), 8000);
-        }
-        
-        setTimeout(() => setSuccess(''), 5000);
-        
-        fetchDonors();
-      } else {
-        throw new Error(result.message || 'Import failed');
-      }
-    } catch (err) {
-      console.error('Import failed:', err);
-      setError('Import failed: ' + (err.message || 'Unknown error'));
-      setTimeout(() => setError(null), 5000);
-    } finally {
-      setImporting(false);
-      setImportProgress(0);
-      e.target.value = null;
-    }
-  };
-
   // Filter and search handlers
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
@@ -330,15 +256,6 @@ const AllDonors = () => {
     }
   };
 
-  // Add cleanup when component unmounts
-  useEffect(() => {
-    return () => {
-      if (poller) {
-        poller.stop();
-      }
-    };
-  }, [poller]);
-
   return (
     <div className="all-donors-container">
       {/* Unified Top Panel: Merges header, search/actions, and filter panel */}
@@ -369,50 +286,16 @@ const AllDonors = () => {
             </div>
 
             {/* Removed toggle filters button; filter panel is always shown */}
-            <button 
-              className="action-button import-button" 
-              onClick={handleImportClick} 
-              disabled={importing}
-              title="From CSV or Excel import donors data"
-            >
-              {importing ? (
-                <div className="import-loading">
-                  <FaSpinner className="spinner" /> importing...
-                </div>
-              ) : (
-                <>
-                  <FaUpload /> Import
-                </>
-              )}
-            </button>
-
-            {importing && (
-              <div className="import-progress-container">
-                <div className="import-progress-info">
-                  <span className="import-progress-percentage">
-                    {Math.round(importProgress)}%
-                  </span>
-                  <span className="import-progress-status">
-                    {importProgress < 50 ? 'Uploading file...' : 
-                    importProgress < 90 ? 'Processing donors...' : 
-                    importProgress < 100 ? 'Finalizing...' : 'Complete!'}
-                  </span>
-                </div>
-                <div className="import-progress-bar-wrapper">
-                  <div 
-                    className="import-progress-bar" 
-                    style={{ width: `${importProgress}%` }}
-                  ></div>
-                </div>
-              </div>
-            )}
-
-            <input
-              type="file"
-              ref={fileInputRef}
-              onChange={handleFileChange}
-              style={{ display: 'none' }}
-              accept=".csv,.xlsx,.xls"
+            <ImportDonors 
+              onImportSuccess={(result) => {
+                setSuccess(`Import successful! Imported ${result.imported} records, updated ${result.updated} records.`);
+                setTimeout(() => setSuccess(''), 5000);
+                fetchDonors();
+              }}
+              onImportError={(error) => {
+                setError(error.message);
+                setTimeout(() => setError(null), 5000);
+              }}
             />
             
             <button 
