@@ -160,7 +160,8 @@ const Donors = () => {
       const response = await getEventDonors(selectedEvent.id, {
         page: currentPage,
         limit: itemsPerPage,
-        search: searchQuery || undefined
+        search: searchQuery || undefined,
+        status: statusFilter || undefined
       });
 
       // 处理返回结果中的错误信息
@@ -343,9 +344,33 @@ const Donors = () => {
   };
 
   // Handle search
-  const handleSearch = (e) => {
-    setSearchQuery(e.target.value);
-    setCurrentPage(1); // Reset to first page on search
+  const handleSearch = async (e) => {
+    const newSearchQuery = e.target.value;
+    setSearchQuery(newSearchQuery);
+    setCurrentPage(1); // 重置到第一页
+    
+    if (!selectedEvent) return;
+    
+    try {
+      setLoading(prev => ({ ...prev, donors: true }));
+      setError(prev => ({ ...prev, donors: null }));
+      
+      const response = await getEventDonors(selectedEvent.id, {
+        page: 1,
+        limit: itemsPerPage,
+        search: newSearchQuery || undefined,
+        status: statusFilter || undefined
+      });
+      
+      setEventDonors(response.data || []);
+      setTotalPages(response.total_pages || 1);
+      setTotalDonors(response.total_count || 0);
+    } catch (err) {
+      console.error('Failed to fetch search results:', err);
+      setError(prev => ({ ...prev, donors: 'Failed to load search results' }));
+    } finally {
+      setLoading(prev => ({ ...prev, donors: false }));
+    }
   };
 
   // Handle close modal
@@ -361,9 +386,32 @@ const Donors = () => {
   };
 
   // Handle pagination
-  const handlePageChange = (page) => {
+  const handlePageChange = async (page) => {
     if (page < 1 || page > totalPages) return;
     setCurrentPage(page);
+    
+    if (!selectedEvent) return;
+    
+    try {
+      setLoading(prev => ({ ...prev, donors: true }));
+      setError(prev => ({ ...prev, donors: null }));
+      
+      const response = await getEventDonors(selectedEvent.id, {
+        page,
+        limit: itemsPerPage,
+        search: searchQuery || undefined,
+        status: statusFilter || undefined
+      });
+      
+      setEventDonors(response.data || []);
+      setTotalPages(response.total_pages || 1);
+      setTotalDonors(response.total_count || 0);
+    } catch (err) {
+      console.error('Failed to fetch page:', err);
+      setError(prev => ({ ...prev, donors: 'Failed to load page' }));
+    } finally {
+      setLoading(prev => ({ ...prev, donors: false }));
+    }
   };
 
   /**
@@ -668,26 +716,35 @@ const Donors = () => {
   };
 
   // handle status filter
-  const handleStatusFilter = (status) => {
-    setStatusFilter(status === statusFilter ? '' : status);
+  const handleStatusFilter = async (status) => {
+    const newStatus = status === statusFilter ? '' : status;
+    setStatusFilter(newStatus);
+    setCurrentPage(1); // 重置到第一页
+    
+    if (!selectedEvent) return;
+    
+    try {
+      setLoading(prev => ({ ...prev, donors: true }));
+      setError(prev => ({ ...prev, donors: null }));
+      
+      // 获取新的捐赠者数据
+      const response = await getEventDonors(selectedEvent.id, {
+        page: 1,
+        limit: itemsPerPage,
+        search: searchQuery || undefined,
+        status: newStatus || undefined
+      });
+      
+      setEventDonors(response.data || []);
+      setTotalPages(response.total_pages || 1);
+      setTotalDonors(response.total_count || 0);
+    } catch (err) {
+      console.error('Failed to fetch filtered donors:', err);
+      setError(prev => ({ ...prev, donors: 'Failed to load filtered donors' }));
+    } finally {
+      setLoading(prev => ({ ...prev, donors: false }));
+    }
   };
-
-  // filter donors based on search query and status filter
-  const filteredDonors = eventDonors.filter(donor => {
-    const searchTerm = searchQuery.toLowerCase();
-    const firstName = (donor.firstName || '').toLowerCase();
-    const lastName = (donor.lastName || '').toLowerCase();
-    const organizationName = (donor.organizationName || '').toLowerCase();
-    
-    const matchesSearch = searchQuery === '' || 
-      firstName.includes(searchTerm) ||
-      lastName.includes(searchTerm) ||
-      organizationName.includes(searchTerm);
-    
-    const matchesStatus = statusFilter === '' || donor.status === statusFilter;
-    
-    return matchesSearch && matchesStatus;
-  });
 
   /**
    * Refresh available donors list
@@ -1038,7 +1095,7 @@ const Donors = () => {
             
             {!loading.donors && !error.donors && (
               <>
-                {eventDonors.length === 0 ? (
+                {stats.pending + stats.approved + stats.excluded === 0 ? (
                   <div className="no-donors-message">
                     <button 
                       className="add-donor-button-large"
@@ -1050,7 +1107,7 @@ const Donors = () => {
                   </div>
                 ) : (
                   <DonorList
-                    donors={filteredDonors}
+                    donors={eventDonors}
                     onRemove={handleRemoveDonor}
                     onStatusUpdate={handleOpenStatusModal}
                     isEventReady={isEventReady()}
@@ -1062,7 +1119,7 @@ const Donors = () => {
             )}
           </div>
 
-          {!loading.donors && !error.donors && filteredDonors.length > 0 && (
+          {!loading.donors && !error.donors && eventDonors.length > 0 && (
             <div className="donor-pagination">
               <div className="pagination-info">
                 Showing {((currentPage - 1) * itemsPerPage) + 1}-{Math.min(currentPage * itemsPerPage, totalDonors)} of {totalDonors} donors
