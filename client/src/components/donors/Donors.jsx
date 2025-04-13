@@ -1038,7 +1038,7 @@ const Donors = () => {
             
             {!loading.donors && !error.donors && (
               <>
-                {filteredDonors.length === 0 ? (
+                {eventDonors.length === 0 ? (
                   <div className="no-donors-message">
                     <button 
                       className="add-donor-button-large"
