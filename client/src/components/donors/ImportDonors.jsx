@@ -218,15 +218,7 @@ const ImportDonors = ({ onImportSuccess, onImportError }) => {
         disabled={importing}
         title="Import donors from CSV or Excel file"
       >
-        {importing ? (
-          <div className="import-loading">
-            <FaSpinner className="spinner" /> Importing...
-          </div>
-        ) : (
-          <>
-            <FaUpload /> Import
-          </>
-        )}
+        <FaUpload /> {importing ? 'Importing...' : 'Import'}
       </button>
 
       {(importing || importError) && (
