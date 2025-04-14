@@ -880,4 +880,123 @@ router.get('/:id/donors', protect, async (req, res) => {
   }
 });
 
+/**
+ * Add multiple donors to a list
+ * 
+ * @name POST /api/lists/:id/donors
+ * @function
+ * @memberof module:DonorListAPI
+ * @param {number} req.params.id - Donor list ID
+ * @param {Array} req.body.donorIds - Array of donor IDs to add
+ * @param {string} req.headers.authorization - Bearer token for authentication
+ * @returns {object} 200 - Success message with added donors count
+ * @returns {Error} 400 - Invalid request data
+ * @returns {Error} 404 - List not found
+ * @returns {Error} 500 - Server error
+ * 
+ * @example Request Example:
+ * POST /api/lists/1/donors
+ * Authorization: Bearer <token>
+ * {
+ *   "donorIds": [1, 2, 3]
+ * }
+ * 
+ * @example Success Response:
+ * {
+ *   "message": "Successfully added 3 donors to the list",
+ *   "added": 3
+ * }
+ */
+router.post('/:id/donors', protect, async (req, res) => {
+  try {
+    const listId = parseInt(req.params.id);
+    const { donorIds } = req.body;
+
+    if (!Array.isArray(donorIds) || donorIds.length === 0) {
+      return res.status(400).json({ message: 'Invalid donor IDs array' });
+    }
+
+    // Check if list exists
+    const list = await prisma.eventDonorList.findUnique({
+      where: { id: listId }
+    });
+
+    if (!list) {
+      return res.status(404).json({ message: 'Donor list not found' });
+    }
+
+    // Check if donors exist
+    const existingDonors = await prisma.donor.findMany({
+      where: {
+        id: {
+          in: donorIds
+        }
+      },
+      select: {
+        id: true
+      }
+    });
+
+    const existingDonorIds = existingDonors.map(d => d.id);
+    const invalidDonorIds = donorIds.filter(id => !existingDonorIds.includes(id));
+
+    if (invalidDonorIds.length > 0) {
+      return res.status(400).json({ 
+        message: 'Some donor IDs are invalid', 
+        invalidDonorIds 
+      });
+    }
+
+    // Check for existing donors in the list
+    const existingListDonors = await prisma.eventDonor.findMany({
+      where: {
+        donorListId: listId,
+        donorId: {
+          in: donorIds
+        }
+      },
+      select: {
+        donorId: true
+      }
+    });
+
+    const existingListDonorIds = existingListDonors.map(d => d.donorId);
+    const newDonorIds = donorIds.filter(id => !existingListDonorIds.includes(id));
+
+    if (newDonorIds.length === 0) {
+      return res.status(400).json({ message: 'All donors are already in the list' });
+    }
+
+    // Add new donors to the list
+    const addedDonors = await prisma.eventDonor.createMany({
+      data: newDonorIds.map(donorId => ({
+        donorListId: listId,
+        donorId,
+        status: 'Pending'
+      }))
+    });
+
+    // Update list counts
+    await prisma.eventDonorList.update({
+      where: { id: listId },
+      data: {
+        totalDonors: {
+          increment: addedDonors.count
+        },
+        pending: {
+          increment: addedDonors.count
+        }
+      }
+    });
+
+    res.json({
+      message: `Successfully added ${addedDonors.count} donors to the list`,
+      added: addedDonors.count
+    });
+  } catch (error) {
+    console.error('Error adding donors to list:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
 export default router; 
