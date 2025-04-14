@@ -941,18 +941,10 @@ const Donors = () => {
         <button 
           className="export-button" 
           onClick={handleExport} 
-          disabled={loading.donors || !selectedEvent || !isEventReady()}
+          disabled={exporting}
           title={!selectedEvent ? "Select an event to export donors" : !isEventReady() ? "Only Ready events can export donors" : "Export donors to CSV"}
         >
-          {exporting ? (
-            <div className="export-loading">
-              <FaSpinner className="loading-spinner" /> Exporting...
-            </div>
-          ) : (
-            <>
-              <FaDownload /> Export Donors
-            </>
-          )}
+          <FaDownload /> {exporting ? 'Exporting...' : 'Export Donors'}
         </button>
       </header>
 
@@ -1308,6 +1300,15 @@ const Donors = () => {
           </div>
         </div>
       )}
+
+      <button 
+        className="refresh-button" 
+        onClick={handleRefreshAvailableDonors} 
+        disabled={isRefreshing}
+        title="Refresh available donors list"
+      >
+        <FaSync className={isRefreshing ? 'spinning' : ''} /> {isRefreshing ? 'Refreshing...' : 'Refresh'}
+      </button>
     </div>
   );
 };
