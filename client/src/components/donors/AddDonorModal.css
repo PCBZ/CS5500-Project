@@ -170,21 +170,24 @@
 }
 
 .refresh-button-icon {
-  background: none;
+  padding: 8px 16px;
+  background-color: var(--primary-color);
+  color: white;
   border: none;
-  color: var(--primary-color);
+  border-left: 1px solid rgba(255, 255, 255, 0.2);
   cursor: pointer;
-  padding: 8px;
-  border-radius: 4px;
-  transition: background-color 0.2s;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  height: 100%;
 }
 
-.refresh-button-icon:hover {
-  background-color: var(--primary-light);
+.refresh-button-icon:hover:not(:disabled) {
+  background-color: var(--primary-dark);
 }
 
 .refresh-button-icon:disabled {
-  color: #ccc;
+  background-color: #cccccc;
   cursor: not-allowed;
 }
 
@@ -216,18 +219,17 @@
 }
 
 .refresh-button {
-  background: none;
-  border: none;
-  padding: 8px;
-  cursor: pointer;
-  color: #666;
-  transition: all 0.2s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 36px;
-  width: 36px;
-  border-radius: 4px;
+  padding: 8px 16px; /* 与其他按钮一致的内边距 */
+  background-color: #007bff; /* 使用相同的背景色 */
+  color: white; /* 文字颜色 */
+  border: none; /* 无边框 */
+  border-radius: 4px; /* 圆角 */
+  cursor: pointer; /* 鼠标悬停时显示手型 */
+  transition: background-color 0.2s; /* 添加过渡效果 */
+}
+
+.refresh-button:hover {
+  background-color: #0056b3; /* 示例悬停颜色 */
 }
 
 .refresh-button:hover:not(:disabled) {
