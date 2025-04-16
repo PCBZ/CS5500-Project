@@ -217,7 +217,13 @@
 
 .export-button:hover:not(:disabled) {
   background-color: var(--primary-hover);
-  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.export-button:active,
+.export-button:focus {
+  outline: none;
+  transform: none !important;
   box-shadow: var(--shadow-md);
 }
 
@@ -382,7 +388,14 @@
 
 .apply-filter-button:hover {
   background-color: var(--primary-hover);
-  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.apply-filter-button:active,
+.apply-filter-button:focus {
+  outline: none;
+  transform: none !important;
+  box-shadow: var(--shadow-md);
 }
 
 /* Donor list section */
@@ -416,10 +429,13 @@
 
 .spinner {
   animation: spin 1s linear infinite;
-  font-size: 28px;
+  font-size: 16px !important;
   color: var(--primary-color);
-  margin-bottom: 16px;
   filter: drop-shadow(0 0 2px rgba(74, 107, 253, 0.3));
+  display: inline-block;
+  width: 16px !important;
+  height: 16px !important;
+  transform: none !important;
 }
 
 @keyframes spin {
@@ -645,7 +661,13 @@
 
 .filter-button:hover:not(:disabled) {
   background-color: var(--primary-dark);
-  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.filter-button:active,
+.filter-button:focus {
+  outline: none;
+  transform: none !important;
   box-shadow: var(--shadow-md);
 }
 
@@ -688,7 +710,13 @@
 
 .import-button:hover:not(:disabled) {
   background-color: var(--primary-hover);
-  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.import-button:active,
+.import-button:focus {
+  outline: none;
+  transform: none !important;
   box-shadow: var(--shadow-md);
 }
 
@@ -899,4 +927,32 @@
 
 .modal-buttons .delete-button:hover:not(:disabled) {
   background-color: #dc2626;
+}
+
+/* Refresh 按钮中的 spinner 样式 */
+.refresh-button .spinner {
+  font-size: 16px !important;
+  width: 16px !important;
+  height: 16px !important;
+  transform: none !important;
+}
+
+/* 确保图标在各种状态下大小一致 */
+.fa-spinner,
+.fa-spinner:active,
+.fa-spinner:focus,
+.fa-spinner:hover {
+  font-size: 16px !important;
+  transform: none !important;
+  width: 16px !important;
+  height: 16px !important;
+}
+
+/* 添加全局样式以确保所有按钮在点击时不会放大 */
+button:active,
+button:focus,
+.action-button:active,
+.action-button:focus {
+  outline: none;
+  transform: none !important;
 }
