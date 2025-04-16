@@ -428,17 +428,17 @@
 }
 
 .spinner {
-  animation: spin 1s linear infinite;
-  font-size: 16px !important;
+  display: inline-block;
+  width: 1em;
+  height: 1em;
   color: var(--primary-color);
   filter: drop-shadow(0 0 2px rgba(74, 107, 253, 0.3));
-  display: inline-block;
-  width: 16px !important;
-  height: 16px !important;
-  transform: none !important;
+  vertical-align: middle;
+  animation: spinAnimation 1s infinite linear;
+  font-size: 16px;
 }
 
-@keyframes spin {
+@keyframes spinAnimation {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
@@ -934,25 +934,20 @@
   font-size: 16px !important;
   width: 16px !important;
   height: 16px !important;
-  transform: none !important;
 }
 
-/* 确保图标在各种状态下大小一致 */
+/* 确保图标在各种状态下大小一致，但允许旋转 */
 .fa-spinner,
 .fa-spinner:active,
 .fa-spinner:focus,
 .fa-spinner:hover {
   font-size: 16px !important;
-  transform: none !important;
   width: 16px !important;
   height: 16px !important;
 }
 
-/* 添加全局样式以确保所有按钮在点击时不会放大 */
-button:active,
-button:focus,
-.action-button:active,
-.action-button:focus {
-  outline: none;
+/* 更新全局按钮样式，但排除包含spinner的元素 */
+button:active:not(:has(.spinner)),
+button:focus:not(:has(.spinner)) {
   transform: none !important;
 }
