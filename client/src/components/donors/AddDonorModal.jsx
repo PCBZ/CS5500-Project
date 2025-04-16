@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FaTimes, FaSearch, FaSync, FaPlus, FaSpinner } from 'react-icons/fa';
+import { FaTimes, FaSearch, FaSync, FaPlus, FaSpinner, FaInfoCircle } from 'react-icons/fa';
 import { addDonorToEvent, getAvailableDonors } from '../../services/donorService';
 import './AddDonorModal.css';
 
@@ -369,7 +369,13 @@ const AddDonorModal = ({
             {!loading && !loadingRecommended && filteredRecommendedDonors.length > 0 && (
               <>
                 <div className="donor-section-header">
-                  <h4>Recommended Donors</h4>
+                  <h4>
+                    Recommended Donors
+                    <span className="info-tooltip-container">
+                      <FaInfoCircle className="info-icon" />
+                      <span className="info-tooltip">Donors from the same city as the event</span>
+                    </span>
+                  </h4>
                 </div>
                 {filteredRecommendedDonors.map(donor => (
                   <div 
@@ -408,7 +414,13 @@ const AddDonorModal = ({
             {!loading && availableDonors.length > 0 && (
               <>
                 <div className="donor-section-header">
-                  <h4>Other Donors</h4>
+                  <h4>
+                    Other Donors
+                    <span className="info-tooltip-container">
+                      <FaInfoCircle className="info-icon" />
+                      <span className="info-tooltip">Donors from cities different from the event</span>
+                    </span>
+                  </h4>
                 </div>
                 {availableDonors.map(donor => (
                   <div 
