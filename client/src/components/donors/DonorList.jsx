@@ -46,7 +46,7 @@ const DonorList = ({
                     <span>{firstName} {lastName}</span>
                   </div>
                 </td>
-                <td>{organizationName || '-'}</td>
+                <td>{organizationName && organizationName !== "null" ? organizationName : '-'}</td>
                 <td>
                   <span className={`donor-status-badge ${status.toLowerCase()}`}>
                     {status}

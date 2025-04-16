@@ -205,7 +205,7 @@ const AddDonorModal = ({
                       <div className="donor-info">
                         <p className="donor-name">
                           {firstName} {lastName}
-                          {organizationName && <span> ({organizationName})</span>}
+                          {organizationName && organizationName !== "null" && <span> ({organizationName})</span>}
                         </p>
                         <p className="donor-details">
                           <span>Total Donations: ${Number(donor.totalDonations || 0).toLocaleString()}</span>
