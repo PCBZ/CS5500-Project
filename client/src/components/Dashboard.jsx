@@ -15,22 +15,14 @@ const Dashboard = () => {
   });
   const [events, setEvents] = useState([]);
   const [error, setError] = useState(null);
+  // 添加组件挂载状态引用
+  const isMountedRef = React.useRef(true);
 
-  useEffect(() => {
-    // Get current logged-in user
-    const userData = getCurrentUser();
-    if (userData) {
-      setUser(userData);
-    }
-
-    // Fetch data
-    fetchDashboardData();
-  }, []);
-
-  // Fetch all required dashboard data
+  // 在组件级别定义fetchDashboardData函数
   const fetchDashboardData = async () => {
     try {
-      setLoading(true);
+      if (isMountedRef.current) setLoading(true);
+      setError(null);
       
       // Fetch donor statistics
       const summary = await getDonorListsSummary();
@@ -39,21 +31,42 @@ const Dashboard = () => {
       const eventsResult = await getEvents({ status: 'active', limit: 10 });
       const activeEvents = eventsResult.data || [];
       
-      setEvents(activeEvents.slice(0, 3)); // Only show the first three events
-      
-      setStats({
-        activeEvents: eventsResult.total_count || activeEvents.length,
-        reviewedDonors: summary.total_reviewed || 0,
-        pendingReview: summary.total_pending || 0
-      });
-      
-      setLoading(false);
+      // 在设置状态前检查组件是否仍然挂载
+      if (isMountedRef.current) {
+        setEvents(activeEvents.slice(0, 3)); // Only show the first three events
+        
+        setStats({
+          activeEvents: eventsResult.total_count || activeEvents.length,
+          reviewedDonors: summary.total_reviewed || 0,
+          pendingReview: summary.total_pending || 0
+        });
+        
+        setLoading(false);
+      }
     } catch (err) {
       console.error('Failed to fetch dashboard data:', err);
-      setError('Failed to load dashboard data');
-      setLoading(false);
+      if (isMountedRef.current) {
+        setError('Failed to load dashboard data');
+        setLoading(false);
+      }
     }
   };
+
+  useEffect(() => {
+    // 组件挂载时，初始化用户数据
+    const userData = getCurrentUser();
+    if (userData && isMountedRef.current) {
+      setUser(userData);
+    }
+
+    // 调用fetchDashboardData函数获取数据
+    fetchDashboardData();
+
+    // 清理函数，在组件卸载时执行
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
   // Format date for display
   const formatDate = (dateString) => {
@@ -175,4 +188,4 @@ const Dashboard = () => {
   );
 };
 
-export default Dashboard; 
+export default Dashboard;
