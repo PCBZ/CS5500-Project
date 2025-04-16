@@ -357,6 +357,14 @@ const AddDonorModal = ({
           )}
 
           <div className="available-donors-list">
+            {/* 添加加载状态指示器 */}
+            {loading && !addingProgress && (
+              <div className="loading-container">
+                <div className="loading-spinner-large"></div>
+                <p>Loading donors...</p>
+              </div>
+            )}
+
             {/* 推荐捐赠者部分 */}
             {!loading && !loadingRecommended && filteredRecommendedDonors.length > 0 && (
               <>
@@ -433,6 +441,14 @@ const AddDonorModal = ({
                   </div>
                 ))}
               </>
+            )}
+
+            {/* 无数据状态 */}
+            {!loading && availableDonors.length === 0 && filteredRecommendedDonors.length === 0 && (
+              <div className="no-donors-message">
+                <p>No donors found matching your criteria.</p>
+                <p>Try a different search term or refresh the list.</p>
+              </div>
             )}
           </div>
 
