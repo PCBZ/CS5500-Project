@@ -279,11 +279,66 @@
 }
 
 .donor-section-header h4 {
+  display: flex;
+  align-items: center;
   margin: 0;
-  color: #666;
-  font-size: 14px;
+  color: #1a1a1a;
   font-weight: 600;
-  text-transform: uppercase;
+}
+
+.info-tooltip-container {
+  position: relative;
+  display: inline-flex;
+  margin-left: 8px;
+  cursor: help;
+}
+
+.info-icon {
+  color: #4a88eb;
+  font-size: 14px;
+  transition: color 0.2s ease;
+}
+
+.info-tooltip-container:hover .info-icon {
+  color: #2563eb;
+}
+
+.info-tooltip {
+  visibility: hidden;
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #374151;
+  color: #fff;
+  text-align: center;
+  border-radius: 4px;
+  padding: 6px 10px;
+  width: 180px;
+  font-size: 12px;
+  font-weight: normal;
+  z-index: 10;
+  opacity: 0;
+  transition: opacity 0.3s, visibility 0.3s;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  pointer-events: none;
+  margin-top: 5px;
+}
+
+.info-tooltip::after {
+  content: "";
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  margin-left: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: transparent transparent #374151 transparent;
+}
+
+.info-tooltip-container:hover .info-tooltip {
+  visibility: visible;
+  opacity: 1;
 }
 
 .donor-item {
