@@ -664,8 +664,8 @@ const EventManagement = () => {
             </thead>
             <tbody>
               {getFilteredEvents().length > 0 ? (
-                getFilteredEvents().map((event) => (
-                  <tr key={event.id}>
+                getFilteredEvents().map((event, index) => (
+                  <tr key={event?.id ? event.id : `event-${index}`}>
                     <td className="event-name-cell">
                       <div className="event-name">{event.name}</div>
                       <div className="event-type">{event.type}</div>
