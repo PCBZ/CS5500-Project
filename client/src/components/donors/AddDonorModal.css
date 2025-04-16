@@ -132,18 +132,27 @@
   border-left: 1px solid rgba(255, 255, 255, 0.2);
   cursor: pointer;
   font-weight: 500;
-  transition: all 0.2s ease;
+  transition: background-color 0.2s, color 0.2s !important;
   white-space: nowrap;
   height: 100%;
+  transform: none;
 }
 
 .modal-search-button:hover:not(:disabled) {
   background-color: var(--primary-dark);
+  transform: none !important;
 }
 
 .modal-search-button:disabled {
   background-color: #cccccc;
   cursor: not-allowed;
+}
+
+.modal-search-button:active,
+.modal-search-button:focus {
+  outline: none !important;
+  transform: none !important;
+  box-shadow: none !important;
 }
 
 .select-all-container {
@@ -177,13 +186,15 @@
   border-left: 1px solid rgba(255, 255, 255, 0.2);
   cursor: pointer;
   font-weight: 500;
-  transition: all 0.2s ease;
+  transition: background-color 0.2s, color 0.2s !important;
   white-space: nowrap;
   height: 100%;
+  transform: none;
 }
 
 .refresh-button-icon:hover:not(:disabled) {
   background-color: var(--primary-dark);
+  transform: none !important;
 }
 
 .refresh-button-icon:disabled {
@@ -193,6 +204,13 @@
 
 .refresh-button-icon .spinning {
   animation: spin 1s linear infinite;
+}
+
+.refresh-button-icon:active,
+.refresh-button-icon:focus {
+  outline: none !important;
+  transform: none !important;
+  box-shadow: none !important;
 }
 
 .modal-actions {
@@ -225,7 +243,7 @@
   border: none; /* 无边框 */
   border-radius: 4px; /* 圆角 */
   cursor: pointer; /* 鼠标悬停时显示手型 */
-  transition: background-color 0.2s; /* 添加过渡效果 */
+  transition: background-color 0.2s, color 0.2s !important;
 }
 
 .refresh-button:hover {
@@ -240,6 +258,13 @@
 .refresh-button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+.refresh-button:active,
+.refresh-button:focus {
+  outline: none !important;
+  transform: none !important;
+  box-shadow: none !important;
 }
 
 .available-donors-list {
@@ -376,6 +401,7 @@
   cursor: pointer;
   font-size: 14px;
   color: #24292e;
+  transition: background-color 0.2s, color 0.2s !important;
 }
 
 .pagination-controls button:hover:not(:disabled) {
@@ -385,6 +411,13 @@
 .pagination-controls button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+.pagination-controls button:active,
+.pagination-controls button:focus {
+  outline: none !important;
+  transform: none !important;
+  box-shadow: none !important;
 }
 
 .pagination-controls span {
@@ -404,7 +437,7 @@
   cursor: pointer;
   font-size: 14px;
   font-weight: 500;
-  transition: all 0.2s;
+  transition: all 0.2s !important;
 }
 
 .add-selected-button:hover:not(:disabled) {
@@ -414,6 +447,13 @@
 .add-selected-button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+.add-selected-button:active,
+.add-selected-button:focus {
+  outline: none !important;
+  transform: none !important;
+  box-shadow: none !important;
 }
 
 .error-message {
@@ -669,7 +709,7 @@
   color: #374151;
   font-size: 0.875rem;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: background-color 0.2s, color 0.2s !important;
 }
 
 .pagination-button:hover:not(:disabled) {
@@ -681,6 +721,13 @@
   background-color: #f3f4f6;
   color: #9ca3af;
   cursor: not-allowed;
+}
+
+.pagination-button:active,
+.pagination-button:focus {
+  outline: none !important;
+  transform: none !important;
+  box-shadow: none !important;
 }
 
 .page-info {
@@ -816,4 +863,50 @@
   to {
     transform: rotate(360deg);
   }
+}
+
+.bulk-add-button:hover:not(:disabled) {
+  background-color: var(--primary-dark);
+}
+
+/* 修复按钮的点击状态 */
+.modal-search-button:active,
+.modal-search-button:focus,
+.refresh-button-icon:active,
+.refresh-button-icon:focus,
+.refresh-button:active,
+.refresh-button:focus,
+.pagination-button:active,
+.pagination-button:focus,
+.add-selected-button:active,
+.add-selected-button:focus,
+.bulk-add-button:active,
+.bulk-add-button:focus,
+.pagination-controls button:active,
+.pagination-controls button:focus {
+  outline: none !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* 修改所有按钮的 transition 属性 */
+.modal-search-button,
+.refresh-button-icon,
+.refresh-button,
+.pagination-button,
+.add-selected-button,
+.bulk-add-button,
+.pagination-controls button {
+  transition: background-color 0.2s, color 0.2s !important;
+}
+
+/* 修改所有按钮的 hover 状态，确保没有 transform */
+.modal-search-button:hover:not(:disabled),
+.refresh-button-icon:hover:not(:disabled),
+.refresh-button:hover:not(:disabled),
+.pagination-button:hover:not(:disabled),
+.add-selected-button:hover:not(:disabled),
+.bulk-add-button:hover:not(:disabled),
+.pagination-controls button:hover:not(:disabled) {
+  transform: none !important;
 } 
