@@ -41,6 +41,7 @@ const AllDonors = () => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [selectedDonor, setSelectedDonor] = useState(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [importing, setImporting] = useState(false);
 
   const history = useHistory();
   
@@ -296,23 +297,17 @@ const AllDonors = () => {
                 setError(error.message);
                 setTimeout(() => setError(null), 5000);
               }}
+              buttonText={importing ? 'Importing...' : 'Import'}
+              disabled={importing}
             />
             
             <button 
               className="action-button export-button" 
               onClick={handleExport} 
-              disabled={exporting || donors.length === 0}
+              disabled={exporting}
               title="Export data to CSV"
             >
-              {exporting ? (
-                <div className="export-loading">
-                  <FaSpinner className="spinner" /> Exporting...
-                </div>
-              ) : (
-                <>
-                  <FaDownload /> Export
-                </>
-              )}
+              <FaDownload /> {exporting ? 'Exporting...' : 'Export'}
             </button>
             
             <button 
@@ -321,7 +316,7 @@ const AllDonors = () => {
               disabled={loading}
               title="Refresh data"
             >
-              {loading ? <FaSpinner className="spinner" /> : <FaSync />} Refresh
+              <FaSync className={loading ? 'spinning' : ''} /> {loading ? 'Refreshing...' : 'Refresh'}
             </button>
           </div>
 
