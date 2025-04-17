@@ -1701,23 +1701,47 @@ router.patch('/:eventId/donors/:donorId/status', protect, async (req, res) => {
  */
 router.get('/:id/available-donors', protect, async (req, res) => {
   try {
-    let eventId;
-    try {
-      eventId = parseInt(req.params.id); 
-      if (isNaN(eventId)) {
-        return res.status(400).json({ message: 'Invalid event ID format' });
-      }
-    } catch (error) {
-      return res.status(400).json({ message: 'Invalid event ID format' });
-    }
+    const eventId = parseInt(req.params.id);
 
-    // Verify event exists
+    // Step 1: 获取事件信息
     const event = await prisma.event.findUnique({
-      where: { id: eventId, isDeleted: false }
+      where: { id: eventId }
     });
 
     if (!event) {
       return res.status(404).json({ message: 'Event not found' });
+    }
+
+    // Step 2: 获取事件中已有的捐赠者
+    const existingDonors = await prisma.eventDonor.findMany({
+      where: {
+        donorList: {
+          eventId: eventId
+        }
+      },
+      include: {
+        donor: true  // 包含完整的捐赠者信息
+      }
+    });
+
+    // 处理多种ID字段并确保唯一性
+    const currentEventDonorIds = [...new Set(
+      existingDonors
+        .map(donor => {
+          // 处理可能的不同ID字段
+          const id = donor.donorId || donor.donor_id || donor.donor?.id;
+          if (!id) {
+            console.warn(`Warning: Donor record missing ID:`, donor);
+          }
+          return id;
+        })
+        .filter(id => id != null)  // 过滤掉null值
+    )];
+
+    // 如果没有找到捐赠者列表
+    if (!existingDonors && !currentEventDonorIds.length) {
+      console.log(`No donors found for event ${eventId}, creating empty list`);
+      // 继续处理，但使用空数组
     }
 
     // Get pagination and filter parameters
@@ -1817,6 +1841,68 @@ router.get('/:id/available-donors', protect, async (req, res) => {
   } catch (error) {
     console.error('Error fetching available donors:', error);
     res.status(500).json({ message: 'Internal server error', error: error.message });
+  }
+});
+
+/**
+ * Get recommended donors for an event based on location matching
+ * 
+ * @name GET /api/events/:eventId/recommended-donors
+ * @function
+ * @memberof module:EventAPI
+ * @inner
+ */
+router.get('/:eventId/recommended-donors', protect, async (req, res) => {
+  try {
+    const eventId = parseInt(req.params.eventId);
+
+    // 获取事件信息
+    const event = await prisma.event.findUnique({
+      where: { id: eventId }
+    });
+
+    if (!event) {
+      return res.status(404).json({ message: 'Event not found' });
+    }
+
+    // 获取与事件城市相同的捐赠者
+    const recommendedDonors = await prisma.donor.findMany({
+      where: {
+        city: event.location,
+        excluded: false,
+        deceased: false
+      },
+      orderBy: {
+        totalDonations: 'desc'
+      }
+    });
+
+    // 获取已添加到事件的捐赠者ID列表
+    const existingDonors = await prisma.eventDonor.findMany({
+      where: {
+        donorList: {
+          eventId: eventId
+        }
+      },
+      select: {
+        donorId: true
+      }
+    });
+
+    const existingDonorIds = existingDonors.map(d => d.donorId);
+
+    // 过滤掉已添加的捐赠者
+    const filteredRecommendedDonors = recommendedDonors.filter(
+      donor => !existingDonorIds.includes(donor.id)
+    );
+
+    res.json({
+      recommendedDonors: formatDonor(filteredRecommendedDonors)
+    });
+
+  } catch (error) {
+    console.error('Error getting recommended donors:', error);
+    res.status(500).json({ message: 'Failed to get recommended donors', error: error.message });
   }
 });
 
