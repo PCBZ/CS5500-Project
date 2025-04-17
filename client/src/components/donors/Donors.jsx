@@ -1300,15 +1300,6 @@ const Donors = () => {
           </div>
         </div>
       )}
-
-      <button 
-        className="refresh-button" 
-        onClick={handleRefreshAvailableDonors} 
-        disabled={isRefreshing}
-        title="Refresh available donors list"
-      >
-        <FaSync className={isRefreshing ? 'spinning' : ''} /> {isRefreshing ? 'Refreshing...' : 'Refresh'}
-      </button>
     </div>
   );
 };
