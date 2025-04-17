@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Switch, Route, Redirect } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 
 // Component imports
 import Login from './components/auth/Login.jsx';
@@ -20,19 +20,17 @@ function App() {
       <div className="app-container">
         <Navbar />
         <div className="app-content">
-          <Switch>
-            <Route path="/login" component={Login} />
-            <Route path="/register" component={Register} />
-            <ProtectedRoute path="/dashboard" component={Dashboard} />
-            {/* Add a specific route for creating a new event */}
-            <ProtectedRoute path="/events/create" component={CreateNewEvent} />
-            {/* Ensure the /events route comes after the more specific /events/create */}
-            <ProtectedRoute path="/events" component={EventManagement} />
-            <ProtectedRoute path="/donors" component={Donors} />
-            <ProtectedRoute path="/all-donors" component={AllDonors} />
-            <Route path="/donors/add" element={<AddDonor />} />
-            <Redirect from="/" to="/login" />
-          </Switch>
+          <Routes>
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+            <Route path="/events/create" element={<ProtectedRoute><CreateNewEvent /></ProtectedRoute>} />
+            <Route path="/events" element={<ProtectedRoute><EventManagement /></ProtectedRoute>} />
+            <Route path="/donors" element={<ProtectedRoute><Donors /></ProtectedRoute>} />
+            <Route path="/all-donors" element={<ProtectedRoute><AllDonors /></ProtectedRoute>} />
+            <Route path="/donors/add" element={<ProtectedRoute><AddDonor /></ProtectedRoute>} />
+            <Route path="/" element={<Navigate to="/login" replace />} />
+          </Routes>
         </div>
       </div>
     </Router>
