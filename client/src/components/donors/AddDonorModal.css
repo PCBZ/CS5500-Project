@@ -286,57 +286,66 @@
   font-weight: 600;
 }
 
-.info-tooltip-container {
-  position: relative;
-  display: inline-flex;
-  margin-left: 8px;
-  cursor: help;
-}
-
-.info-icon {
-  color: #4a88eb;
-  font-size: 14px;
-  transition: color 0.2s ease;
-}
-
+.info-tooltip-container,
+.info-icon,
+.info-tooltip,
+.info-tooltip::after,
+.info-tooltip-container:hover .info-tooltip,
 .info-tooltip-container:hover .info-icon {
-  color: #2563eb;
+  /* 移除所有定义 */
 }
 
-.info-tooltip {
+.tooltip-container {
+  position: relative;
+  display: inline-block;
+  margin-left: 8px;
+  cursor: pointer;
+}
+
+.tooltip-container .info-icon {
+  color: white;
+  background-color: #2563eb;
+  border-radius: 50%;
+  font-size: 14px;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px;
+}
+
+.tooltip-text {
   visibility: hidden;
   position: absolute;
-  top: 100%;
-  left: 50%;
-  transform: translateX(-50%);
+  z-index: 1;
+  top: -5px;
+  left: 125%;
+  width: 200px;
   background-color: #374151;
   color: #fff;
   text-align: center;
-  border-radius: 4px;
-  padding: 6px 10px;
-  width: 180px;
+  border-radius: 6px;
+  padding: 10px;
   font-size: 12px;
-  font-weight: normal;
-  z-index: 10;
   opacity: 0;
-  transition: opacity 0.3s, visibility 0.3s;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-  pointer-events: none;
-  margin-top: 5px;
+  transition: opacity 0.3s;
+  font-weight: normal;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
-.info-tooltip::after {
+.tooltip-text::after {
   content: "";
   position: absolute;
-  bottom: 100%;
-  left: 50%;
-  margin-left: -5px;
+  top: 10px;
+  right: 100%;
+  margin-top: -5px;
   border-width: 5px;
   border-style: solid;
-  border-color: transparent transparent #374151 transparent;
+  border-color: transparent #374151 transparent transparent;
 }
 
-.info-tooltip-container:hover .info-tooltip {
+.tooltip-container:hover .tooltip-text {
   visibility: visible;
   opacity: 1;
 }
