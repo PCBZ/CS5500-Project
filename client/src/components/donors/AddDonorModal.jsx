@@ -70,10 +70,8 @@ const AddDonorModal = ({
 
   const handleSearchSubmit = async (e) => {
     e.preventDefault();
-    setSearchQuery(tempSearchQuery);
-    setCurrentPage(1);
     
-    // Filter recommended donors based on search query
+    // 过滤推荐捐赠者
     if (tempSearchQuery.trim() === '') {
       setFilteredRecommendedDonors(recommendedDonors);
     } else {
@@ -86,10 +84,34 @@ const AddDonorModal = ({
       setFilteredRecommendedDonors(filtered);
     }
     
-    await fetchAvailableDonors();
+    // 使用searchQuery的更新值直接用于API调用，而不是依赖状态更新
+    setSearchQuery(tempSearchQuery);
+    setCurrentPage(1);
+    
+    // 直接传入tempSearchQuery，而不是依赖searchQuery状态
+    try {
+      setLoading(true);
+      setError(null);
+      
+      if (!eventId) return;
+      
+      const response = await getAvailableDonors(eventId, {
+        page: 1, // 始终从第一页开始新搜索
+        limit: 10,
+        search: tempSearchQuery // 直接使用tempSearchQuery而不是searchQuery
+      });
+      
+      setAvailableDonors(response.data || []);
+      setTotalPages(response.total_pages || 1);
+    } catch (err) {
+      console.error('Error fetching available donors:', err);
+      setError(err.message || 'Failed to load available donors');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const fetchAvailableDonors = async () => {
+  const fetchAvailableDonors = async (customSearchQuery = searchQuery) => {
     if (!eventId) return;
     
     setLoading(true);
@@ -99,7 +121,7 @@ const AddDonorModal = ({
       const response = await getAvailableDonors(eventId, {
         page: currentPage,
         limit: 10,
-        search: searchQuery
+        search: customSearchQuery
       });
       
       setAvailableDonors(response.data || []);
@@ -114,7 +136,7 @@ const AddDonorModal = ({
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
-    await fetchAvailableDonors();
+    await fetchAvailableDonors(); // 使用当前的searchQuery
     setIsRefreshing(false);
   };
 
