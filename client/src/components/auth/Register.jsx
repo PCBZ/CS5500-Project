@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { register, login } from '../../services/authService';
 import './Auth.css';
-import { useHistory } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -13,7 +13,7 @@ const Register = () => {
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ text: '', type: '' });
-  const history = useHistory();
+  const navigate = useNavigate();
 
   // Handle input changes
   const handleChange = (e) => {
@@ -83,7 +83,7 @@ const Register = () => {
       
       // Redirect to home page after successful login
       setTimeout(() => {
-        history.push('/dashboard');
+        navigate('/dashboard');
       }, 1500);
     } catch (err) {
       setMessage({ 

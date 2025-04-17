@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { FaCalendarAlt, FaMapMarkerAlt, FaUsers, FaClock, FaTrash, FaFilter, FaSearch, FaEdit, FaEye } from 'react-icons/fa';
-import { useHistory } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import './EventManagement.css';
 import { getEvents, updateEvent, deleteEvent } from '../../services/eventService';
 import authService from '../../services/authService.js';
@@ -13,7 +13,7 @@ const EventManagement = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState('');
-  const history = useHistory();
+  const navigate = useNavigate();
 
   const [filters, setFilters] = useState({
     status: '',
@@ -268,65 +268,6 @@ const EventManagement = () => {
     }
   };
 
-  const applyFilters = async () => {
-    setLoading(true);
-    setError(null);
-
-    try {
-      const filterParams = {};
-
-      if (filters.status) filterParams.status = filters.status;
-      if (filters.location) filterParams.location = filters.location;
-      if (filters.type) filterParams.type = filters.type;
-      
-      if (filters.dateRange) {
-        const now = new Date();
-      
-        if (filters.dateRange === '30days') {
-          const thirtyDaysLater = new Date();
-          thirtyDaysLater.setDate(now.getDate() + 30);
-          filterParams.startDate = now.toISOString().split('T')[0];
-          filterParams.endDate = thirtyDaysLater.toISOString().split('T')[0];
-        } else if (filters.dateRange === '90days') {
-          const ninetyDaysLater = new Date();
-          ninetyDaysLater.setDate(now.getDate() + 90);
-          filterParams.startDate = now.toISOString().split('T')[0];
-          filterParams.endDate = ninetyDaysLater.toISOString().split('T')[0];
-        } else if (filters.dateRange === 'thisYear') {
-          const yearEnd = new Date(now.getFullYear(), 11, 31);
-          filterParams.startDate = now.toISOString().split('T')[0];
-          filterParams.endDate = yearEnd.toISOString().split('T')[0];
-        } else if (filters.dateRange === 'custom') {
-          if (filters.customStartDate) {
-            filterParams.startDate = filters.customStartDate;
-          }
-          if (filters.customEndDate) {
-            filterParams.endDate = filters.customEndDate;
-          }
-        }
-      }
-      
-      if (searchQuery) {
-        filterParams.search = searchQuery;
-      }
-
-      console.log('Applying filters with params:', filterParams);
-      
-      const eventsData = await getEvents(filterParams);
-
-      if (eventsData && eventsData.data) {
-        setEvents(eventsData.data);
-      } else {
-        setEvents([]);
-      }
-    } catch (error) {
-      console.error('Error applying filters:', error);
-      setError(error.message || 'Failed to filter events');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const applyLocalFilters = () => {
     let filteredEvents = [...originalEvents];
     
@@ -389,7 +330,7 @@ const EventManagement = () => {
   };
 
   const handleViewEvent = (eventId) => {
-    history.push('/donors', { selectedEventId: eventId });
+    navigate('/donors', { state: { selectedEventId: eventId } });
   };
 
   const handleCreateEvent = () => {

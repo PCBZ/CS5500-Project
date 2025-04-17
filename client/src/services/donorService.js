@@ -488,10 +488,6 @@ export const getEventDonorStats = async (eventId) => {
       } else if (donor.status === 'Excluded' || donor.auto_excluded) {
         excluded++;
       }
-      // If status is missing, check auto_excluded field
-      else if (donor.auto_excluded) {
-        excluded++;
-      }
     });
     
     // Calculate total and approval rate
