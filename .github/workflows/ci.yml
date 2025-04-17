@@ -22,10 +22,7 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: |
-          npm run install:all
-          cd client && npm install --save-dev eslint-plugin-prettier
-          cd ../Server && npm install --save-dev eslint-plugin-prettier
+        run: npm run install:all
 
       - name: Run ESLint
         run: |
