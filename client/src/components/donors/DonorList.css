@@ -37,6 +37,7 @@
 
 .donor-name-cell {
   font-weight: 500;
+  color: #000000;
 }
 
 .donor-name-wrapper {
@@ -76,11 +77,24 @@
 .donation-amount {
   font-family: monospace;
   font-weight: 500;
-  color: #10B981;
+  color: #000000 !important;
+}
+
+/* 添加更具体的选择器 */
+.donor-row .donation-amount {
+  color: #000000 !important;
+}
+
+table.donor-list-table .donation-amount {
+  color: #000000 !important;
+}
+
+.donor-list-table tbody td.donation-amount {
+  color: #000000 !important;
 }
 
 .last-gift {
-  color: #6B7280;
+  color: #000000;
 }
 
 .actions-cell {
@@ -127,4 +141,17 @@
   opacity: 0.3;
   cursor: not-allowed;
   pointer-events: none;
+}
+
+.donor-name-text {
+  color: #000000;
+  font-weight: 500;
+}
+
+.organization-cell {
+  color: #000000;
+}
+
+.black-text {
+  color: #000000 !important;
 } 

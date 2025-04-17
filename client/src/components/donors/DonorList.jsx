@@ -43,18 +43,18 @@ const DonorList = ({
                 <td className="donor-name-cell">
                   <div className="donor-name-wrapper">
                     <FaUser className="donor-icon" />
-                    <span>{firstName} {lastName}</span>
+                    <span className="donor-name-text">{firstName} {lastName}</span>
                   </div>
                 </td>
-                <td>{organizationName && organizationName !== "null" ? organizationName : '-'}</td>
+                <td className="organization-cell">{organizationName && organizationName !== "null" ? organizationName : '-'}</td>
                 <td>
                   <span className={`donor-status-badge ${status.toLowerCase()}`}>
                     {status}
                   </span>
                 </td>
-                <td className="donation-amount">${totalDonations.toLocaleString()}</td>
-                <td className="donation-amount">${largestGift.toLocaleString()}</td>
-                <td className="donation-amount">
+                <td className="donation-amount black-text">${totalDonations.toLocaleString()}</td>
+                <td className="donation-amount black-text">${largestGift.toLocaleString()}</td>
+                <td className="donation-amount black-text">
                   {lastGiftAmount > 0 ? `$${lastGiftAmount.toLocaleString()}` : '-'}
                 </td>
                 <td className="actions-cell">
