@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { FaTimes, FaSearch, FaSync, FaPlus, FaSpinner, FaInfoCircle } from 'react-icons/fa';
 import { addDonorToEvent, addDonorsToList, getAvailableDonors } from '../../services/donorService';
-import { toast } from 'react-toastify';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import './AddDonorModal.css';
 
 const AddDonorModal = ({ 
@@ -171,59 +172,53 @@ const AddDonorModal = ({
   const handleAddMultipleDonors = async () => {
     if (!eventId || selectedDonors.length === 0) return;
     
-    try {
-      setLoading(true);
-      setAddingStatus('Preparing to add donors...');
-      setError(null);
+    setLoading(true);
+    setAddingStatus('Preparing to add donors...');
+    setError(null);
+    
+    const totalDonors = selectedDonors.length;
+    const addedDonors = [];
+    
+    for (let i = 0; i < selectedDonors.length; i++) {
+      const donor = selectedDonors[i];
+      setAddingStatus(`Adding donor ${i + 1} of ${totalDonors}...`);
+      setAddingProgress(((i + 1) / totalDonors) * 100);
       
-      const totalDonors = selectedDonors.length;
-      const addedDonors = [];
-      
-      for (let i = 0; i < selectedDonors.length; i++) {
-        const donor = selectedDonors[i];
-        setAddingStatus(`Adding donor ${i + 1} of ${totalDonors}...`);
-        setAddingProgress(((i + 1) / totalDonors) * 100);
-        
-        try {
-          await addDonorToEvent(eventId, donor.id);
-          addedDonors.push(donor.id);
-        } catch (err) {
-          console.error(`Failed to add donor ${donor.id}:`, err);
-          setError(`Failed to add some donors. Please try again.`);
-          break;
-        }
+      try {
+        await addDonorToEvent(eventId, donor.id);
+        addedDonors.push(donor.id);
+      } catch (err) {
+        console.error(`Failed to add donor ${donor.id}:`, err);
+        setError(`Failed to add some donors. Please try again.`);
+        toast.error(`Failed to add donor: ${err.message}`);
+        break;
       }
-      
-      if (addedDonors.length > 0) {
-        // 从两个列表中移除已添加的捐赠者
-        setAvailableDonors(prev => 
-          prev.filter(donor => !addedDonors.includes(donor.id))
-        );
-        setRecommendedDonors(prev => 
-          prev.filter(donor => !addedDonors.includes(donor.id))
-        );
-        
-        // 清空选中状态
-        setSelectedDonors([]);
-        
-        // 通知父组件更新
-        if (onDonorAdded) {
-          await onDonorAdded();
-        }
-        
-        setAddingStatus('Donors added successfully!');
-        setAddingProgress(100);
-      }
-      
-      // Close the modal
-      onClose();
-    } catch (err) {
-      console.error('Error adding donors:', err);
-      setError(err.message || 'Failed to add donors');
-      toast.error('Failed to add donors: ' + err.message);
-    } finally {
-      setLoading(false);
     }
+    
+    if (addedDonors.length > 0) {
+      // 从两个列表中移除已添加的捐赠者
+      setAvailableDonors(prev => 
+        prev.filter(donor => !addedDonors.includes(donor.id))
+      );
+      setRecommendedDonors(prev => 
+        prev.filter(donor => !addedDonors.includes(donor.id))
+      );
+      
+      // 清空选中状态
+      setSelectedDonors([]);
+      
+      // 通知父组件更新
+      if (onDonorAdded) {
+        await onDonorAdded();
+      }
+      
+      setAddingStatus('Donors added successfully!');
+      setAddingProgress(100);
+      toast.success(`Successfully added ${addedDonors.length} donors`);
+    }
+    
+    // Close the modal
+    onClose();
   };
 
   const handleSelectAll = (checked) => {
@@ -279,6 +274,7 @@ const AddDonorModal = ({
 
   return (
     <div className={`modal-overlay ${isOpen ? 'active' : ''}`}>
+      <ToastContainer position="top-right" autoClose={3000} />
       <div className="modal-content">
         {loading && addingProgress > 0 && (
           <div className="adding-progress-container">
