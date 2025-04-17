@@ -9,8 +9,10 @@ class ProgressService {
       // 存储所有活跃操作的进度信息
       this.operations = new Map();
       
-      // 设置操作超时清理（10分钟后自动清理完成的操作）
-      setInterval(() => this.cleanupOperations(), 10 * 60 * 1000);
+      // 只在非测试环境中启动定时器
+      if (process.env.NODE_ENV !== 'test') {
+        this.cleanupInterval = setInterval(() => this.cleanupOperations(), 10 * 60 * 1000);
+      }
     }
     
     /**

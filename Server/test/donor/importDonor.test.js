@@ -3,6 +3,7 @@ import { PrismaClient } from '@prisma/client';
 import fs from 'fs';
 import path from 'path';
 import app from '../../src/index.js';
+import progressService from '../../src/routes/progressService.js';
 
 const testCsvPath = path.join(__dirname, '..', 'fixtures', 'test-donors.csv');
 const prisma = new PrismaClient();
@@ -24,6 +25,13 @@ describe('Donor Import Tests', () => {
   beforeAll(async () => {
     try {
       await prisma.$connect();
+      
+      // 清理 progressService 中的操作和定时器
+      progressService.operations.clear();
+      if (progressService.cleanupInterval) {
+        clearInterval(progressService.cleanupInterval);
+        progressService.cleanupInterval = null;
+      }
       
       // Verify the test CSV file exists
       if (!fs.existsSync(testCsvPath)) {
@@ -58,10 +66,26 @@ describe('Donor Import Tests', () => {
           ]
         }
       });
+      
+      // 清理 progressService 中的操作和定时器
+      progressService.operations.clear();
+      if (progressService.cleanupInterval) {
+        clearInterval(progressService.cleanupInterval);
+        progressService.cleanupInterval = null;
+      }
     } catch (error) {
       console.error('Cleanup error:', error);
     } finally {
       await prisma.$disconnect();
+    }
+  });
+
+  // 在每个测试后清理 progressService
+  afterEach(() => {
+    progressService.operations.clear();
+    if (progressService.cleanupInterval) {
+      clearInterval(progressService.cleanupInterval);
+      progressService.cleanupInterval = null;
     }
   });
 
