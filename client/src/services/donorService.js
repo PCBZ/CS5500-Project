@@ -865,4 +865,42 @@ export const createDonor = async (donorData) => {
     console.error('Error creating donor:', error);
     throw error;
   }
+};
+
+/**
+ * Add multiple donors to a list
+ * @param {number} listId - List ID
+ * @param {Array} donors - Array of donors
+ * @param {number} donors[].donor_id - Donor ID
+ * @param {string} donors[].status - Status ('Pending', 'Approved', 'Excluded', 'AutoExcluded')
+ * @param {number} [donors[].reviewer_id] - Reviewer ID (optional)
+ * @param {string} [donors[].comments] - Comments (optional)
+ * @returns {Promise<Object>} Addition result
+ */
+export const addDonorsToList = async (listId, donors) => {
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      throw new Error('No authentication token found');
+    }
+
+    const response = await fetch(`${API_URL}/api/lists/${listId}/donors`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ donors })
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error adding donors to list:', error);
+    throw error;
+  }
 }; 

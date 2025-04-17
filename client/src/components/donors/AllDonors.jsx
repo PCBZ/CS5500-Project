@@ -41,6 +41,7 @@ const AllDonors = () => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [selectedDonor, setSelectedDonor] = useState(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [importing, setImporting] = useState(false);
 
   const history = useHistory();
   
@@ -296,23 +297,17 @@ const AllDonors = () => {
                 setError(error.message);
                 setTimeout(() => setError(null), 5000);
               }}
+              buttonText={importing ? 'Importing...' : 'Import'}
+              disabled={importing}
             />
             
             <button 
               className="action-button export-button" 
               onClick={handleExport} 
-              disabled={exporting || donors.length === 0}
+              disabled={exporting}
               title="Export data to CSV"
             >
-              {exporting ? (
-                <div className="export-loading">
-                  <FaSpinner className="spinner" /> Exporting...
-                </div>
-              ) : (
-                <>
-                  <FaDownload /> Export
-                </>
-              )}
+              <FaDownload /> {exporting ? 'Exporting...' : 'Export'}
             </button>
             
             <button 
@@ -321,7 +316,7 @@ const AllDonors = () => {
               disabled={loading}
               title="Refresh data"
             >
-              {loading ? <FaSpinner className="spinner" /> : <FaSync />} Refresh
+              <FaSync className={loading ? 'spinning' : ''} /> {loading ? 'Refreshing...' : 'Refresh'}
             </button>
           </div>
 
@@ -475,32 +470,13 @@ const AllDonors = () => {
                 </thead>
                 <tbody>
                   {donors.map(donor => (
-                    <tr key={donor.id}>
-                      <td>{donor.firstName} {donor.lastName}</td>
-                      <td>{donor.city}</td>
-                      <td>${donor.totalDonations?.toLocaleString() || 0}</td>
-                      <td>${donor.totalPledges?.toLocaleString() || 0}</td>
-                      <td>{donor.addressLine1}</td>
-                      <td>
-                        <div className="donor-actions">
-                          <button
-                            className="donor-action-button"
-                            onClick={() => handleEditClick(donor)}
-                            title="Edit donor"
-                          >
-                            <FaEdit />
-                          </button>
-                          <button
-                            className="donor-action-button delete"
-                            onClick={() => handleDeleteClick(donor)}
-                            title="Delete donor"
-                            disabled={isDeleting && donorToDelete?.id === donor.id}
-                          >
-                            <FaTrash />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
+                    <DonorListItem
+                      key={donor.id}
+                      donor={donor}
+                      onEdit={handleEditClick}
+                      onDelete={handleDeleteClick}
+                      isDeleting={isDeleting && donorToDelete?.id === donor.id}
+                    />
                   ))}
                 </tbody>
               </table>

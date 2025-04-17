@@ -1,19 +1,18 @@
 /* DonorListItem.css - Styling for individual donor list items */
 
 /* Row styling */
-.donor-row {
-  transition: all 0.2s ease;
-  border-bottom: 1px solid var(--border-color);
+.donor-list-item-row {
+  transition: background-color 0.2s ease;
 }
 
-.donor-row:hover {
-  background-color: var(--hover-bg);
+.donor-list-item-row:hover {
+  background-color: #F8FAFC;
 }
 
 /* Cell styling */
-.donor-row td {
+.donor-list-item-row td {
   padding: 1rem 1.5rem;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid #E3E8F4;
   font-size: 0.875rem;
   color: #1e293b;
   vertical-align: middle;
@@ -42,42 +41,43 @@
 }
 
 /* Actions cell styling */
-.actions-cell {
-  width: 100px;
-  text-align: right;
-  padding-right: 1rem !important;
-}
-
-.action-buttons {
+.donor-list-item-actions {
   display: flex;
   gap: 8px;
-  justify-content: flex-end;
+  justify-content: flex-start;
+  align-items: center;
+  width: 100%;
 }
 
-.edit-button {
-  background: none;
-  border: none;
-  cursor: pointer;
+.donor-list-item-action-button {
   padding: 6px;
   border-radius: 50%;
+  border: none;
+  background: none;
+  color: var(--text-light);
+  cursor: pointer;
+  transition: all 0.2s ease;
   display: flex;
   align-items: center;
   justify-content: center;
   opacity: 0.7;
-  transition: all 0.2s ease;
 }
 
-.edit-button:hover {
+.donor-list-item-action-button:hover:not(:disabled) {
   background-color: rgba(0, 0, 0, 0.05);
   opacity: 1;
 }
 
-.edit-button:disabled {
+.donor-list-item-action-button.delete {
+  color: var(--danger-color);
+}
+
+.donor-list-item-action-button:disabled {
   opacity: 0.3;
   cursor: not-allowed;
 }
 
-.edit-button svg {
+.donor-list-item-action-button svg {
   width: 1rem;
   height: 1rem;
 } 

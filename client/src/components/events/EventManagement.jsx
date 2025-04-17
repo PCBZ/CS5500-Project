@@ -42,6 +42,9 @@ const EventManagement = () => {
   const [eventToDelete, setEventToDelete] = useState(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
 
+  // Add a new state for date validation errors
+  const [dateValidationError, setDateValidationError] = useState(null);
+
   const openEditModal = (event) => {
     setCurrentEvent({ ...event });
     setShowEditModal(true);
@@ -110,11 +113,34 @@ const EventManagement = () => {
 
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
-    setFilters({
+    // Create updated filters object
+    const updatedFilters = {
       ...filters,
       [name]: value
-    });
-
+    };
+    
+    // Handle date validation for custom date range
+    if (name === 'customStartDate' || name === 'customEndDate') {
+      // If setting start date, check against end date if it exists
+      if (name === 'customStartDate' && updatedFilters.customEndDate && 
+          value > updatedFilters.customEndDate) {
+        setDateValidationError('Start date cannot be later than end date');
+        setTimeout(() => setDateValidationError(null), 3000);
+        return; // Don't update if invalid
+      }
+      
+      // If setting end date, check against start date if it exists
+      if (name === 'customEndDate' && updatedFilters.customStartDate && 
+          updatedFilters.customStartDate > value) {
+        setDateValidationError('End date cannot be earlier than start date');
+        setTimeout(() => setDateValidationError(null), 3000);
+        return; // Don't update if invalid
+      }
+    }
+    
+    // If validation passes, update the filters
+    setFilters(updatedFilters);
+    
     if (name === 'type') {
       const matchedTypes = eventTypes.filter(type => 
         type.toLowerCase().includes(value.toLowerCase())
@@ -596,6 +622,15 @@ const EventManagement = () => {
                     onChange={handleFilterChange}
                   />
                 </div>
+                {dateValidationError && (
+                  <div className="date-validation-error" style={{
+                    color: '#f44336',
+                    fontSize: '14px',
+                    marginTop: '5px'
+                  }}>
+                    {dateValidationError}
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -629,8 +664,8 @@ const EventManagement = () => {
             </thead>
             <tbody>
               {getFilteredEvents().length > 0 ? (
-                getFilteredEvents().map((event) => (
-                  <tr key={event.id}>
+                getFilteredEvents().map((event, index) => (
+                  <tr key={event?.id ? event.id : `event-${index}`}>
                     <td className="event-name-cell">
                       <div className="event-name">{event.name}</div>
                       <div className="event-type">{event.type}</div>
