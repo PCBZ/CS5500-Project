@@ -217,7 +217,13 @@
 
 .export-button:hover:not(:disabled) {
   background-color: var(--primary-hover);
-  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.export-button:active,
+.export-button:focus {
+  outline: none;
+  transform: none !important;
   box-shadow: var(--shadow-md);
 }
 
@@ -382,7 +388,14 @@
 
 .apply-filter-button:hover {
   background-color: var(--primary-hover);
-  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.apply-filter-button:active,
+.apply-filter-button:focus {
+  outline: none;
+  transform: none !important;
+  box-shadow: var(--shadow-md);
 }
 
 /* Donor list section */
@@ -415,14 +428,17 @@
 }
 
 .spinner {
-  animation: spin 1s linear infinite;
-  font-size: 28px;
+  display: inline-block;
+  width: 1em;
+  height: 1em;
   color: var(--primary-color);
-  margin-bottom: 16px;
   filter: drop-shadow(0 0 2px rgba(74, 107, 253, 0.3));
+  vertical-align: middle;
+  animation: spinAnimation 1s infinite linear;
+  font-size: 16px;
 }
 
-@keyframes spin {
+@keyframes spinAnimation {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
@@ -645,7 +661,13 @@
 
 .filter-button:hover:not(:disabled) {
   background-color: var(--primary-dark);
-  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.filter-button:active,
+.filter-button:focus {
+  outline: none;
+  transform: none !important;
   box-shadow: var(--shadow-md);
 }
 
@@ -688,7 +710,13 @@
 
 .import-button:hover:not(:disabled) {
   background-color: var(--primary-hover);
-  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.import-button:active,
+.import-button:focus {
+  outline: none;
+  transform: none !important;
   box-shadow: var(--shadow-md);
 }
 
@@ -899,4 +927,27 @@
 
 .modal-buttons .delete-button:hover:not(:disabled) {
   background-color: #dc2626;
+}
+
+/* Refresh 按钮中的 spinner 样式 */
+.refresh-button .spinner {
+  font-size: 16px !important;
+  width: 16px !important;
+  height: 16px !important;
+}
+
+/* 确保图标在各种状态下大小一致，但允许旋转 */
+.fa-spinner,
+.fa-spinner:active,
+.fa-spinner:focus,
+.fa-spinner:hover {
+  font-size: 16px !important;
+  width: 16px !important;
+  height: 16px !important;
+}
+
+/* 更新全局按钮样式，但排除包含spinner的元素 */
+button:active:not(:has(.spinner)),
+button:focus:not(:has(.spinner)) {
+  transform: none !important;
 }
