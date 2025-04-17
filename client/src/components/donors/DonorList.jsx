@@ -18,9 +18,9 @@ const DonorList = ({
             <th>Name</th>
             <th>Organization</th>
             <th>Status</th>
-            <th>Total Donations</th>
-            <th>Largest Gift</th>
-            <th>Last Gift</th>
+            <th><span style={{ whiteSpace: 'nowrap' }}>Total Donations</span></th>
+            <th><span style={{ whiteSpace: 'nowrap' }}>Largest Gift</span></th>
+            <th><span style={{ whiteSpace: 'nowrap' }}>Last Gift</span></th>
             <th>Actions</th>
           </tr>
         </thead>
