@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { FaTimes, FaSearch, FaSync, FaPlus, FaSpinner, FaInfoCircle } from 'react-icons/fa';
-import { addDonorToEvent, getAvailableDonors } from '../../services/donorService';
+import { addDonorToEvent, addDonorsToList, getAvailableDonors } from '../../services/donorService';
+import { toast } from 'react-toastify';
 import './AddDonorModal.css';
 
 const AddDonorModal = ({ 
@@ -89,37 +90,23 @@ const AddDonorModal = ({
   };
 
   const fetchAvailableDonors = async () => {
+    if (!eventId) return;
+    
+    setLoading(true);
+    setError(null);
+    
     try {
-      setLoading(true);
-      setError(null);
       const response = await getAvailableDonors(eventId, {
         page: currentPage,
         limit: 10,
-        search: tempSearchQuery
+        search: searchQuery
       });
       
-      if (response?.data && Array.isArray(response.data)) {
-        // 过滤掉已经在活动中的捐赠者
-        const filteredDonors = response.data.filter(donor => 
-          !currentEventDonors.some(eventDonor => eventDonor.id === donor.id)
-        );
-        setAvailableDonors(filteredDonors);
-        
-        // 基于过滤后的总数计算页数
-        const totalCount = Math.max(0, (response.total_count || 0) - currentEventDonors.length);
-        const limit = response.limit || 10;
-        const calculatedTotalPages = Math.ceil(totalCount / limit);
-        setTotalPages(calculatedTotalPages);
-      } else {
-        console.warn('Invalid response format:', response);
-        setAvailableDonors([]);
-        setTotalPages(1);
-      }
+      setAvailableDonors(response.data || []);
+      setTotalPages(response.total_pages || 1);
     } catch (err) {
-      console.error('Error fetching donors:', err);
-      setError(err.message || 'Failed to fetch available donors');
-      setAvailableDonors([]);
-      setTotalPages(1);
+      console.error('Error fetching available donors:', err);
+      setError(err.message || 'Failed to load available donors');
     } finally {
       setLoading(false);
     }
@@ -133,12 +120,10 @@ const AddDonorModal = ({
 
   const handleDonorSelect = (donor) => {
     setSelectedDonors(prev => {
-      const isSelected = prev.some(d => d.id === donor.id);
-      if (isSelected) {
+      if (prev.some(d => d.id === donor.id)) {
         return prev.filter(d => d.id !== donor.id);
-      } else {
-        return [...prev, donor];
       }
+      return [...prev, donor];
     });
   };
 
@@ -162,7 +147,7 @@ const AddDonorModal = ({
   };
 
   const handleAddMultipleDonors = async () => {
-    if (selectedDonors.length === 0) return;
+    if (!eventId || selectedDonors.length === 0) return;
     
     try {
       setLoading(true);
@@ -208,16 +193,12 @@ const AddDonorModal = ({
         setAddingProgress(100);
       }
       
-      // 延迟重置进度条
-      setTimeout(() => {
-        setAddingProgress(0);
-        setAddingStatus('');
-      }, 2000);
-      
+      // Close the modal
+      onClose();
     } catch (err) {
       console.error('Error adding donors:', err);
       setError(err.message || 'Failed to add donors');
-      setAddingStatus('Error adding donors');
+      toast.error('Failed to add donors: ' + err.message);
     } finally {
       setLoading(false);
     }
@@ -494,6 +475,12 @@ const AddDonorModal = ({
             )}
           </div>
         </div>
+
+        {error && (
+          <div className="error-message">
+            {error}
+          </div>
+        )}
       </div>
     </div>
   );

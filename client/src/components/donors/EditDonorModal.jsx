@@ -188,7 +188,7 @@ const EditDonorModal = ({ donor, onSave, onClose, isOpen }) => {
                     type="text"
                     id="organizationName"
                     name="organizationName"
-                    value={formData.organizationName}
+                    value={formData.organizationName && formData.organizationName !== "null" ? formData.organizationName : ''}
                     onChange={handleChange}
                     placeholder="Organization Name (if applicable)"
                   />
