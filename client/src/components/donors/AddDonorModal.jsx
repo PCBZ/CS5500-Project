@@ -371,10 +371,10 @@ const AddDonorModal = ({
                 <div className="donor-section-header">
                   <h4>
                     Recommended Donors
-                    <span className="info-tooltip-container">
+                    <div className="tooltip-container">
                       <FaInfoCircle className="info-icon" />
-                      <span className="info-tooltip">Donors from the same city as the event</span>
-                    </span>
+                      <span className="tooltip-text">Donors from the same city as the event</span>
+                    </div>
                   </h4>
                 </div>
                 {filteredRecommendedDonors.map(donor => (
@@ -416,10 +416,10 @@ const AddDonorModal = ({
                 <div className="donor-section-header">
                   <h4>
                     Other Donors
-                    <span className="info-tooltip-container">
+                    <div className="tooltip-container">
                       <FaInfoCircle className="info-icon" />
-                      <span className="info-tooltip">Donors from cities different from the event</span>
-                    </span>
+                      <span className="tooltip-text">Donors from cities different from the event</span>
+                    </div>
                   </h4>
                 </div>
                 {availableDonors.map(donor => (
