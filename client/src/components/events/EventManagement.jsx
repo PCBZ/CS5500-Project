@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { FaCalendarAlt, FaMapMarkerAlt, FaUsers, FaClock, FaTrash, FaFilter, FaSearch, FaEdit, FaEye } from 'react-icons/fa';
-import { useHistory } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import './EventManagement.css';
 import { getEvents, updateEvent, deleteEvent } from '../../services/eventService';
 import authService from '../../services/authService.js';
@@ -13,7 +13,7 @@ const EventManagement = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState('');
-  const history = useHistory();
+  const navigate = useNavigate();
 
   const [filters, setFilters] = useState({
     status: '',
@@ -330,7 +330,7 @@ const EventManagement = () => {
   };
 
   const handleViewEvent = (eventId) => {
-    history.push('/donors', { selectedEventId: eventId });
+    navigate('/donors', { state: { selectedEventId: eventId } });
   };
 
   const handleCreateEvent = () => {

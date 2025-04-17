@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { useHistory } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { createDonor } from '../../services/donorService';
 import './AddDonor.css';
 
 const AddDonor = () => {
-  const history = useHistory();
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -35,7 +35,7 @@ const AddDonor = () => {
       await createDonor(formData);
       setSuccess('Donor added successfully!');
       setTimeout(() => {
-        history.push('/donors');
+        navigate('/donors');
       }, 1500);
     } catch (err) {
       setError(err.message || 'Failed to add donor');
@@ -50,7 +50,7 @@ const AddDonor = () => {
         <h1>Add New Donor</h1>
         <button 
           className="add-donor-close-button"
-          onClick={() => history.push('/donors')}
+          onClick={() => navigate('/donors')}
         >
           ×
         </button>
