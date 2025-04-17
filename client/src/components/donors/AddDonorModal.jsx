@@ -37,7 +37,7 @@ const AddDonorModal = ({
   }, [isOpen, eventId]);
 
   useEffect(() => {
-    if (currentPage > 1) {
+    if (isOpen && eventId) {
       fetchAvailableDonors();
     }
   }, [currentPage]);
@@ -111,7 +111,7 @@ const AddDonorModal = ({
     }
   };
 
-  const fetchAvailableDonors = async (customSearchQuery = searchQuery) => {
+  const fetchAvailableDonors = async (customSearchQuery = searchQuery, pageNumber = currentPage) => {
     if (!eventId) return;
     
     setLoading(true);
@@ -119,7 +119,7 @@ const AddDonorModal = ({
     
     try {
       const response = await getAvailableDonors(eventId, {
-        page: currentPage,
+        page: pageNumber,
         limit: 10,
         search: customSearchQuery
       });
@@ -471,14 +471,20 @@ const AddDonorModal = ({
             {totalPages > 1 && (
               <div className="pagination-controls">
                 <button
-                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                  onClick={() => {
+                    const newPage = Math.max(1, currentPage - 1);
+                    setCurrentPage(newPage);
+                  }}
                   disabled={currentPage === 1 || loading}
                 >
                   Previous
                 </button>
                 <span>Page {currentPage} of {totalPages}</span>
                 <button
-                  onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                  onClick={() => {
+                    const newPage = Math.min(totalPages, currentPage + 1);
+                    setCurrentPage(newPage);
+                  }}
                   disabled={currentPage === totalPages || loading}
                 >
                   Next
