@@ -367,7 +367,7 @@ const AddDonorModal = ({
                     <div className="donor-info">
                       <p className="donor-name">
                         {String(donor.firstName || '').normalize('NFKC')} {String(donor.lastName || '').normalize('NFKC')}
-                        {donor.organizationName && (
+                        {donor.organizationName && donor.organizationName !== "null" && donor.organizationName !== null && (
                           <span className="organization-name">
                             ({String(donor.organizationName).normalize('NFKC')})
                           </span>
@@ -375,7 +375,7 @@ const AddDonorModal = ({
                       </p>
                       <p className="donor-details">
                         <span>Total Donations: ${Number(donor.totalDonations || 0).toLocaleString()}</span>
-                        {donor.city && <span> | {String(donor.city).normalize('NFKC')}</span>}
+                        {donor.city && donor.city !== "null" && donor.city !== null && <span> | {String(donor.city).normalize('NFKC')}</span>}
                       </p>
                     </div>
                     <div className="donor-checkbox">
@@ -412,7 +412,7 @@ const AddDonorModal = ({
                     <div className="donor-info">
                       <p className="donor-name">
                         {String(donor.firstName || '').normalize('NFKC')} {String(donor.lastName || '').normalize('NFKC')}
-                        {donor.organizationName && (
+                        {donor.organizationName && donor.organizationName !== "null" && donor.organizationName !== null && (
                           <span className="organization-name">
                             ({String(donor.organizationName).normalize('NFKC')})
                           </span>
@@ -420,7 +420,7 @@ const AddDonorModal = ({
                       </p>
                       <p className="donor-details">
                         <span>Total Donations: ${Number(donor.totalDonations || 0).toLocaleString()}</span>
-                        {donor.city && <span> | {String(donor.city).normalize('NFKC')}</span>}
+                        {donor.city && donor.city !== "null" && donor.city !== null && <span> | {String(donor.city).normalize('NFKC')}</span>}
                       </p>
                     </div>
                     <div className="donor-checkbox">
