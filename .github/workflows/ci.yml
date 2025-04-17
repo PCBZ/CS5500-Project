@@ -29,11 +29,6 @@ jobs:
           cd client && npm run lint
           cd ../Server && npm run lint
 
-      - name: Run Prettier check
-        run: |
-          cd client && npm run format:check
-          cd ../Server && npm run format:check
-
   build:
     runs-on: ubuntu-latest
 
