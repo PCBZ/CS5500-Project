@@ -1,27 +1,33 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { FaEdit } from 'react-icons/fa';
+import { FaEdit, FaTrash } from 'react-icons/fa';
 import { formatDonorName, formatCurrency, formatAddress } from '../../utils/formatters';
 import './DonorListItem.css';
 
-const DonorListItem = ({ donor, onEdit }) => {
+const DonorListItem = ({ donor, onEdit, onDelete, isDeleting }) => {
   return (
-    <tr className="donor-row">
-      <td className="donor-name-cell">
-        {formatDonorName(donor)}
-      </td>
-      <td>{donor.city || 'Not provided'}</td>
-      <td className="donation-amount">{formatCurrency(donor.totalDonations || 0)}</td>
-      <td className="pledge-amount">{formatCurrency(donor.totalPledges || 0)}</td>
-      <td>{formatAddress(donor)}</td>
-      <td className="actions-cell">
-        <div className="action-buttons">
-          <button 
-            className="edit-button" 
+    <tr className="donor-list-item-row">
+      <td>{donor.firstName} {donor.lastName}</td>
+      <td>{donor.city}</td>
+      <td>${donor.totalDonations?.toLocaleString() || 0}</td>
+      <td>${donor.totalPledges?.toLocaleString() || 0}</td>
+      <td>{donor.addressLine1}</td>
+      <td>
+        <div className="donor-list-item-actions">
+          <button
+            className="donor-list-item-action-button"
             onClick={() => onEdit(donor)}
-            title="编辑捐赠者"
+            title="Edit donor"
           >
             <FaEdit />
+          </button>
+          <button
+            className="donor-list-item-action-button delete"
+            onClick={() => onDelete(donor)}
+            title="Delete donor"
+            disabled={isDeleting}
+          >
+            <FaTrash />
           </button>
         </div>
       </td>
@@ -32,16 +38,16 @@ const DonorListItem = ({ donor, onEdit }) => {
 DonorListItem.propTypes = {
   donor: PropTypes.shape({
     id: PropTypes.string.isRequired,
-    organizationName: PropTypes.string,
     firstName: PropTypes.string,
     lastName: PropTypes.string,
     city: PropTypes.string,
     totalDonations: PropTypes.number,
     totalPledges: PropTypes.number,
     addressLine1: PropTypes.string,
-    addressLine2: PropTypes.string,
   }).isRequired,
-  onEdit: PropTypes.func.isRequired
+  onEdit: PropTypes.func.isRequired,
+  onDelete: PropTypes.func.isRequired,
+  isDeleting: PropTypes.bool
 };
 
 export default DonorListItem; 
