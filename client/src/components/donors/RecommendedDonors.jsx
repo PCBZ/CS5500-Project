@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { FaSpinner } from 'react-icons/fa';
 import './RecommendedDonors.css';
 
@@ -12,13 +12,7 @@ const RecommendedDonors = ({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    if (eventId) {
-      fetchRecommendedDonors();
-    }
-  }, [eventId]);
-
-  const fetchRecommendedDonors = async () => {
+  const fetchRecommendedDonors = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -29,7 +23,7 @@ const RecommendedDonors = ({
       }
 
       const response = await fetch(
-        `${process.env.REACT_APP_API_URL || 'http://localhost:3000'}/api/events/${eventId}/recommended-donors`,
+        `${window.REACT_APP_API_URL || 'http://localhost:3000'}/api/events/${eventId}/recommended-donors`,
         {
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -56,7 +50,13 @@ const RecommendedDonors = ({
     } finally {
       setLoading(false);
     }
-  };
+  }, [eventId, currentEventDonors]);
+
+  useEffect(() => {
+    if (eventId) {
+      fetchRecommendedDonors();
+    }
+  }, [eventId, fetchRecommendedDonors]);
 
   if (!eventId) return null;
 
