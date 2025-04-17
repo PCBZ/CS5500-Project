@@ -205,6 +205,25 @@ function CreateNewEvent({ onClose, onEventCreated }) {
       return;
     }
 
+    // Validate that start date is not after end date when both are provided
+    if (formData.startDate && formData.endDate) {
+      const startDate = new Date(formData.startDate);
+      const endDate = new Date(formData.endDate);
+      
+      if (startDate > endDate) {
+        setError('Start date cannot be later than end date');
+        setLoading(false);
+        return;
+      }
+    }
+
+      // Validate ticket price
+    if (formData.ticketPrice && (isNaN(formData.ticketPrice) || Number(formData.ticketPrice) < 0)) {
+      setError('Ticket price must be a positive number or zero');
+      setLoading(false);
+      return;
+    }
+
     try {
       // Convert date fields to Date objects before sending, if needed
       const payload = {
@@ -217,38 +236,41 @@ function CreateNewEvent({ onClose, onEventCreated }) {
       const result = await createEvent(payload);
       console.log("Event creation result:", result);
       
-      // 检查是否包含 "successfully" 关键词，表示成功创建
+      // 检查是否成功创建
       if (result.message && result.message.toLowerCase().includes('successfully')) {
-        // 创建成功
+        // 在关闭组件前先更新所有状态
+        setLoading(false);
         setMessage(result.message);
-        // 构造事件数据对象
+        
         const eventData = {
           ...payload,
-          id: result.id, // 如果API返回了ID
+          id: result.id,
           status: formData.eventStage,
         };
         
-        // 调用父组件的回调函数
+        // 准备要传递给父组件的数据
+        const responseData = {
+          success: true,
+          data: eventData,
+          message: result.message
+        };
+        
+        // 先调用父组件的回调
         if (onEventCreated) {
-          onEventCreated({
-            success: true,
-            data: eventData,
-            message: result.message
-          });
+          onEventCreated(responseData);
         }
-        // 关闭模态框
+        
+        // 最后才关闭模态框
         if (onClose) {
-          onClose();
+          setTimeout(() => onClose(), 0); // 使用setTimeout确保状态更新完成
         }
       } else {
-        // 如果没有成功消息，则视为错误
+        setLoading(false);
         throw new Error(result.message || 'Failed to create event');
       }
     } catch (err) {
-      console.error("Error in createEvent:", err);
-      setError('Error creating event: ' + (err.message || 'Unknown error occurred'));
-    } finally {
       setLoading(false);
+      setError('Error creating event: ' + (err.message || 'Unknown error occurred'));
     }
   };
 
@@ -408,7 +430,9 @@ function CreateNewEvent({ onClose, onEventCreated }) {
           <option value="Ready">Ready</option>
           <option value="Complete">Complete</option>
         </select>
-
+        {/* Centered error message below submit button */}
+        {error && <div className="centered-error-message">{error}</div>}
+        {message && <div className="create-event-success">{message}</div>}
         <div className="create-event-button-container">
           <button
             type="button"
@@ -425,9 +449,10 @@ function CreateNewEvent({ onClose, onEventCreated }) {
             {loading ? 'Submitting...' : 'Submit'}
           </button>
         </div>
+        
+
       </form>
-      {error && <p className="create-event-error">{error}</p>}
-      {message && <p className="create-event-success">{message}</p>}
+
     </div>
   );
 }
