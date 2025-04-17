@@ -23,7 +23,7 @@ import DonorListItem from './DonorListItem';
 import EditDonorModal from './EditDonorModal';
 import ImportDonors from './ImportDonors'; // Import the component
 import './AllDonors.css';
-import { useHistory } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 const AllDonors = () => {
   const [donors, setDonors] = useState([]);
@@ -43,7 +43,7 @@ const AllDonors = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [importing, setImporting] = useState(false);
 
-  const history = useHistory();
+  const navigate = useNavigate();
   
   // Filter state
   const [filters, setFilters] = useState({

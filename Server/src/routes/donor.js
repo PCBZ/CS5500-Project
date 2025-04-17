@@ -764,4 +764,73 @@ router.delete('/:id', protect, async (req, res) => {
   }
 });
 
+/**
+ * Batch delete donors
+ * 
+ * @name DELETE /api/donors/batch
+ * @function
+ * @memberof module:DonorAPI
+ * @inner
+ * @param {Array} req.body.ids - Array of donor IDs to delete
+ * @param {string} req.headers.authorization - Bearer token for authentication
+ * @returns {Object} 200 - Success message
+ * @returns {Error} 400 - Invalid request
+ * @returns {Error} 401 - Unauthorized access
+ * @returns {Error} 500 - Server error
+ */
+router.delete('/batch', protect, async (req, res) => {
+  try {
+    const { ids } = req.body;
+
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid donor IDs provided'
+      });
+    }
+
+    // 验证所有ID都是有效的数字
+    const validIds = ids.map(id => parseInt(id)).filter(id => !isNaN(id));
+    
+    if (validIds.length !== ids.length) {
+      return res.status(400).json({
+        success: false,
+        message: 'Some donor IDs are invalid'
+      });
+    }
+
+    // 使用事务来确保数据一致性
+    await prisma.$transaction([
+      // 先删除相关的eventDonor记录
+      prisma.eventDonor.deleteMany({
+        where: {
+          donorId: {
+            in: validIds
+          }
+        }
+      }),
+      // 然后删除捐赠者
+      prisma.donor.deleteMany({
+        where: {
+          id: {
+            in: validIds
+          }
+        }
+      })
+    ]);
+
+    res.json({
+      success: true,
+      message: `Successfully deleted ${validIds.length} donor(s)`
+    });
+  } catch (error) {
+    console.error('Error batch deleting donors:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to delete donors',
+      error: error.message
+    });
+  }
+});
+
 export default router;
