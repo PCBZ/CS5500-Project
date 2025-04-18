@@ -39,7 +39,7 @@ COPY --from=builder /app/Server ./Server
 # Install production dependencies with architecture-specific optimizations
 RUN npm config set registry https://registry.npmmirror.com && \
     npm install --production && \
-    npm install -g concurrently
+    npm install -g concurrently serve
 
 # Generate Prisma client
 RUN cd Server && \
@@ -49,8 +49,8 @@ RUN cd Server && \
 RUN cd Server && npm rebuild bcrypt --build-from-source
 
 # Expose ports
-EXPOSE 3000
-EXPOSE 5000
+EXPOSE 3001
+EXPOSE 5001
 
 # Start application
 CMD ["npm", "run", "start:prod"] 

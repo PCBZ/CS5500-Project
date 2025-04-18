@@ -5,11 +5,11 @@
   "main": "index.js",
   "scripts": {
     "start": "concurrently \"npm run server\" \"npm run client\"",
-    "start:prod": "concurrently \"npm run server:prod\" \"npm run client:prod\"",
+    "start:prod": "REACT_APP_API_URL=http://localhost:5001 concurrently \"npm run server:prod\" \"npm run client:prod\"",
     "client": "cd client && npm start",
-    "client:prod": "cd client && npx serve -s build -l 3000 --single",
+    "client:prod": "cd client && npx serve -s build -l 3001 --no-clipboard --no-compression --no-etag --no-request-logging",
     "server": "cd Server && npm run dev",
-    "server:prod": "cd Server && npm start",
+    "server:prod": "cd Server && PORT=5001 npm start",
     "install:all": "npm install && cd client && npm install && cd ../Server && npm install",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
