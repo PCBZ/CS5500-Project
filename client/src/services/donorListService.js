@@ -1,6 +1,6 @@
 import { fetchWithAuthMiddleware } from '../middleware/authMiddleware';
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000';
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001';
 
 // Get summary statistics for all donor lists
 export const getDonorListsSummary = async () => {
