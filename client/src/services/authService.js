@@ -20,7 +20,7 @@ const fetchWithAuth = async (endpoint, options = {}) => {
   }
   
   // Execute the request using middleware
-  const response = await fetchWithAuthMiddleware(`${API_URL}${endpoint}`, options);
+  const response = await fetchWithAuthMiddleware(`${API_URL}/api/user${endpoint}`, options);
   
   // Throw error if response is not successful
   if (!response.ok) {
