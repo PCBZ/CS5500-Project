@@ -3,7 +3,7 @@
  */
 
 import bcrypt from 'bcrypt';
-import app from '../../../src/index.js';
+import app from '../../src/index.js';
 
 let server;
 
