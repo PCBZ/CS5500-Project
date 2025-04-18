@@ -34,17 +34,11 @@ app.use((err, req, res, next) => {
   res.status(500).json({ message: 'Internal server error' });
 });
 
-// Only start the server if this file is run directly
-if (process.env.NODE_ENV !== 'test') {
-  const PORT = process.env.PORT || 3000;
-  console.log('Environment variables:', {
-    PORT: process.env.PORT,
-    NODE_ENV: process.env.NODE_ENV
-  });
-  app.listen(PORT, '0.0.0.0', () => {
-    console.log(`Server is running on port ${PORT}`);
-    console.log(`Server is listening on all network interfaces`);
-  });
-}
+// 启动服务器
+const PORT = process.env.PORT || 5001;
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
+  console.log(`Health check available at http://localhost:${PORT}/health`);
+});
 
 export default app; 
