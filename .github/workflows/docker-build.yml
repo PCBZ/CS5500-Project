@@ -13,6 +13,9 @@ env:
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -39,3 +42,5 @@ jobs:
           tags: |
             ghcr.io/${{ env.LOWER_REPO_OWNER }}/cs5500-project:latest
             ghcr.io/${{ env.LOWER_REPO_OWNER }}/cs5500-project:${{ github.sha }}
+          cache-from: type=registry,ref=ghcr.io/${{ env.LOWER_REPO_OWNER }}/cs5500-project:buildcache
+          cache-to: type=registry,ref=ghcr.io/${{ env.LOWER_REPO_OWNER }}/cs5500-project:buildcache,mode=max
