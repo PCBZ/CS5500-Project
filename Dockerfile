@@ -3,6 +3,9 @@ FROM --platform=$TARGETPLATFORM node:18-alpine as builder
 
 WORKDIR /app
 
+# Install system dependencies
+RUN apk add --no-cache openssl openssl-dev
+
 # Copy package.json and package-lock.json
 COPY package*.json ./
 COPY client/package*.json ./client/
@@ -23,6 +26,9 @@ RUN cd client && \
 FROM --platform=$TARGETPLATFORM node:18-alpine
 
 WORKDIR /app
+
+# Install system dependencies
+RUN apk add --no-cache openssl openssl-dev
 
 # Copy necessary files from builder stage
 COPY --from=builder /app/package*.json ./
