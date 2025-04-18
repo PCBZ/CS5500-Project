@@ -39,6 +39,7 @@ jobs:
         env:
           REACT_APP_API_URL: 'https://cs5500-project.onrender.com'
           REACT_APP_BASE_URL: 'https://pcbz.github.io/CS5500-Project'
+          NODE_ENV: 'production'
           CI: false
 
       - name: Deploy to GitHub Pages
