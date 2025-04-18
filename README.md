@@ -118,10 +118,10 @@ For support, please contact [support-email] or create an issue in the repository
 
 ```bash
 # 登录到GitHub Container Registry
-echo $GITHUB_TOKEN | docker login ghcr.io -u $GITHUB_USERNAME --password-stdin
+echo $GITHUB_TOKEN | docker login ghcr.io -u $(echo $GITHUB_USERNAME | tr '[:upper:]' '[:lower:]') --password-stdin
 
 # 拉取镜像
-docker pull ghcr.io/[你的GitHub用户名]/cs5500-project:latest
+docker pull ghcr.io/$(echo $GITHUB_USERNAME | tr '[:upper:]' '[:lower:]')/cs5500-project:latest
 ```
 
 ### 运行容器
@@ -131,7 +131,7 @@ docker run -d \
   -p 3000:3000 \
   -p 5000:5000 \
   --name cs5500-app \
-  ghcr.io/[你的GitHub用户名]/cs5500-project:latest
+  ghcr.io/$(echo $GITHUB_USERNAME | tr '[:upper:]' '[:lower:]')/cs5500-project:latest
 ```
 
 ### 使用 docker-compose
@@ -143,7 +143,7 @@ version: '3.8'
 
 services:
   app:
-    image: ghcr.io/[你的GitHub用户名]/cs5500-project:latest
+    image: ghcr.io/$(echo $GITHUB_USERNAME | tr '[:upper:]' '[:lower:]')/cs5500-project:latest
     container_name: cs5500-app
     restart: always
     ports:
