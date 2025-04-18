@@ -3,6 +3,7 @@ import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import app from '../../src/index.js';
+import { startTestServer, stopTestServer } from '../helpers/testSetup.js';
 
 const prisma = new PrismaClient();
 
@@ -44,6 +45,9 @@ describe('Get All Donor Lists API Tests', () => {
 
   beforeAll(async () => {
     try {
+      // Start the test server
+      await startTestServer();
+      
       // create test user
       const hashedPassword = await bcrypt.hash(testUserData.password, 10);
       testUser = await prisma.user.create({
@@ -89,6 +93,9 @@ describe('Get All Donor Lists API Tests', () => {
 
   afterAll(async () => {
     try {
+      // Stop the test server
+      await stopTestServer();
+      
       // clean up test data
       if (testList) {
         await prisma.eventDonorList.delete({

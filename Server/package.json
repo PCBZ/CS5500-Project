@@ -7,7 +7,7 @@
   "scripts": {
     "start": "node src/index.js",
     "dev": "cross-env NODE_ENV=development nodemon src/index.js",
-    "test": "jest --detectOpenHandles",
+    "test": "cross-env NODE_ENV=test jest --detectOpenHandles",
     "docs": "jsdoc -c jsdoc.json",
     "lint": "eslint src/**/*.js",
     "lint:fix": "eslint src/**/*.js --fix",

@@ -3,6 +3,9 @@
  */
 
 import bcrypt from 'bcrypt';
+import app from '../../../src/index.js';
+
+let server;
 
 /**
  * Sets up a test user in the database if it doesn't exist
@@ -71,3 +74,21 @@ export const createTestEvent = async (prisma, eventData) => {
   
   return event;
 };
+
+export const startTestServer = async (port = 5001) => {
+  if (!server) {
+    server = app.listen(port);
+    console.log(`Test server started on port ${port}`);
+  }
+  return server;
+};
+
+export const stopTestServer = async () => {
+  if (server) {
+    await new Promise((resolve) => server.close(resolve));
+    server = null;
+    console.log('Test server stopped');
+  }
+};
+
+export const getTestServer = () => server;
