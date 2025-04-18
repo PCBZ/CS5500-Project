@@ -1,5 +1,5 @@
 # Build stage
-FROM node:18-alpine as builder
+FROM --platform=$TARGETPLATFORM node:18-alpine as builder
 
 WORKDIR /app
 
@@ -8,17 +8,19 @@ COPY package*.json ./
 COPY client/package*.json ./client/
 COPY Server/package*.json ./Server/
 
-# Install dependencies
-RUN npm run install:all
+# Install dependencies with architecture-specific optimizations
+RUN npm config set registry https://registry.npmmirror.com && \
+    npm run install:all
 
 # Copy source code
 COPY . .
 
-# Build client
-RUN cd client && npm run build
+# Build client with architecture-specific optimizations
+RUN cd client && \
+    npm run build
 
 # Production stage
-FROM node:18-alpine
+FROM --platform=$TARGETPLATFORM node:18-alpine
 
 WORKDIR /app
 
@@ -27,8 +29,9 @@ COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/Server ./Server
 COPY --from=builder /app/client/build ./client/build
 
-# Install production dependencies
-RUN npm install --production
+# Install production dependencies with architecture-specific optimizations
+RUN npm config set registry https://registry.npmmirror.com && \
+    npm install --production
 
 # Expose ports
 EXPOSE 3000
