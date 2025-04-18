@@ -183,7 +183,7 @@
   background-color: var(--primary-color);
   color: white;
   border: none;
-  border-left: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
   cursor: pointer;
   font-weight: 500;
   transition: background-color 0.2s, color 0.2s !important;
@@ -204,6 +204,7 @@
 
 .refresh-button-icon .spinning {
   animation: spin 1s linear infinite;
+  color: white !important;
 }
 
 .refresh-button-icon:active,
@@ -211,6 +212,8 @@
   outline: none !important;
   transform: none !important;
   box-shadow: none !important;
+  background-color: var(--primary-dark);
+  color: white;
 }
 
 .modal-actions {
