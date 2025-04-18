@@ -34,6 +34,10 @@ RUN npm config set registry https://registry.npmmirror.com && \
     npm install --production && \
     npm install -g concurrently
 
+# Generate Prisma client
+RUN cd Server && \
+    npx prisma generate
+
 # Expose ports
 EXPOSE 3000
 EXPOSE 5000
