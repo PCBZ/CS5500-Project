@@ -7,12 +7,14 @@
     "start": "concurrently \"npm run server\" \"npm run client\"",
     "start:prod": "REACT_APP_API_URL=http://localhost:5001 concurrently \"npm run server:prod\" \"npm run client:prod\"",
     "start:render": "cd Server && npm install && npm start",
+    "start:render:server": "cd Server && npm install && npm start",
     "client": "cd client && npm start",
     "client:prod": "cd client && npx serve -s build -l 3001 --no-clipboard --no-compression --no-etag --no-request-logging",
     "server": "cd Server && npm run dev",
     "server:prod": "cd Server && PORT=5001 NODE_ENV=production npm start",
     "install:all": "npm install && cd client && npm install && cd ../Server && npm install",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "check:server": "node scripts/check-server.js"
   },
   "repository": {
     "type": "git",
