@@ -7,7 +7,7 @@
     "start": "concurrently \"npm run server\" \"npm run client\"",
     "start:prod": "concurrently \"npm run server:prod\" \"npm run client:prod\"",
     "client": "cd client && npm start",
-    "client:prod": "cd client && npm run build",
+    "client:prod": "cd client && npx http-server build -p 3000 -c-1 --proxy http://localhost:3000/CS5500-Project",
     "server": "cd Server && npm run dev",
     "server:prod": "cd Server && npm start",
     "install:all": "npm install && cd client && npm install && cd ../Server && npm install",
