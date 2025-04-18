@@ -7,7 +7,7 @@
     "start": "concurrently \"npm run server\" \"npm run client\"",
     "start:prod": "concurrently \"npm run server:prod\" \"npm run client:prod\"",
     "client": "cd client && npm start",
-    "client:prod": "cd client && npx http-server build -p 3000 -c-1 --proxy http://localhost:3000/CS5500-Project",
+    "client:prod": "cd client && npx serve -s build -l 3000 --single",
     "server": "cd Server && npm run dev",
     "server:prod": "cd Server && npm start",
     "install:all": "npm install && cd client && npm install && cd ../Server && npm install",
@@ -15,15 +15,15 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/J3rrrrry/CS5500-Project.git"
+    "url": "git+https://github.com/PCBZ/CS5500-Project.git"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/J3rrrrry/CS5500-Project/issues"
+    "url": "https://github.com/PCBZ/CS5500-Project/issues"
   },
-  "homepage": "https://github.com/J3rrrrry/CS5500-Project#readme",
+  "homepage": "https://github.com/PCBZ/CS5500-Project#readme",
   "devDependencies": {
     "concurrently": "^8.2.2",
     "cross-env": "^7.0.3"

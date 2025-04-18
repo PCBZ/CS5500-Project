@@ -1,10 +1,10 @@
 # Build stage
-FROM --platform=$TARGETPLATFORM node:18-alpine as builder
+FROM node:20-alpine AS builder
 
 WORKDIR /app
 
 # Install system dependencies
-RUN apk add --no-cache openssl openssl-dev
+RUN apk add --no-cache python3 make g++ openssl openssl-dev
 
 # Copy package.json and package-lock.json
 COPY package*.json ./
@@ -23,17 +23,18 @@ RUN cd client && \
     npm run build
 
 # Production stage
-FROM --platform=$TARGETPLATFORM node:18-alpine
+FROM node:20-alpine
 
 WORKDIR /app
 
 # Install system dependencies
-RUN apk add --no-cache openssl openssl-dev
+RUN apk add --no-cache openssl openssl-dev python3 make g++
 
 # Copy necessary files from builder stage
 COPY --from=builder /app/package*.json ./
-COPY --from=builder /app/Server ./Server
+COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/client/build ./client/build
+COPY --from=builder /app/Server ./Server
 
 # Install production dependencies with architecture-specific optimizations
 RUN npm config set registry https://registry.npmmirror.com && \
@@ -43,6 +44,9 @@ RUN npm config set registry https://registry.npmmirror.com && \
 # Generate Prisma client
 RUN cd Server && \
     npx prisma generate
+
+# Rebuild bcrypt module
+RUN cd Server && npm rebuild bcrypt --build-from-source
 
 # Expose ports
 EXPOSE 3000
