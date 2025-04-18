@@ -111,3 +111,64 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 ## Support
 
 For support, please contact [support-email] or create an issue in the repository.
+
+## Docker 部署
+
+### 拉取镜像
+
+```bash
+docker pull [你的Docker Hub用户名]/cs5500-project:latest
+```
+
+### 运行容器
+
+```bash
+docker run -d \
+  -p 3000:3000 \
+  -p 5000:5000 \
+  --name cs5500-app \
+  [你的Docker Hub用户名]/cs5500-project:latest
+```
+
+### 使用 docker-compose
+
+1. 创建 `docker-compose.yml` 文件：
+
+```yaml
+version: '3.8'
+
+services:
+  app:
+    image: [你的Docker Hub用户名]/cs5500-project:latest
+    container_name: cs5500-app
+    restart: always
+    ports:
+      - "3000:3000"
+      - "5000:5000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - API_PORT=5000
+    volumes:
+      - ./logs:/app/logs
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+```
+
+2. 启动服务：
+
+```bash
+docker-compose up -d
+```
+
+### 环境变量
+
+可以通过环境变量配置应用：
+
+- `PORT`: 前端服务端口（默认：3000）
+- `API_PORT`: 后端服务端口（默认：5000）
+- `NODE_ENV`: 运行环境（默认：production）
