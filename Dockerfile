@@ -42,7 +42,7 @@ COPY --from=builder /app/Server ./Server
 # Install production dependencies with architecture-specific optimizations
 RUN npm config set registry https://registry.npmmirror.com && \
     npm install --production && \
-    npm install -g concurrently serve
+    npm install -g concurrently serve cross-env
 
 # Generate Prisma client
 RUN cd Server && \
