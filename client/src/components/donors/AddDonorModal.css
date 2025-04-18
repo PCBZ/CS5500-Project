@@ -179,32 +179,34 @@
 }
 
 .refresh-button-icon {
-  padding: 8px 16px;
-  background-color: var(--primary-color);
-  color: white;
+  padding: 8px;
+  background-color: transparent;
+  color: #64748b;
   border: none;
   border-radius: 4px;
   cursor: pointer;
   font-weight: 500;
-  transition: background-color 0.2s, color 0.2s !important;
+  transition: color 0.2s !important;
   white-space: nowrap;
   height: 100%;
   transform: none;
 }
 
 .refresh-button-icon:hover:not(:disabled) {
-  background-color: var(--primary-dark);
+  background-color: transparent;
+  color: #475569;
   transform: none !important;
 }
 
 .refresh-button-icon:disabled {
-  background-color: #cccccc;
+  background-color: transparent;
+  color: #cccccc;
   cursor: not-allowed;
 }
 
 .refresh-button-icon .spinning {
   animation: spin 1s linear infinite;
-  color: white !important;
+  color: #64748b !important;
 }
 
 .refresh-button-icon:active,
@@ -212,8 +214,8 @@
   outline: none !important;
   transform: none !important;
   box-shadow: none !important;
-  background-color: var(--primary-dark);
-  color: white;
+  background-color: transparent;
+  color: #334155;
 }
 
 .modal-actions {
