@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 
 // Component imports
 import Login from './components/auth/Login.jsx';
@@ -13,6 +13,9 @@ import Navbar from './components/common/Navbar.jsx';
 import ProtectedRoute from './components/auth/ProtectedRoute.jsx';
 import AddDonor from './components/donors/AddDonor';
 import './App.css';
+
+// 根据环境选择路由类型
+const Router = process.env.NODE_ENV === 'production' ? HashRouter : BrowserRouter;
 
 function App() {
   return (
