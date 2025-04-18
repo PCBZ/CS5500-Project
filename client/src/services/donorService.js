@@ -2,7 +2,7 @@
 // import { MOCK_DONORS, MOCK_EVENT_DONORS, MOCK_EVENT_STATS } from './mockData';
 import { getEventDonors } from './eventService';
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000';
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001';
 
 const getAuthToken = () => localStorage.getItem('token');
 

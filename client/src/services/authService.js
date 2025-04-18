@@ -1,7 +1,7 @@
 import { fetchWithAuthMiddleware } from '../middleware/authMiddleware';
 
 // API base URL
-const API_URL = 'http://localhost:3000/api/user';
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001';
 
 // Create a generic fetch function with authentication
 const fetchWithAuth = async (endpoint, options = {}) => {
@@ -20,7 +20,7 @@ const fetchWithAuth = async (endpoint, options = {}) => {
   }
   
   // Execute the request using middleware
-  const response = await fetchWithAuthMiddleware(`${API_URL}${endpoint}`, options);
+  const response = await fetchWithAuthMiddleware(`${API_URL}/api/user${endpoint}`, options);
   
   // Throw error if response is not successful
   if (!response.ok) {
