@@ -37,7 +37,8 @@ jobs:
           export GENERATE_SOURCEMAP=false
           npm run build
         env:
-          REACT_APP_API_URL: ${{ secrets.REACT_APP_API_URL }}
+          REACT_APP_API_URL: 'https://cs5500-project.onrender.com'
+          REACT_APP_BASE_URL: 'https://pcbz.github.io/CS5500-Project'
           CI: false
 
       - name: Deploy to GitHub Pages
