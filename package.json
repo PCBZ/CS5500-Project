@@ -9,7 +9,7 @@
     "client": "cd client && npm start",
     "client:prod": "cd client && npx serve -s build -l 3001 --no-clipboard --no-compression --no-etag --no-request-logging",
     "server": "cd Server && npm run dev",
-    "server:prod": "cd Server && PORT=5001 npm start",
+    "server:prod": "cd Server && cross-env PORT=5001 NODE_ENV=production npm start",
     "install:all": "npm install && cd client && npm install && cd ../Server && npm install",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
