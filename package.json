@@ -6,7 +6,7 @@
   "scripts": {
     "start": "concurrently \"npm run server\" \"npm run client\"",
     "start:prod": "REACT_APP_API_URL=http://localhost:5001 concurrently \"npm run server:prod\" \"npm run client:prod\"",
-    "start:render": "cd Server && npm start",
+    "start:render": "cd Server && npm install && npm start",
     "client": "cd client && npm start",
     "client:prod": "cd client && npx serve -s build -l 3001 --no-clipboard --no-compression --no-etag --no-request-logging",
     "server": "cd Server && npm run dev",
