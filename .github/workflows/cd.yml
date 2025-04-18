@@ -2,9 +2,9 @@ name: CD
 
 on:
   push:
-    branches: [ main, FE_Dev ]
+    branches: [ main, FE_Dev, Deploy ]
   pull_request:
-    branches: [ main, FE_Dev ]
+    branches: [ main, FE_Dev, Deploy ]
   workflow_dispatch:
 
 jobs:
@@ -39,4 +39,5 @@ jobs:
           publish_dir: ./client/build
           publish_branch: gh-pages
           commit_message: "Deploy: ${{ github.event.head_commit.message }}"
-          force: true 
+          force: true
+          clean: true 
