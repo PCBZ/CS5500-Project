@@ -3,6 +3,7 @@ import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import app from '../../src/index.js';
+import { startTestServer, stopTestServer } from '../helpers/testSetup.js';
 
 const prisma = new PrismaClient();
 
@@ -52,6 +53,9 @@ describe('Add Donors to List API Tests', () => {
 
   beforeAll(async () => {
     try {
+      // Start the test server
+      await startTestServer();
+      
       // Clean up test data in correct order
       // First find any existing test user
       const existingUser = await prisma.user.findFirst({
@@ -151,6 +155,9 @@ describe('Add Donors to List API Tests', () => {
 
   afterAll(async () => {
     try {
+      // Stop the test server
+      await stopTestServer();
+      
       // Clean up test data in correct order
       if (testList) {
         // First delete event donors

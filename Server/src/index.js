@@ -23,6 +23,10 @@ app.use('/api/donors', donorRoutes);
 app.use('/api/events', eventRoutes);
 app.use('/api/progress', progressRoutes);
 
+// 添加健康检查路由
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'ok' });
+});
 
 // Error handling middleware
 app.use((err, req, res, next) => {
@@ -30,11 +34,12 @@ app.use((err, req, res, next) => {
   res.status(500).json({ message: 'Internal server error' });
 });
 
-// Only start the server if this file is run directly
+// 只有在非测试环境中才启动服务器
 if (process.env.NODE_ENV !== 'test') {
-  const PORT = process.env.PORT || 3000;
+  const PORT = process.env.PORT || 5001;
   app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
+    console.log(`Health check available at http://localhost:${PORT}/health`);
   });
 }
 
