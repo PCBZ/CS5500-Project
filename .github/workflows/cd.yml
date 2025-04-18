@@ -2,7 +2,9 @@ name: CD
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, FE_Dev ]
+  pull_request:
+    branches: [ main, FE_Dev ]
   workflow_dispatch:
 
 jobs:
