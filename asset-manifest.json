@@ -1,11 +1,11 @@
 {
   "files": {
-    "main.css": "./static/css/main.dcd61119.css",
-    "main.js": "./static/js/main.63ae3b16.js",
-    "index.html": "./index.html"
+    "main.css": "/CS5500-Project/static/css/main.dcd61119.css",
+    "main.js": "/CS5500-Project/static/js/main.a873a436.js",
+    "index.html": "/CS5500-Project/index.html"
   },
   "entrypoints": [
     "static/css/main.dcd61119.css",
-    "static/js/main.63ae3b16.js"
+    "static/js/main.a873a436.js"
   ]
 }
