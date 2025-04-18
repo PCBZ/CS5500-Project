@@ -18,6 +18,9 @@ RUN npm config set registry https://registry.npmmirror.com && \
 # Copy source code
 COPY . .
 
+# Set environment variables for client build
+ENV REACT_APP_API_URL=http://localhost:5001
+
 # Build client with architecture-specific optimizations
 RUN cd client && \
     npm run build
@@ -47,6 +50,11 @@ RUN cd Server && \
 
 # Rebuild bcrypt module
 RUN cd Server && npm rebuild bcrypt --build-from-source
+
+# Set environment variables
+ENV PORT=5001
+ENV NODE_ENV=production
+ENV REACT_APP_API_URL=http://localhost:5001
 
 # Expose ports
 EXPOSE 3001

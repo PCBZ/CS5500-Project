@@ -23,6 +23,10 @@ app.use('/api/donors', donorRoutes);
 app.use('/api/events', eventRoutes);
 app.use('/api/progress', progressRoutes);
 
+// 添加健康检查路由
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'ok' });
+});
 
 // Error handling middleware
 app.use((err, req, res, next) => {
@@ -33,8 +37,13 @@ app.use((err, req, res, next) => {
 // Only start the server if this file is run directly
 if (process.env.NODE_ENV !== 'test') {
   const PORT = process.env.PORT || 3000;
-  app.listen(PORT, () => {
+  console.log('Environment variables:', {
+    PORT: process.env.PORT,
+    NODE_ENV: process.env.NODE_ENV
+  });
+  app.listen(PORT, '0.0.0.0', () => {
     console.log(`Server is running on port ${PORT}`);
+    console.log(`Server is listening on all network interfaces`);
   });
 }
 
