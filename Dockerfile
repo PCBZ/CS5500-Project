@@ -31,7 +31,8 @@ COPY --from=builder /app/client/build ./client/build
 
 # Install production dependencies with architecture-specific optimizations
 RUN npm config set registry https://registry.npmmirror.com && \
-    npm install --production
+    npm install --production && \
+    npm install -g concurrently
 
 # Expose ports
 EXPOSE 3000
