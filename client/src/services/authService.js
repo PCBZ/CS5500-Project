@@ -75,13 +75,13 @@ export const login = async (email, password) => {
         console.log('User data stored successfully');
       }
       
-      // Handle redirect if exists
+      // Handle redirect with hash routing
       const redirectPath = localStorage.getItem('redirectPath');
       if (redirectPath) {
         localStorage.removeItem('redirectPath');
-        window.location.href = redirectPath.startsWith('/') ? redirectPath : `/${redirectPath}`;
+        window.location.href = `#/${redirectPath.replace(/^\//, '')}`;
       } else {
-        window.location.href = '/dashboard';
+        window.location.href = '#/dashboard';
       }
     } else {
       console.warn('No token received in login response');
