@@ -77,13 +77,15 @@ export const login = async (email, password) => {
       
       // Handle redirect if exists
       const redirectPath = localStorage.getItem('redirectPath');
-      const basePath = process.env.NODE_ENV === 'production' ? '/CS5500-Project' : '';
-      
       if (redirectPath) {
         localStorage.removeItem('redirectPath');
-        window.location.href = `${basePath}/#${redirectPath}`;
+        window.location.href = process.env.NODE_ENV === 'production'
+          ? `/#${redirectPath}`
+          : redirectPath;
       } else {
-        window.location.href = `${basePath}/#/dashboard`;
+        window.location.href = process.env.NODE_ENV === 'production'
+          ? '/#/dashboard'
+          : '/dashboard';
       }
     } else {
       console.warn('No token received in login response');
