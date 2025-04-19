@@ -9,8 +9,7 @@ export const fetchWithAuthMiddleware = async (url, options = {}) => {
     // Clear authentication information from local storage
     authService.logout();
     
-    // Redirect to login page
-    window.location.href = '/login';
+    // Redirection handled automatically by logout function, no need for additional redirect here
     return;
   }
   
@@ -22,21 +21,3 @@ export const fetchWithAuthMiddleware = async (url, options = {}) => {
   
   return response;
 };
-
-// Create an axios interceptor configuration
-export const setupAxiosInterceptors = (axios) => {
-  // Response interceptor
-  axios.interceptors.response.use(
-    (response) => response,
-    (error) => {
-      if (error.response && error.response.status === 401) {
-        // Clear authentication information from local storage
-        authService.logout();
-        
-        // Redirect to login page
-        window.location.href = '/login';
-      }
-      return Promise.reject(error);
-    }
-  );
-}; 
