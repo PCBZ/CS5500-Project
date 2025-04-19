@@ -75,7 +75,7 @@ export const login = async (email, password) => {
         console.log('User data stored successfully');
       }
       
-      navigate('/dashboard');
+      window.location.href = '#/dashboard';
     } else {
       console.warn('No token received in login response');
       throw new Error('No authentication token received');
@@ -92,7 +92,7 @@ export const login = async (email, password) => {
 export const logout = () => {
   localStorage.removeItem('token');
   localStorage.removeItem('user');
-  navigate('/login');
+  window.location.href = '#/login';
 };
 
 // Get current logged-in user
