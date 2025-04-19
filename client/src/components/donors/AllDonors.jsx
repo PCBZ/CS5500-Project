@@ -434,7 +434,7 @@ const AllDonors = () => {
         <div className="error-container">
           <p className="error-message">{error}</p>
           {error.includes('Session error') ? (
-            <button onClick={() => window.location.href = '/login'} className="login-button">
+            <button onClick={() => navigate('/login')} className="login-button">
               Login Again
             </button>
           ) : (

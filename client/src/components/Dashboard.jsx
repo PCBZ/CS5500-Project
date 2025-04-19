@@ -3,6 +3,7 @@ import { getCurrentUser, logout } from '../services/authService';
 import { getDonorListsSummary } from '../services/donorListService';
 import { getEvents } from '../services/eventService';
 import { FaCalendarAlt, FaCheckCircle, FaClock } from 'react-icons/fa';
+import { useNavigate } from 'react-router-dom';
 import './Dashboard.css';
 
 const Dashboard = () => {
@@ -17,6 +18,8 @@ const Dashboard = () => {
   const [error, setError] = useState(null);
   // 添加组件挂载状态引用
   const isMountedRef = React.useRef(true);
+  // 使用 useNavigate 钩子
+  const navigate = useNavigate();
 
   // 在组件级别定义fetchDashboardData函数
   const fetchDashboardData = async () => {
@@ -82,7 +85,11 @@ const Dashboard = () => {
   // Handle logout
   const handleLogout = () => {
     logout();
-    window.location.href = '/login';
+  };
+
+  // Handle view all events
+  const handleViewAllEvents = () => {
+    navigate('/events');
   };
 
   if (loading) {
@@ -177,7 +184,10 @@ const Dashboard = () => {
             )}
             
             {events.length > 0 && (
-              <a href="/events" className="view-all-link">
+              <a href="/events" className="view-all-link" onClick={(e) => {
+                e.preventDefault();
+                handleViewAllEvents();
+              }}>
                 View all events
               </a>
             )}

@@ -1,5 +1,6 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, HashRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { isAuthenticated } from './services/authService';
 
 // Component imports
 import Login from './components/auth/Login.jsx';
@@ -14,6 +15,9 @@ import ProtectedRoute from './components/auth/ProtectedRoute.jsx';
 import AddDonor from './components/donors/AddDonor';
 import './App.css';
 
+// Use HashRouter in production (GitHub Pages)
+const Router = process.env.NODE_ENV === 'production' ? HashRouter : BrowserRouter;
+
 function App() {
   return (
     <Router>
@@ -21,15 +25,36 @@ function App() {
         <Navbar />
         <div className="app-content">
           <Routes>
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
+            <Route 
+              path="/" 
+              element={
+                isAuthenticated() ? 
+                <Navigate to="/dashboard" replace /> : 
+                <Navigate to="/login" replace />
+              } 
+            />
+            <Route 
+              path="/login" 
+              element={
+                isAuthenticated() ? 
+                <Navigate to="/dashboard" replace /> : 
+                <Login />
+              } 
+            />
+            <Route 
+              path="/register" 
+              element={
+                isAuthenticated() ? 
+                <Navigate to="/dashboard" replace /> : 
+                <Register />
+              } 
+            />
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-            <Route path="/events/create" element={<ProtectedRoute><CreateNewEvent /></ProtectedRoute>} />
             <Route path="/events" element={<ProtectedRoute><EventManagement /></ProtectedRoute>} />
+            <Route path="/events/new" element={<ProtectedRoute><CreateNewEvent /></ProtectedRoute>} />
             <Route path="/donors" element={<ProtectedRoute><Donors /></ProtectedRoute>} />
             <Route path="/all-donors" element={<ProtectedRoute><AllDonors /></ProtectedRoute>} />
             <Route path="/donors/add" element={<ProtectedRoute><AddDonor /></ProtectedRoute>} />
-            <Route path="/" element={<Navigate to="/login" replace />} />
           </Routes>
         </div>
       </div>
