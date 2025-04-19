@@ -35,6 +35,7 @@ jobs:
         run: |
           export DISABLE_ESLINT_PLUGIN=true
           export GENERATE_SOURCEMAP=false
+          export PUBLIC_URL=https://pcbz.github.io/CS5500-Project
           npm run build
         env:
           REACT_APP_API_URL: 'https://cs5500-project.onrender.com'

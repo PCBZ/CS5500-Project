@@ -1,6 +1,5 @@
 import React from 'react';
-import { BrowserRouter, HashRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { BASE_URL } from './api/config';
+import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 
 // Component imports
 import Login from './components/auth/Login.jsx';
@@ -15,27 +14,26 @@ import ProtectedRoute from './components/auth/ProtectedRoute.jsx';
 import AddDonor from './components/donors/AddDonor';
 import './App.css';
 
-// 根据环境选择路由
-const Router = process.env.NODE_ENV === 'production' ? HashRouter : BrowserRouter;
-
 function App() {
   return (
-    <Router basename={process.env.NODE_ENV === 'production' ? '' : '/'}>
+    <HashRouter>
       <div className="app-container">
         <Navbar />
-        <Routes>
-          <Route path="/" element={<Navigate to="/login" replace />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-          <Route path="/events" element={<ProtectedRoute><EventManagement /></ProtectedRoute>} />
-          <Route path="/events/new" element={<ProtectedRoute><CreateNewEvent /></ProtectedRoute>} />
-          <Route path="/donors" element={<ProtectedRoute><Donors /></ProtectedRoute>} />
-          <Route path="/donors/all" element={<ProtectedRoute><AllDonors /></ProtectedRoute>} />
-          <Route path="/donors/add" element={<ProtectedRoute><AddDonor /></ProtectedRoute>} />
-        </Routes>
+        <div className="app-content">
+          <Routes>
+            <Route path="/" element={<Navigate to="/login" replace />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+            <Route path="/events" element={<ProtectedRoute><EventManagement /></ProtectedRoute>} />
+            <Route path="/events/new" element={<ProtectedRoute><CreateNewEvent /></ProtectedRoute>} />
+            <Route path="/donors" element={<ProtectedRoute><Donors /></ProtectedRoute>} />
+            <Route path="/donors/all" element={<ProtectedRoute><AllDonors /></ProtectedRoute>} />
+            <Route path="/donors/add" element={<ProtectedRoute><AddDonor /></ProtectedRoute>} />
+          </Routes>
+        </div>
       </div>
-    </Router>
+    </HashRouter>
   );
 }
 
