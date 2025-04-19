@@ -156,16 +156,8 @@ const Dashboard = () => {
           </div>
         </div>
 
-        <div className="events-section">
-          <div className="section-header">
-            <h2>Active Events</h2>
-            <button 
-              className="view-all-button"
-              onClick={handleViewAllEvents}
-            >
-              View All Events
-            </button>
-          </div>
+        <div className="recent-activity">
+          <h2>Recent Events</h2>
           <div className="activity-list">
             {events.length > 0 ? (
               events.map(event => (
@@ -186,6 +178,15 @@ const Dashboard = () => {
               <div className="no-events-message">
                 No active events found
               </div>
+            )}
+            
+            {events.length > 0 && (
+              <a href="/events" className="view-all-link" onClick={(e) => {
+                e.preventDefault();
+                handleViewAllEvents();
+              }}>
+                View all events
+              </a>
             )}
           </div>
         </div>
