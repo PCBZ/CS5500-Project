@@ -1,5 +1,6 @@
 import React from 'react';
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { isAuthenticated } from './services/authService';
 
 // Component imports
 import Login from './components/auth/Login.jsx';
@@ -21,9 +22,30 @@ function App() {
         <Navbar />
         <div className="app-content">
           <Routes>
-            <Route path="/" element={<Navigate to="/login" replace />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
+            <Route 
+              path="/" 
+              element={
+                isAuthenticated() ? 
+                <Navigate to="/dashboard" replace /> : 
+                <Navigate to="/login" replace />
+              } 
+            />
+            <Route 
+              path="/login" 
+              element={
+                isAuthenticated() ? 
+                <Navigate to="/dashboard" replace /> : 
+                <Login />
+              } 
+            />
+            <Route 
+              path="/register" 
+              element={
+                isAuthenticated() ? 
+                <Navigate to="/dashboard" replace /> : 
+                <Register />
+              } 
+            />
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             <Route path="/events" element={<ProtectedRoute><EventManagement /></ProtectedRoute>} />
             <Route path="/events/new" element={<ProtectedRoute><CreateNewEvent /></ProtectedRoute>} />
