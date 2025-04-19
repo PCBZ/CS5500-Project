@@ -79,13 +79,9 @@ export const login = async (email, password) => {
       const redirectPath = localStorage.getItem('redirectPath');
       if (redirectPath) {
         localStorage.removeItem('redirectPath');
-        window.location.href = process.env.NODE_ENV === 'production'
-          ? `/#${redirectPath}`
-          : redirectPath;
+        window.location.href = redirectPath.startsWith('/') ? redirectPath : `/${redirectPath}`;
       } else {
-        window.location.href = process.env.NODE_ENV === 'production'
-          ? '/#/dashboard'
-          : '/dashboard';
+        window.location.href = '/dashboard';
       }
     } else {
       console.warn('No token received in login response');
@@ -103,6 +99,7 @@ export const login = async (email, password) => {
 export const logout = () => {
   localStorage.removeItem('token');
   localStorage.removeItem('user');
+  window.location.href = '/login';
 };
 
 // Get current logged-in user
