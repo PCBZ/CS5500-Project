@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { login } from '../../services/authService';
+import { useNavigate } from 'react-router-dom';
 import './Auth.css';
 
 const Login = () => {
@@ -10,6 +11,7 @@ const Login = () => {
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ text: '', type: '' });
+  const navigate = useNavigate();
 
   // Handle input changes
   const handleChange = (e) => {
@@ -65,9 +67,9 @@ const Login = () => {
         type: 'success' 
       });
       
-      // Redirect to dashboard
+      // Redirect to dashboard using correct base path
       setTimeout(() => {
-        window.location.href = '/dashboard';
+        navigate('/dashboard');
       }, 1500);
     } catch (error) {
       setMessage({ 

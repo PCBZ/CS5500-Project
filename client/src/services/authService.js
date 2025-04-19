@@ -48,17 +48,49 @@ export const register = async (userData) => {
 // User login
 export const login = async (email, password) => {
   try {
-    const data = await fetchWithAuth('/login', {
+    const response = await fetch(`${API_URL}/api/user/login`, {
       method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
       body: JSON.stringify({ email, password })
     });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ message: 'Login failed' }));
+      console.error('Login failed:', errorData);
+      throw errorData;
+    }
+
+    const data = await response.json();
     
-    const { token, user } = data;
-    // Store token and user info in local storage
-    localStorage.setItem('token', token);
-    localStorage.setItem('user', JSON.stringify(user));
-    return user;
+    // Store token and user data in localStorage
+    if (data.token) {
+      localStorage.setItem('token', data.token);
+      console.log('Token stored successfully');
+      
+      // Store user data if available
+      if (data.user) {
+        localStorage.setItem('user', JSON.stringify(data.user));
+        console.log('User data stored successfully');
+      }
+      
+      // Use different routing format based on environment
+      if (process.env.NODE_ENV === 'production') {
+        // Use hash router in production environment
+        window.location.href = '#/dashboard';
+      } else {
+        // Use standard router in development environment
+        window.location.href = '/dashboard';
+      }
+    } else {
+      console.warn('No token received in login response');
+      throw new Error('No authentication token received');
+    }
+    
+    return data;
   } catch (error) {
+    console.error('Login error:', error);
     throw error.message ? error : new Error('Login failed, please check your credentials');
   }
 };
@@ -67,6 +99,15 @@ export const login = async (email, password) => {
 export const logout = () => {
   localStorage.removeItem('token');
   localStorage.removeItem('user');
+  
+  // Use different routing format based on environment
+  if (process.env.NODE_ENV === 'production') {
+    // Use hash router in production environment
+    window.location.href = '#/login';
+  } else {
+    // Use standard router in development environment
+    window.location.href = '/login';
+  }
 };
 
 // Get current logged-in user
