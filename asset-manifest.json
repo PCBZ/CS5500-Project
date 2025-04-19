@@ -1,11 +1,11 @@
 {
   "files": {
-    "main.css": "https://pcbz.github.io/CS5500-Project/static/css/main.dcd61119.css",
-    "main.js": "https://pcbz.github.io/CS5500-Project/static/js/main.57f35cdc.js",
+    "main.css": "https://pcbz.github.io/CS5500-Project/static/css/main.9dc8f4c7.css",
+    "main.js": "https://pcbz.github.io/CS5500-Project/static/js/main.ff6074d8.js",
     "index.html": "https://pcbz.github.io/CS5500-Project/index.html"
   },
   "entrypoints": [
-    "static/css/main.dcd61119.css",
-    "static/js/main.57f35cdc.js"
+    "static/css/main.9dc8f4c7.css",
+    "static/js/main.ff6074d8.js"
   ]
 }
