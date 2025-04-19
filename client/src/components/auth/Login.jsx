@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { login } from '../../services/authService';
+import { useNavigate } from 'react-router-dom';
 import './Auth.css';
 
 const Login = () => {
@@ -10,6 +11,7 @@ const Login = () => {
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ text: '', type: '' });
+  const navigate = useNavigate();
 
   // Handle input changes
   const handleChange = (e) => {
@@ -67,8 +69,7 @@ const Login = () => {
       
       // Redirect to dashboard using correct base path
       setTimeout(() => {
-        const basePath = process.env.NODE_ENV === 'production' ? '/CS5500-Project' : '';
-        window.location.href = `${basePath}/#/dashboard`;
+        navigate('/dashboard');
       }, 1500);
     } catch (error) {
       setMessage({ 
