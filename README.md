@@ -9,38 +9,56 @@ A comprehensive event management system for handling donor events, donor managem
   - Track event status (Planning, List Generation, Review, Ready, Complete)
   - Set event details (date, location, capacity, etc.)
   - Export donor lists
+  - Real-time event status updates
 
 - Donor Management
   - Add and manage donors
   - Track donor information and history
   - Manage donor status for events
   - Export donor data
+  - Advanced search and filtering
 
 - User Interface
-  - Modern and responsive design
-  - Intuitive navigation
+  - Modern and responsive design using Material-UI
+  - Intuitive navigation with role-based access control
   - Real-time status updates
-  - Search and filter capabilities
+  - Advanced search and filter capabilities
+  - Dark/Light mode support
 
 ## Tech Stack
 
-- Frontend: React.js
-- Backend: Node.js with Express
-- Database: MongoDB
-- Authentication: JWT
+- Frontend:
+  - React.js
+  - Material-UI for components
+  - Redux for state management
+  - Axios for API calls
+  - React Router for navigation
+
+- Backend:
+  - Node.js with Express
+  - MySQL for database
+  - JWT for authentication
+  - Jest for testing
+
+- DevOps:
+  - Docker for containerization
+  - GitHub Actions for CI/CD
+  - ESLint for code formatting
 
 ## Prerequisites
 
-- Node.js (v14 or higher)
-- MongoDB (v4.4 or higher)
-- npm (v6 or higher)
+- Node.js (v18 or higher)
+- MySQL (v8.0 or higher)
+- npm (v9 or higher)
+- Docker (optional, for containerized deployment)
 
 ## Installation
 
 1. Clone the repository:
 ```bash
-git clone git@github.com:J3rrrrry/CS5500-Project.git
+git clone git@github.com:PCBZ/CS5500-Project.git
 cd CS5500-Project
+```
 
 2. Install dependencies:
 ```bash
@@ -72,10 +90,20 @@ npm start
 .
 ├── Server/                 # Backend server
 │   ├── src/               # Source code
+│   │   ├── controllers/   # Route controllers
+│   │   ├── models/        # Database models
+│   │   ├── routes/        # API routes
+│   │   ├── middleware/    # Custom middleware
+│   │   └── utils/         # Utility functions
 │   ├── tests/             # Test files
 │   └── package.json       # Backend dependencies
 ├── client/                # Frontend application
 │   ├── src/              # Source code
+│   │   ├── components/   # React components
+│   │   ├── pages/        # Page components
+│   │   ├── store/        # Redux store
+│   │   ├── hooks/        # Custom hooks
+│   │   └── utils/        # Utility functions
 │   ├── public/           # Static files
 │   └── package.json      # Frontend dependencies
 └── scripts/              # Utility scripts
@@ -96,6 +124,33 @@ cd client
 npm test
 ```
 
+## Deployment
+
+### Docker Deployment
+
+1. Build and run using Docker:
+```bash
+docker-compose up -d
+```
+
+2. Access the application:
+- Frontend: http://localhost:3000
+- Backend API: http://localhost:5000
+
+### Environment Variables
+
+Configure the application using environment variables:
+
+- `PORT`: Frontend service port (default: 3000)
+- `API_PORT`: Backend service port (default: 5000)
+- `NODE_ENV`: Runtime environment (default: production)
+- `MYSQL_HOST`: MySQL host (default: localhost)
+- `MYSQL_USER`: MySQL username
+- `MYSQL_PASSWORD`: MySQL password
+- `MYSQL_DATABASE`: MySQL database name
+- `JWT_SECRET`: JWT secret key
+- `LOG_LEVEL`: Logging level (default: info)
+
 ## Contributing
 
 1. Fork the repository
@@ -110,69 +165,4 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## Support
 
-For support, please contact [support-email] or create an issue in the repository.
-
-## Docker 部署
-
-### 拉取镜像
-
-```bash
-# 登录到GitHub Container Registry
-echo $GITHUB_TOKEN | docker login ghcr.io -u $(echo $GITHUB_USERNAME | tr '[:upper:]' '[:lower:]') --password-stdin
-
-# 拉取镜像
-docker pull ghcr.io/$(echo $GITHUB_USERNAME | tr '[:upper:]' '[:lower:]')/cs5500-project:latest
-```
-
-### 运行容器
-
-```bash
-docker run -d \
-  -p 3000:3000 \
-  -p 5000:5000 \
-  --name cs5500-app \
-  ghcr.io/$(echo $GITHUB_USERNAME | tr '[:upper:]' '[:lower:]')/cs5500-project:latest
-```
-
-### 使用 docker-compose
-
-1. 创建 `docker-compose.yml` 文件：
-
-```yaml
-version: '3.8'
-
-services:
-  app:
-    image: ghcr.io/$(echo $GITHUB_USERNAME | tr '[:upper:]' '[:lower:]')/cs5500-project:latest
-    container_name: cs5500-app
-    restart: always
-    ports:
-      - "3000:3000"
-      - "5000:5000"
-    environment:
-      - NODE_ENV=production
-      - PORT=3000
-      - API_PORT=5000
-    volumes:
-      - ./logs:/app/logs
-    networks:
-      - app-network
-
-networks:
-  app-network:
-    driver: bridge
-```
-
-2. 启动服务：
-
-```bash
-docker-compose up -d
-```
-
-### 环境变量
-
-可以通过环境变量配置应用：
-
-- `PORT`: 前端服务端口（默认：3000）
-- `API_PORT`: 后端服务端口（默认：5000）
-- `NODE_ENV`: 运行环境（默认：production）
+For support, please create an issue in the repository or contact the maintainers.
