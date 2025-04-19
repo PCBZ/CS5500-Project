@@ -65,9 +65,11 @@ const Login = () => {
         type: 'success' 
       });
       
-      // Redirect to dashboard
+      // Redirect to dashboard using hash-based path
       setTimeout(() => {
-        window.location.href = '/dashboard';
+        window.location.href = process.env.NODE_ENV === 'production' 
+          ? '/#/dashboard' 
+          : '/dashboard';
       }, 1500);
     } catch (error) {
       setMessage({ 
