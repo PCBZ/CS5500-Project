@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { register, login } from '../../services/authService';
 import './Auth.css';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -177,7 +177,7 @@ const Register = () => {
         </form>
         
         <div className="auth-footer">
-          Already have an account? <a href="/login">Login</a>
+          Already have an account? <Link to="/login">Login</Link>
         </div>
       </div>
     </div>
