@@ -177,12 +177,9 @@ function CreateNewEvent({ onClose, onEventCreated }) {
     setError('');
     setMessage('');
 
-    // Debug log
-    console.log("Submitting form with data:", formData);
-
     // Check required fields
-    if (!formData.name || !formData.type || !formData.date || !formData.location || !formData.focus || !formData.eventStage) {
-      setError('Name, type, date, location, focus and event stage are required');
+    if (!formData.name || !formData.type || !formData.date || !formData.location || !formData.focus ||!formData.capacity || !formData.eventStage) {
+      setError('Name, type, date, location, focus, capacity and event stage are required');
       setLoading(false);
       return;
     }
@@ -224,13 +221,35 @@ function CreateNewEvent({ onClose, onEventCreated }) {
       return;
     }
 
+    // New capacity validation
+if (
+  formData.capacity &&
+  (isNaN(formData.capacity) || Number(formData.capacity) <= 0)
+) {
+  setError('Capacity must be a positive number');
+  setLoading(false);
+  return;
+}
+
     try {
       // Convert date fields to Date objects before sending, if needed
       const payload = {
-        ...formData,
-        date: new Date(formData.date),
-        startDate: formData.startDate ? new Date(formData.startDate) : null,
-        endDate: formData.endDate ? new Date(formData.endDate) : null,
+        name:        formData.name,
+        type:        formData.type,
+        date:        new Date(formData.date),
+        location:    formData.location,
+        capacity:    Number(formData.capacity),
+        focus:       formData.focus,
+        ticketPrice: formData.ticketPrice 
+                      ? Number(formData.ticketPrice) 
+                      : 0,
+        startDate:   formData.startDate 
+                      ? new Date(formData.startDate) 
+                      : null,
+        endDate:     formData.endDate 
+                      ? new Date(formData.endDate) 
+                      : null,
+        eventStage:  formData.eventStage,
       };
 
       const result = await createEvent(payload);
@@ -351,14 +370,17 @@ function CreateNewEvent({ onClose, onEventCreated }) {
           required
         />
 
-        <label className="create-event-label" htmlFor="capacity">Capacity</label>
+        <label className="create-event-label" htmlFor="capacity">Capacity <span className="required">*</span></label>
         <input
           className="create-event-input"
           id="capacity"
           name="capacity"
           type="number"
+          min="1"
+          step="1"
           value={formData.capacity}
           onChange={handleChange}
+          required
         />
 
         <label className="create-event-label" htmlFor="focus">Focus <span className="required">*</span></label>
@@ -377,6 +399,8 @@ function CreateNewEvent({ onClose, onEventCreated }) {
           className="create-event-input"
           id="ticketPrice"
           name="ticketPrice"
+          min="0"
+          step="0.01"
           type="number"
           value={formData.ticketPrice}
           onChange={handleChange}
