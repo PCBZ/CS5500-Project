@@ -65,11 +65,10 @@ const Login = () => {
         type: 'success' 
       });
       
-      // Redirect to dashboard using hash-based path
+      // Redirect to dashboard using correct base path
       setTimeout(() => {
-        window.location.href = process.env.NODE_ENV === 'production' 
-          ? '/#/dashboard' 
-          : '/dashboard';
+        const basePath = process.env.NODE_ENV === 'production' ? '/CS5500-Project' : '';
+        window.location.href = `${basePath}/#/dashboard`;
       }, 1500);
     } catch (error) {
       setMessage({ 

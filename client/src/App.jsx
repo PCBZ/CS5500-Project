@@ -1,5 +1,5 @@
 import React from 'react';
-import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { isAuthenticated } from './services/authService';
 
 // Component imports
@@ -15,9 +15,13 @@ import ProtectedRoute from './components/auth/ProtectedRoute.jsx';
 import AddDonor from './components/donors/AddDonor';
 import './App.css';
 
+// Use HashRouter in production (GitHub Pages)
+const Router = process.env.NODE_ENV === 'production' ? HashRouter : BrowserRouter;
+const BASE_PATH = process.env.NODE_ENV === 'production' ? '/CS5500-Project' : '';
+
 function App() {
   return (
-    <HashRouter>
+    <Router basename={BASE_PATH}>
       <div className="app-container">
         <Navbar />
         <div className="app-content">
@@ -55,7 +59,7 @@ function App() {
           </Routes>
         </div>
       </div>
-    </HashRouter>
+    </Router>
   );
 }
 
