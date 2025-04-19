@@ -82,7 +82,14 @@ const Dashboard = () => {
   // Handle logout
   const handleLogout = () => {
     logout();
-    window.location.href = '/login';
+    const basePath = process.env.NODE_ENV === 'production' ? '/CS5500-Project' : '';
+    window.location.href = `${basePath}/#/login`;
+  };
+
+  // Handle view all events
+  const handleViewAllEvents = () => {
+    const basePath = process.env.NODE_ENV === 'production' ? '/CS5500-Project' : '';
+    window.location.href = `${basePath}/#/events`;
   };
 
   if (loading) {
@@ -152,8 +159,16 @@ const Dashboard = () => {
           </div>
         </div>
 
-        <div className="recent-activity">
-          <h2>Recent Events</h2>
+        <div className="events-section">
+          <div className="section-header">
+            <h2>Active Events</h2>
+            <button 
+              className="view-all-button"
+              onClick={handleViewAllEvents}
+            >
+              View All Events
+            </button>
+          </div>
           <div className="activity-list">
             {events.length > 0 ? (
               events.map(event => (
@@ -174,12 +189,6 @@ const Dashboard = () => {
               <div className="no-events-message">
                 No active events found
               </div>
-            )}
-            
-            {events.length > 0 && (
-              <a href="/events" className="view-all-link">
-                View all events
-              </a>
             )}
           </div>
         </div>
