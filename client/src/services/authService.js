@@ -75,14 +75,7 @@ export const login = async (email, password) => {
         console.log('User data stored successfully');
       }
       
-      // Handle redirect with hash routing
-      const redirectPath = localStorage.getItem('redirectPath');
-      if (redirectPath) {
-        localStorage.removeItem('redirectPath');
-        window.location.href = `#/${redirectPath.replace(/^\//, '')}`;
-      } else {
-        window.location.href = '#/dashboard';
-      }
+      navigate('/dashboard');
     } else {
       console.warn('No token received in login response');
       throw new Error('No authentication token received');
@@ -99,7 +92,7 @@ export const login = async (email, password) => {
 export const logout = () => {
   localStorage.removeItem('token');
   localStorage.removeItem('user');
-  window.location.href = '/login';
+  navigate('/login');
 };
 
 // Get current logged-in user
