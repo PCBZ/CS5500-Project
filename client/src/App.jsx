@@ -50,7 +50,7 @@ function App() {
             <Route path="/events" element={<ProtectedRoute><EventManagement /></ProtectedRoute>} />
             <Route path="/events/new" element={<ProtectedRoute><CreateNewEvent /></ProtectedRoute>} />
             <Route path="/donors" element={<ProtectedRoute><Donors /></ProtectedRoute>} />
-            <Route path="/donors/all" element={<ProtectedRoute><AllDonors /></ProtectedRoute>} />
+            <Route path="/all-donors" element={<ProtectedRoute><AllDonors /></ProtectedRoute>} />
             <Route path="/donors/add" element={<ProtectedRoute><AddDonor /></ProtectedRoute>} />
           </Routes>
         </div>
