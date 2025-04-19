@@ -866,19 +866,21 @@ export const createDonor = async (donorData) => {
 /**
  * Add multiple donors to a list
  * @param {number} listId - List ID
- * @param {Array} donors - Array of donors
- * @param {number} donors[].donor_id - Donor ID
- * @param {string} donors[].status - Status ('Pending', 'Approved', 'Excluded', 'AutoExcluded')
- * @param {number} [donors[].reviewer_id] - Reviewer ID (optional)
- * @param {string} [donors[].comments] - Comments (optional)
+ * @param {Array} donorIds - Array of donor IDs
  * @returns {Promise<Object>} Addition result
  */
-export const addDonorsToList = async (listId, donors) => {
+export const addDonorsToList = async (listId, donorIds) => {
   try {
     const token = localStorage.getItem('token');
     if (!token) {
       throw new Error('No authentication token found');
     }
+
+    // Convert donorIds array to the required donors array format
+    const donors = donorIds.map(id => ({
+      donor_id: id,
+      status: 'Pending'
+    }));
 
     const response = await fetch(`${API_URL}/api/lists/${listId}/donors`, {
       method: 'POST',
