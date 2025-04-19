@@ -21,9 +21,6 @@ const AddDonorModal = ({
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [addingProgress, setAddingProgress] = useState(null);
-  const [addingStatus, setAddingStatus] = useState('');
-  const [loadingTime, setLoadingTime] = useState(-1);
   const [recommendedDonors, setRecommendedDonors] = useState([]);
   const [loadingRecommended, setLoadingRecommended] = useState(false);
   const [filteredRecommendedDonors, setFilteredRecommendedDonors] = useState([]);
@@ -44,18 +41,6 @@ const AddDonorModal = ({
   }, [currentPage]);
 
   useEffect(() => {
-    let timer;
-    if (loading && !addingProgress && loadingTime > 0) {
-      timer = setInterval(() => {
-        setLoadingTime(prev => Math.max(0, prev - 1));
-      }, 1000);
-    }
-    return () => {
-      if (timer) clearInterval(timer);
-    };
-  }, [loading, addingProgress, loadingTime]);
-
-  useEffect(() => {
     if (eventId) {
       fetchRecommendedDonors();
     }
@@ -72,7 +57,7 @@ const AddDonorModal = ({
   const handleSearchSubmit = async (e) => {
     e.preventDefault();
     
-    // 过滤推荐捐赠者
+    // Filter recommended donors
     if (tempSearchQuery.trim() === '') {
       setFilteredRecommendedDonors(recommendedDonors);
     } else {
@@ -85,11 +70,11 @@ const AddDonorModal = ({
       setFilteredRecommendedDonors(filtered);
     }
     
-    // 使用searchQuery的更新值直接用于API调用，而不是依赖状态更新
+    // Use searchQuery update value directly for API call, not depending on state update
     setSearchQuery(tempSearchQuery);
     setCurrentPage(1);
     
-    // 直接传入tempSearchQuery，而不是依赖searchQuery状态
+    // Pass tempSearchQuery directly, not depending on searchQuery state
     try {
       setLoading(true);
       setError(null);
@@ -97,9 +82,9 @@ const AddDonorModal = ({
       if (!eventId) return;
       
       const response = await getAvailableDonors(eventId, {
-        page: 1, // 始终从第一页开始新搜索
+        page: 1, // Always start from first page for new search
         limit: 10,
-        search: tempSearchQuery // 直接使用tempSearchQuery而不是searchQuery
+        search: tempSearchQuery // Pass tempSearchQuery directly, not searchQuery state
       });
       
       setAvailableDonors(response.data || []);
@@ -137,7 +122,7 @@ const AddDonorModal = ({
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
-    await fetchAvailableDonors(); // 使用当前的searchQuery
+    await fetchAvailableDonors(); // Use current searchQuery
     setIsRefreshing(false);
   };
 
@@ -173,59 +158,73 @@ const AddDonorModal = ({
     if (!eventId || selectedDonors.length === 0) return;
     
     setLoading(true);
-    setAddingStatus('Preparing to add donors...');
     setError(null);
     
-    const totalDonors = selectedDonors.length;
-    const addedDonors = [];
-    
-    for (let i = 0; i < selectedDonors.length; i++) {
-      const donor = selectedDonors[i];
-      setAddingStatus(`Adding donor ${i + 1} of ${totalDonors}...`);
-      setAddingProgress(((i + 1) / totalDonors) * 100);
+    try {
+      // Get donor list ID for the event
+      const eventResponse = await fetch(
+        `${process.env.REACT_APP_API_URL || 'http://localhost:5001'}/api/events/${eventId}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
       
-      try {
-        await addDonorToEvent(eventId, donor.id);
-        addedDonors.push(donor.id);
-      } catch (err) {
-        console.error(`Failed to add donor ${donor.id}:`, err);
-        setError(`Failed to add some donors. Please try again.`);
-        toast.error(`Failed to add donor: ${err.message}`);
-        break;
+      if (!eventResponse.ok) {
+        throw new Error(`Failed to get event info: ${eventResponse.status}`);
       }
-    }
-    
-    if (addedDonors.length > 0) {
-      // 从两个列表中移除已添加的捐赠者
-      setAvailableDonors(prev => 
-        prev.filter(donor => !addedDonors.includes(donor.id))
-      );
-      setRecommendedDonors(prev => 
-        prev.filter(donor => !addedDonors.includes(donor.id))
-      );
       
-      // 清空选中状态
-      setSelectedDonors([]);
+      const eventData = await eventResponse.json();
+      // Find the active donor list - use the first one if multiple exist
+      let donorListId = null;
+      if (eventData.donorLists && eventData.donorLists.length > 0) {
+        donorListId = eventData.donorLists[0].id;
+      } else if (eventData.donorList && eventData.donorList.id) {
+        donorListId = eventData.donorList.id;
+      }
       
-      // 通知父组件更新
+      if (!donorListId) {
+        throw new Error('Could not find donor list for this event');
+      }
+      
+      // Use batch API to add donors
+      const donorIds = selectedDonors.map(donor => donor.id);
+      const response = await addDonorsToList(donorListId, donorIds);
+      
+      // Notify parent component to update
       if (onDonorAdded) {
         await onDonorAdded();
       }
       
-      setAddingStatus('Donors added successfully!');
-      setAddingProgress(100);
-      toast.success(`Successfully added ${addedDonors.length} donors`);
+      // Remove added donors from both lists
+      setAvailableDonors(prev => 
+        prev.filter(donor => !donorIds.includes(donor.id))
+      );
+      setRecommendedDonors(prev => 
+        prev.filter(donor => !donorIds.includes(donor.id))
+      );
+      
+      // Clear selection
+      setSelectedDonors([]);
+      
+      toast.success(`Successfully added ${response.added || donorIds.length} donors`);
+      onClose();
+    } catch (err) {
+      console.error('Failed to add donors:', err);
+      setError(`Failed to add donors: ${err.message}`);
+      toast.error(`Failed to add donors: ${err.message}`);
+    } finally {
+      setLoading(false);
     }
-    
-    // Close the modal
-    onClose();
   };
 
   const handleSelectAll = (checked) => {
     if (checked) {
-      // 合并推荐捐赠者和其他捐赠者
+      // Merge recommended donors and other donors
       const allDonors = [...recommendedDonors, ...availableDonors];
-      // 确保没有重复的捐赠者
+      // Ensure no duplicate donors
       const uniqueDonors = Array.from(new Map(allDonors.map(donor => [donor.id, donor])).values());
       setSelectedDonors(uniqueDonors);
     } else {
@@ -242,7 +241,7 @@ const AddDonorModal = ({
       }
 
       const response = await fetch(
-        `${process.env.REACT_APP_API_URL || 'http://localhost:3000'}/api/events/${eventId}/recommended-donors`,
+        `${process.env.REACT_APP_API_URL || 'http://localhost:5001'}/api/events/${eventId}/recommended-donors`,
         {
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -257,7 +256,7 @@ const AddDonorModal = ({
 
       const data = await response.json();
       
-      // 过滤掉已经在活动中的捐赠者
+      // Filter out already participating donors
       const filteredDonors = data.recommendedDonors.filter(donor => 
         !currentEventDonors.some(eventDonor => eventDonor.id === donor.id)
       );
@@ -276,29 +275,6 @@ const AddDonorModal = ({
     <div className={`modal-overlay ${isOpen ? 'active' : ''}`}>
       <ToastContainer position="top-right" autoClose={3000} />
       <div className="modal-content">
-        {loading && addingProgress > 0 && (
-          <div className="adding-progress-container">
-            <div className="adding-progress-info">
-              <span className="adding-progress-percentage">
-                {Math.round(addingProgress)}%
-              </span>
-              <span className="adding-progress-status">
-                {addingStatus}
-              </span>
-            </div>
-            <div className="adding-progress-bar-wrapper">
-              <div 
-                className={`adding-progress-bar ${
-                  error ? 'error' : 
-                  addingProgress === 100 ? 'completed' : 
-                  'processing'
-                }`}
-                style={{ width: `${addingProgress}%` }}
-              ></div>
-            </div>
-          </div>
-        )}
-        
         <div className="modal-header">
           <h2>Add Donors</h2>
           <button className="close-button" onClick={onClose}>
@@ -356,15 +332,15 @@ const AddDonorModal = ({
           )}
 
           <div className="available-donors-list">
-            {/* 添加加载状态指示器 */}
-            {loading && !addingProgress && (
+            {/* Loading indicator */}
+            {loading && (
               <div className="loading-container">
                 <div className="loading-spinner-large"></div>
-                <p>Loading donors...</p>
+                <p>Loading...</p>
               </div>
             )}
 
-            {/* 推荐捐赠者部分 */}
+            {/* Recommended donors section */}
             {!loading && !loadingRecommended && filteredRecommendedDonors.length > 0 && (
               <>
                 <div className="donor-section-header">
@@ -409,7 +385,7 @@ const AddDonorModal = ({
               </>
             )}
 
-            {/* 其他捐赠者部分 */}
+            {/* Other donors section */}
             {!loading && availableDonors.length > 0 && (
               <>
                 <div className="donor-section-header">
@@ -454,7 +430,7 @@ const AddDonorModal = ({
               </>
             )}
 
-            {/* 无数据状态 */}
+            {/* No data state */}
             {!loading && availableDonors.length === 0 && filteredRecommendedDonors.length === 0 && (
               <div className="no-donors-message">
                 <p>No donors found matching your criteria.</p>
