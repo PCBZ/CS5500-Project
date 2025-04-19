@@ -86,7 +86,7 @@ const Dashboard = () => {
 
   // Handle view all events
   const handleViewAllEvents = () => {
-    window.location.href = process.env.NODE_ENV === 'production' ? '/#/events' : '/events';
+    navigate('/events');
   };
 
   if (loading) {
