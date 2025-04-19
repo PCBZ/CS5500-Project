@@ -75,7 +75,14 @@ export const login = async (email, password) => {
         console.log('User data stored successfully');
       }
       
-      window.location.href = '#/dashboard';
+      // Use different routing format based on environment
+      if (process.env.NODE_ENV === 'production') {
+        // Use hash router in production environment
+        window.location.href = '#/dashboard';
+      } else {
+        // Use standard router in development environment
+        window.location.href = '/dashboard';
+      }
     } else {
       console.warn('No token received in login response');
       throw new Error('No authentication token received');
@@ -92,7 +99,15 @@ export const login = async (email, password) => {
 export const logout = () => {
   localStorage.removeItem('token');
   localStorage.removeItem('user');
-  window.location.href = '#/login';
+  
+  // Use different routing format based on environment
+  if (process.env.NODE_ENV === 'production') {
+    // Use hash router in production environment
+    window.location.href = '#/login';
+  } else {
+    // Use standard router in development environment
+    window.location.href = '/login';
+  }
 };
 
 // Get current logged-in user
