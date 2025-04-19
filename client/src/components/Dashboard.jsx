@@ -82,14 +82,11 @@ const Dashboard = () => {
   // Handle logout
   const handleLogout = () => {
     logout();
-    const basePath = process.env.NODE_ENV === 'production' ? '/CS5500-Project' : '';
-    window.location.href = `${basePath}/#/login`;
   };
 
   // Handle view all events
   const handleViewAllEvents = () => {
-    const basePath = process.env.NODE_ENV === 'production' ? '/CS5500-Project' : '';
-    window.location.href = `${basePath}/#/events`;
+    window.location.href = process.env.NODE_ENV === 'production' ? '/#/events' : '/events';
   };
 
   if (loading) {

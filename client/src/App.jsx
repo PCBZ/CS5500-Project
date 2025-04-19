@@ -17,11 +17,10 @@ import './App.css';
 
 // Use HashRouter in production (GitHub Pages)
 const Router = process.env.NODE_ENV === 'production' ? HashRouter : BrowserRouter;
-const BASE_PATH = process.env.NODE_ENV === 'production' ? '/CS5500-Project' : '';
 
 function App() {
   return (
-    <Router basename={BASE_PATH}>
+    <Router>
       <div className="app-container">
         <Navbar />
         <div className="app-content">
