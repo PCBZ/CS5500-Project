@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { login } from '../../services/authService';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import './Auth.css';
 
 const Login = () => {
@@ -131,7 +131,7 @@ const Login = () => {
         </form>
         
         <div className="auth-footer">
-          Don't have an account? <a href="/register">Register</a>
+          Don't have an account? <Link to="/register">Register</Link>
         </div>
       </div>
     </div>
