@@ -1,0 +1,83 @@
+/* DonorListItem.css - Styling for individual donor list items */
+
+/* Row styling */
+.donor-list-item-row {
+  transition: background-color 0.2s ease;
+}
+
+.donor-list-item-row:hover {
+  background-color: #F8FAFC;
+}
+
+/* Cell styling */
+.donor-list-item-row td {
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid #E3E8F4;
+  font-size: 0.875rem;
+  color: #1e293b;
+  vertical-align: middle;
+}
+
+/* Name cell styling */
+.donor-name-cell {
+  font-weight: 500;
+  color: #1e40af;
+}
+
+/* Donation and pledge amount styling */
+.donation-amount,
+.pledge-amount {
+  font-family: var(--monospace-font);
+  font-weight: 500;
+  text-align: right;
+}
+
+.donation-amount {
+  color: #10b981;
+}
+
+.pledge-amount {
+  color: #2563eb;
+}
+
+/* Actions cell styling */
+.donor-list-item-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-start;
+  align-items: center;
+  width: 100%;
+}
+
+.donor-list-item-action-button {
+  padding: 6px;
+  border-radius: 50%;
+  border: none;
+  background: none;
+  color: var(--text-light);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.7;
+}
+
+.donor-list-item-action-button:hover:not(:disabled) {
+  background-color: rgba(0, 0, 0, 0.05);
+  opacity: 1;
+}
+
+.donor-list-item-action-button.delete {
+  color: var(--danger-color);
+}
+
+.donor-list-item-action-button:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.donor-list-item-action-button svg {
+  width: 1rem;
+  height: 1rem;
+} 

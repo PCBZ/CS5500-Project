@@ -1,0 +1,111 @@
+.add-donor-container {
+  max-width: 600px;
+  margin: 2rem auto;
+  padding: 2rem;
+  background-color: var(--bg-card);
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.add-donor-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.add-donor-header h1 {
+  font-size: 1.5rem;
+  color: var(--text-dark);
+  margin: 0;
+}
+
+.add-donor-close-button {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: var(--text-light);
+  cursor: pointer;
+  padding: 0.5rem;
+  line-height: 1;
+  transition: color 0.2s;
+}
+
+.add-donor-close-button:hover {
+  color: var(--primary-color);
+}
+
+.add-donor-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.form-group label {
+  font-weight: 500;
+  color: var(--text-dark);
+}
+
+.form-group input,
+.form-group select {
+  padding: 0.75rem;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  font-size: 1rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(74, 107, 253, 0.1);
+}
+
+.error-message {
+  color: var(--danger-color);
+  padding: 0.75rem;
+  background-color: rgba(234, 84, 85, 0.1);
+  border-radius: 4px;
+  margin-top: 1rem;
+}
+
+.success-message {
+  color: var(--success-color);
+  padding: 0.75rem;
+  background-color: rgba(40, 199, 111, 0.1);
+  border-radius: 4px;
+  margin-top: 1rem;
+}
+
+.add-donor-button-container {
+  margin-top: 1rem;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.add-donor-submit-button {
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 4px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.add-donor-submit-button:hover {
+  background-color: var(--primary-hover);
+}
+
+.add-donor-submit-button:disabled {
+  background-color: var(--secondary-light);
+  cursor: not-allowed;
+} 

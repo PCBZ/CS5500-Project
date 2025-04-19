@@ -1,0 +1,187 @@
+.donor-list-container {
+  width: 100%;
+  overflow-x: auto;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.donor-list-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.donor-list-table th {
+  text-align: left;
+  padding: 1rem 1.5rem;
+  background-color: #F1F5FF;
+  color: #4B6BFD;
+  font-weight: 600;
+  border-bottom: 1px solid #E3E8F4;
+  white-space: nowrap;
+}
+
+/* 给每个表头列添加最小宽度 */
+.donor-list-table th:nth-child(1) {
+  min-width: 150px; /* Name */
+}
+
+.donor-list-table th:nth-child(2) {
+  min-width: 150px; /* Organization */
+}
+
+.donor-list-table th:nth-child(3) {
+  min-width: 100px; /* Status */
+}
+
+.donor-list-table th:nth-child(4) {
+  min-width: 150px; /* Total Donations */
+}
+
+.donor-list-table th:nth-child(5) {
+  min-width: 120px; /* Largest Gift */
+}
+
+.donor-list-table th:nth-child(6) {
+  min-width: 120px; /* Last Gift */
+}
+
+.donor-list-table th:nth-child(7) {
+  min-width: 100px; /* Actions */
+}
+
+.donor-row {
+  transition: background-color 0.2s ease;
+}
+
+.donor-row:hover {
+  background-color: #F8FAFC;
+}
+
+.donor-row td {
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid #E3E8F4;
+  vertical-align: middle;
+}
+
+.donor-name-cell {
+  font-weight: 500;
+  color: #000000;
+}
+
+.donor-name-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.donor-icon {
+  color: #4B6BFD;
+  font-size: 1.1rem;
+}
+
+.donor-status-badge {
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+.donor-status-badge.pending {
+  background-color: #FFF8E6;
+  color: #B58A0F;
+}
+
+.donor-status-badge.approved {
+  background-color: #E8F5E9;
+  color: #4CAF50;
+}
+
+.donor-status-badge.excluded {
+  background-color: #FFEBEE;
+  color: #D32F2F;
+}
+
+.donation-amount {
+  font-family: monospace;
+  font-weight: 500;
+  color: #000000 !important;
+}
+
+/* 添加更具体的选择器 */
+.donor-row .donation-amount {
+  color: #000000 !important;
+}
+
+table.donor-list-table .donation-amount {
+  color: #000000 !important;
+}
+
+.donor-list-table tbody td.donation-amount {
+  color: #000000 !important;
+}
+
+.last-gift {
+  color: #000000;
+}
+
+.actions-cell {
+  width: 100px;
+  text-align: right;
+  padding-right: 1rem !important;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.donor-action-button {
+  padding: 6px;
+  border-radius: 50%;
+  border: none;
+  background: none;
+  color: var(--text-light);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.7;
+}
+
+.donor-action-button:hover:not(:disabled) {
+  background-color: rgba(0, 0, 0, 0.05);
+  opacity: 1;
+}
+
+.donor-action-button.delete {
+  color: var(--danger-color);
+}
+
+.donor-action-button.delete:hover:not(:disabled) {
+  background-color: rgba(234, 84, 85, 0.1);
+  opacity: 1;
+}
+
+.donor-action-button:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.donor-name-text {
+  color: #000000;
+  font-weight: 500;
+}
+
+.organization-cell {
+  color: #000000;
+}
+
+.black-text {
+  color: #000000 !important;
+} 
