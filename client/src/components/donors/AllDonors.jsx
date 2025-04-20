@@ -23,6 +23,7 @@ import DonorListItem from './DonorListItem';
 import EditDonorModal from './EditDonorModal';
 import ImportDonors from './ImportDonors'; // Import the component
 import './AllDonors.css';
+import '../../styles/common.css';
 import { useNavigate } from 'react-router-dom';
 
 const AllDonors = () => {
