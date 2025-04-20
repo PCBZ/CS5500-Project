@@ -311,7 +311,7 @@ const AllDonors = () => {
             </button>
             
             <button 
-              className="action-button refresh-button" 
+              className="action-button all-donors-refresh-button" 
               onClick={handleRetry} 
               disabled={loading}
               title="Refresh data"
