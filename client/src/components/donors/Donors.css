@@ -568,19 +568,6 @@ button {
   margin-top: 10px;
 }
 
-.donors-success-message {
-  background-color: #d4edda;
-  color: #155724;
-  padding: 15px;
-  border-radius: 4px;
-  margin-bottom: 20px;
-}
-
-.donors-success-message p {
-  margin: 0;
-  font-size: 14px;
-}
-
 .donors-textarea-footer {
   display: flex;
   justify-content: space-between;
@@ -1111,24 +1098,6 @@ button {
     opacity: 1;
     transform: translateY(0); 
   }
-}
-
-/* Success message */
-.success-message {
-  background-color: #d4edda;
-  color: #155724;
-  padding: 10px 15px;
-  border-radius: 5px;
-  margin: 10px 0;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  animation: fadeIn 0.3s ease-in-out, fadeOut 0.5s ease-in-out 2.5s forwards;
-}
-
-.success-message p {
-  margin: 0;
-  font-weight: 500;
 }
 
 @keyframes fadeIn {

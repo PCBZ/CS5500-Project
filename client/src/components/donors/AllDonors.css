@@ -247,18 +247,6 @@
 }
 
 /* Status messages */
-.success-message {
-  background-color: rgba(16, 185, 129, 0.1);
-  border-left: 4px solid var(--success-color);
-  color: #065f46;
-  padding: 1rem;
-  margin-bottom: 1.5rem;
-  border-radius: var(--border-radius);
-  display: flex;
-  align-items: center;
-  animation: fadeIn 0.3s ease-in;
-}
-
 .error-container {
   background-color: rgba(239, 68, 68, 0.1);
   border-left: 4px solid var(--danger-color);

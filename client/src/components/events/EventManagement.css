@@ -812,7 +812,7 @@
   }
 }
 
-.success-message {
+/* .success-message {
   background-color: #4CAF50;
   color: white;
   padding: 12px 20px;
@@ -820,7 +820,7 @@
   margin-bottom: 20px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   animation: slideIn 0.3s ease-out;
 }
 
@@ -832,7 +832,7 @@
   background-size: contain;
   background-repeat: no-repeat;
   margin-left: 10px;
-}
+} */
 
 .view-button {
   color: #4a90e2; /* blue color for view action */
