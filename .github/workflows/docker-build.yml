@@ -2,9 +2,9 @@ name: Build and Publish Docker Image
 
 on:
   push:
-    branches: [ main, FE_Dev ]
+    branches: [ main ]
   pull_request:
-    branches: [ main, FE_Dev ]
+    branches: [ main ]
 
 env:
   REPO_OWNER: ${{ github.repository_owner }}
