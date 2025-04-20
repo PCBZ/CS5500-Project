@@ -11,7 +11,7 @@ const DonorListItem = ({ donor, onEdit, onDelete, isDeleting }) => {
       <td>{donor.city}</td>
       <td>${donor.totalDonations?.toLocaleString() || 0}</td>
       <td>${donor.totalPledges?.toLocaleString() || 0}</td>
-      <td>{donor.addressLine1}</td>
+      <td>{donor.addressLine1}, {donor.city}</td>
       <td>
         <div className="donor-list-item-actions">
           <button

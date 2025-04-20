@@ -23,7 +23,7 @@ const RecommendedDonors = ({
       }
 
       const response = await fetch(
-        `${window.REACT_APP_API_URL || 'http://localhost:3000'}/api/events/${eventId}/recommended-donors`,
+        `${process.env.REACT_APP_API_URL || 'http://localhost:3000'}/api/events/${eventId}/recommended-donors`,
         {
           headers: {
             'Authorization': `Bearer ${token}`,

@@ -232,33 +232,21 @@
   cursor: not-allowed;
 }
 
-.refresh-button {
+.all-donors-refresh-button {
   background-color: var(--secondary-light);
   color: var(--text-dark);
 }
 
-.refresh-button:hover:not(:disabled) {
+.all-donors-refresh-button:hover:not(:disabled) {
   background-color: #e2e8f0;
 }
 
-.refresh-button:disabled {
+.all-donors-refresh-button:disabled {
   opacity: 0.7;
   cursor: not-allowed;
 }
 
 /* Status messages */
-.success-message {
-  background-color: rgba(16, 185, 129, 0.1);
-  border-left: 4px solid var(--success-color);
-  color: #065f46;
-  padding: 1rem;
-  margin-bottom: 1.5rem;
-  border-radius: var(--border-radius);
-  display: flex;
-  align-items: center;
-  animation: fadeIn 0.3s ease-in;
-}
-
 .error-container {
   background-color: rgba(239, 68, 68, 0.1);
   border-left: 4px solid var(--danger-color);
@@ -930,7 +918,7 @@
 }
 
 /* Refresh 按钮中的 spinner 样式 */
-.refresh-button .spinner {
+.all-donors-refresh-button .spinner {
   font-size: 16px !important;
   width: 16px !important;
   height: 16px !important;

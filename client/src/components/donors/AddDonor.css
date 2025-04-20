@@ -76,14 +76,6 @@
   margin-top: 1rem;
 }
 
-.success-message {
-  color: var(--success-color);
-  padding: 0.75rem;
-  background-color: rgba(40, 199, 111, 0.1);
-  border-radius: 4px;
-  margin-top: 1rem;
-}
-
 .add-donor-button-container {
   margin-top: 1rem;
   display: flex;
