@@ -23,6 +23,7 @@ import DonorListItem from './DonorListItem';
 import EditDonorModal from './EditDonorModal';
 import ImportDonors from './ImportDonors'; // Import the component
 import './AllDonors.css';
+import '../../styles/common.css';
 import { useNavigate } from 'react-router-dom';
 
 const AllDonors = () => {
@@ -311,7 +312,7 @@ const AllDonors = () => {
             </button>
             
             <button 
-              className="action-button refresh-button" 
+              className="action-button all-donors-refresh-button" 
               onClick={handleRetry} 
               disabled={loading}
               title="Refresh data"
