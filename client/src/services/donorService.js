@@ -46,153 +46,6 @@ const jsonToCsv = (data, options = {}) => {
     type: 'text/csv;charset=utf-8'
   });
 };
-/**
- * Import donors from CSV or Excel file with progress tracking
- * @param {FormData} formData - FormData containing the file to import
- * @param {Function} onProgress - Callback function for progress updates (0-100)
- * @returns {Promise<Object>} Import results
- */
-export const importDonors = async (formData, onProgress) => {
-  try {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      throw new Error('No authentication token found');
-    }
-
-    console.log('Starting donor import process');
-    
-    // Create XMLHttpRequest to track upload progress
-    return new Promise((resolve, reject) => {
-      const xhr = new XMLHttpRequest();
-      let operationId = null;
-      
-      // Set up progress tracking
-      xhr.upload.onprogress = (event) => {
-        if (event.lengthComputable && onProgress) {
-          // First 50% of progress is for the file upload
-          const uploadProgress = (event.loaded / event.total) * 50;
-          onProgress(uploadProgress);
-        }
-      };
-      
-      // Set up completion handler
-      xhr.onreadystatechange = async () => {
-        if (xhr.readyState !== 4) return;
-        
-        if (xhr.status >= 200 && xhr.status < 300) {
-          try {
-            // Check if response is JSON
-            const contentType = xhr.getResponseHeader('content-type');
-            if (!contentType || !contentType.includes('application/json')) {
-              const responseText = xhr.responseText;
-              console.error('Received non-JSON response:', responseText);
-              
-              if (responseText.includes('<!DOCTYPE') || responseText.includes('<html')) {
-                reject(new Error('Your session has expired. Please refresh the page and login again.'));
-              } else {
-                reject(new Error(`Server returned non-JSON response. Status: ${xhr.status}`));
-              }
-              return;
-            }
-            
-            // Parse the response
-            const data = JSON.parse(xhr.responseText);
-            console.log('Initial import response:', data);
-            
-            // Get the operation ID for progress tracking
-            operationId = data.operationId;
-            
-            if (!operationId) {
-              throw new Error('No operation ID received from server');
-            }
-
-            // Start polling for progress
-            const pollProgress = async () => {
-              try {
-                const progressResponse = await fetch(`${API_URL}/api/progress/${operationId}`, {
-                  headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                  }
-                });
-
-                if (!progressResponse.ok) {
-                  throw new Error(`Progress API error: ${progressResponse.status}`);
-                }
-
-                const progressData = await progressResponse.json();
-                console.log('Progress update:', progressData);
-
-                if (progressData.status === 'cancelled') {
-                  console.log('Import operation was cancelled');
-                  resolve({
-                    success: false,
-                    message: 'Import operation was cancelled'
-                  });
-                  return;
-                }
-
-                // Update progress
-                if (onProgress) {
-                  // Scale server progress (0-100) to our 50-100 range
-                  const scaledProgress = 50 + (progressData.progress * 0.5);
-                  onProgress(scaledProgress);
-                }
-
-                if (['completed', 'completed_with_errors', 'error'].includes(progressData.status)) {
-                  console.log('Import completed with status:', progressData.status);
-                  resolve({
-                    success: progressData.status === 'completed',
-                    message: progressData.message,
-                    errors: progressData.errors || []
-                  });
-                } else if (progressData.status === 'processing') {
-                  // Continue polling if still processing
-                  setTimeout(pollProgress, 1000);
-                }
-              } catch (error) {
-                console.error('Error polling for progress:', error);
-                // Don't reject here, try again
-                setTimeout(pollProgress, 1000);
-              }
-            };
-
-            // Start polling
-            pollProgress();
-            
-          } catch (error) {
-            console.error('Error processing response:', error);
-            reject(error);
-          }
-        } else {
-          // Handle error response
-          try {
-            const errorData = JSON.parse(xhr.responseText);
-            reject(new Error(errorData.message || `HTTP error! status: ${xhr.status}`));
-          } catch (e) {
-            reject(new Error(`HTTP error! status: ${xhr.status}`));
-          }
-        }
-      };
-      
-      // Set up error handler
-      xhr.onerror = () => {
-        reject(new Error('Network error occurred during file upload'));
-      };
-      
-      // Open and send the request
-      xhr.open('POST', `${API_URL}/api/donors/import`, true);
-      xhr.setRequestHeader('Authorization', `Bearer ${token}`);
-      xhr.send(formData);
-    });
-  } catch (error) {
-    console.error('Error importing donors:', error);
-    return {
-      success: false,
-      message: error.message || 'Import failed'
-    };
-  }
-};
 
 /**
  * Get all donors with optional filtering
@@ -899,6 +752,130 @@ export const addDonorsToList = async (listId, donorIds) => {
     return await response.json();
   } catch (error) {
     console.error('Error adding donors to list:', error);
+    throw error;
+  }
+};
+
+/**
+ * Import donor data from CSV or Excel file
+ * @param {File} file - CSV or Excel file
+ * @param {Function} onProgress - Progress callback function
+ * @param {Function} onComplete - Completion callback function
+ * @param {Function} onError - Error callback function
+ * @returns {Promise<Object>} Object containing cancel function
+ */
+export const importDonors = async (file, onProgress, onComplete, onError) => {
+  try {
+    const token = getAuthToken();
+    if (!token) {
+      throw new Error('No authentication token found');
+    }
+
+    // Check file type
+    const fileExtension = file.name.split('.').pop().toLowerCase();
+    if (!['csv', 'xlsx', 'xls'].includes(fileExtension)) {
+      throw new Error('Please select a CSV or Excel file');
+    }
+
+    // Check file size (limit to 10MB)
+    const maxSize = 10 * 1024 * 1024;
+    if (file.size > maxSize) {
+      throw new Error('File size exceeds the limit (10MB). Please select a smaller file.');
+    }
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    // Start import and get operation ID
+    const response = await fetch(`${API_URL}/api/donors/import`, {
+      method: 'POST',
+      body: formData,
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+
+    if (!response.ok) {
+      if (response.status === 401) {
+        localStorage.removeItem('token');
+        throw new Error('Session expired. Please log in again.');
+      }
+      const errorData = await response.json();
+      throw new Error(errorData.message || `Import failed with status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    const { operationId } = data;
+    
+    if (!operationId) {
+      throw new Error('No operation ID received from server');
+    }
+
+    // Create poller to track progress
+    let pollingInterval;
+    let attempts = 0;
+    const maxAttempts = 300; // 10 minutes at 2 second intervals
+
+    const pollProgress = async () => {
+      try {
+        const progressResponse = await fetch(`${API_URL}/api/progress/${operationId}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (!progressResponse.ok) {
+          clearInterval(pollingInterval);
+          throw new Error('Failed to check progress');
+        }
+
+        const progressData = await progressResponse.json();
+        
+        if (progressData.status === 'processing') {
+          onProgress?.(progressData.progress || 0, progressData.message || 'Processing...');
+        } else if (progressData.status === 'completed') {
+          clearInterval(pollingInterval);
+          onComplete?.(progressData.result || {});
+        } else if (progressData.status === 'error') {
+          clearInterval(pollingInterval);
+          onError?.(new Error(progressData.message || 'Import failed'));
+        }
+
+        attempts++;
+        if (attempts >= maxAttempts) {
+          clearInterval(pollingInterval);
+          throw new Error('Import timed out');
+        }
+      } catch (error) {
+        clearInterval(pollingInterval);
+        onError?.(error);
+      }
+    };
+
+    // Start polling progress
+    pollingInterval = setInterval(pollProgress, 2000);
+
+    // Return cancel function
+    return {
+      cancel: async () => {
+        try {
+          clearInterval(pollingInterval);
+          await fetch(`${API_URL}/api/progress/${operationId}`, {
+            method: 'DELETE',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
+          });
+        } catch (error) {
+          console.error('Failed to cancel import:', error);
+          throw error;
+        }
+      }
+    };
+  } catch (error) {
+    onError?.(error);
     throw error;
   }
 }; 
