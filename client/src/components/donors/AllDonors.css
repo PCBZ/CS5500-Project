@@ -232,16 +232,16 @@
   cursor: not-allowed;
 }
 
-.refresh-button {
+.all-donors-refresh-button {
   background-color: var(--secondary-light);
   color: var(--text-dark);
 }
 
-.refresh-button:hover:not(:disabled) {
+.all-donors-refresh-button:hover:not(:disabled) {
   background-color: #e2e8f0;
 }
 
-.refresh-button:disabled {
+.all-donors-refresh-button:disabled {
   opacity: 0.7;
   cursor: not-allowed;
 }
@@ -930,7 +930,7 @@
 }
 
 /* Refresh 按钮中的 spinner 样式 */
-.refresh-button .spinner {
+.all-donors-refresh-button .spinner {
   font-size: 16px !important;
   width: 16px !important;
   height: 16px !important;
