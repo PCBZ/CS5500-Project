@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FaCalendarAlt, FaMapMarkerAlt, FaUsers, FaClock, FaTrash, FaFilter, FaSearch, FaEdit, FaEye } from 'react-icons/fa';
+import { FaCalendarAlt, FaMapMarkerAlt, FaUsers, FaClock, FaTrash, FaFilter, FaSearch, FaEdit, FaEye, FaCheckCircle } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import './EventManagement.css';
 import '../../styles/common.css';
@@ -375,23 +375,6 @@ const EventManagement = () => {
 
   return (
     <div className="event-management-container" onClick={handleClickOutside}>
-      {/* Notification pop-up added here */}
-      {success && (
-        <div className="notification-message" style={{
-          position: 'fixed',
-          top: '20px',
-          left: '20px',
-          backgroundColor: '#4CAF50',
-          color: 'white',
-          padding: '10px 20px',
-          borderRadius: '4px',
-          zIndex: 1001,
-          animation: 'slideIn 0.3s ease-out'
-        }}>
-          {success}
-        </div>
-      )}
-
       <header className="event-management-header">
         <div>
           <h1>Event Management</h1>
@@ -590,6 +573,12 @@ const EventManagement = () => {
 
       {loading && <div className="loading-message">Loading events...</div>}
       {error && <div className="error-message">{error}</div>}
+
+      {success && (
+        <div className="success-message">
+          {success}
+        </div>
+      )}
 
       {!loading && !error && (
         <div className="events-table-container">
