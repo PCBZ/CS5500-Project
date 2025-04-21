@@ -1,7 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import './CreateNewEvent.css';
 import { createEvent } from '../../services/eventService';
-import authService from '../../services/authService.js';
 
 function CreateNewEvent({ onClose, onEventCreated }) {
   const [formData, setFormData] = useState({
@@ -34,27 +33,32 @@ function CreateNewEvent({ onClose, onEventCreated }) {
     startDate: null,
     endDate: null
   });
-  const calendarRefs = {
-    date: useRef(null),
-    startDate: useRef(null),
-    endDate: useRef(null)
-  };
+
+  const dateRef = useRef(null);
+  const startDateRef = useRef(null);
+  const endDateRef = useRef(null);
+
+  const calendarRefs = useMemo(() => ({
+    date: dateRef,
+    startDate: startDateRef,
+    endDate: endDateRef
+  }), []);
+
+  const handleClickOutside = useCallback((event) => {
+    Object.keys(calendarRefs).forEach(key => {
+      if (calendarRefs[key].current && !calendarRefs[key].current.contains(event.target)) {
+        setShowCalendar(prev => ({ ...prev, [key]: false }));
+      }
+    });
+  }, [calendarRefs]);
 
   // 处理点击外部关闭日历
   useEffect(() => {
-    function handleClickOutside(event) {
-      Object.keys(calendarRefs).forEach(key => {
-        if (calendarRefs[key].current && !calendarRefs[key].current.contains(event.target)) {
-          setShowCalendar(prev => ({ ...prev, [key]: false }));
-        }
-      });
-    }
-
     document.addEventListener('mousedown', handleClickOutside);
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, []);
+  }, [handleClickOutside]);
 
   // 获取当前月份的日历数据
   const getCalendarDays = (date) => {

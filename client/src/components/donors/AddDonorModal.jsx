@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { FaTimes, FaSearch, FaSync, FaPlus, FaSpinner, FaInfoCircle } from 'react-icons/fa';
-import { addDonorToEvent, addDonorsToList, getAvailableDonors } from '../../services/donorService';
+import React, { useState, useEffect, useCallback } from 'react';
+import { FaTimes, FaSearch, FaSync, FaPlus, FaInfoCircle } from 'react-icons/fa';
+import { addDonorsToList, getAvailableDonors } from '../../services/donorService';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import './AddDonorModal.css';
@@ -25,6 +25,29 @@ const AddDonorModal = ({
   const [loadingRecommended, setLoadingRecommended] = useState(false);
   const [filteredRecommendedDonors, setFilteredRecommendedDonors] = useState([]);
 
+  const fetchAvailableDonors = useCallback(async (customSearchQuery = searchQuery, pageNumber = currentPage) => {
+    if (!eventId) return;
+    
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const response = await getAvailableDonors(eventId, {
+        page: pageNumber,
+        limit: 10,
+        search: customSearchQuery
+      });
+      
+      setAvailableDonors(response.data || []);
+      setTotalPages(response.total_pages || 1);
+    } catch (err) {
+      console.error('Error fetching available donors:', err);
+      setError(err.message || 'Failed to load available donors');
+    } finally {
+      setLoading(false);
+    }
+  }, [eventId, searchQuery, currentPage]);
+
   useEffect(() => {
     if (isOpen) {
       setSelectedDonors([]);
@@ -32,23 +55,60 @@ const AddDonorModal = ({
       setCurrentPage(1);
       fetchAvailableDonors();
     }
-  }, [isOpen, eventId]);
+  }, [isOpen, eventId, fetchAvailableDonors]);
 
   useEffect(() => {
     if (isOpen && eventId) {
       fetchAvailableDonors();
     }
-  }, [currentPage]);
+  }, [currentPage, isOpen, eventId, fetchAvailableDonors]);
+
+  const fetchRecommendedDonors = useCallback(async () => {
+    try {
+      setLoadingRecommended(true);
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
+
+      const response = await fetch(
+        `${process.env.REACT_APP_API_URL || 'http://localhost:5001'}/api/events/${eventId}/recommended-donors`,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      
+      // Filter out already participating donors
+      const filteredDonors = data.recommendedDonors.filter(donor => 
+        !currentEventDonors.some(eventDonor => eventDonor.id === donor.id)
+      );
+      
+      setRecommendedDonors(filteredDonors);
+    } catch (err) {
+      console.error('Error fetching recommended donors:', err);
+    } finally {
+      setLoadingRecommended(false);
+    }
+  }, [eventId, currentEventDonors]);
 
   useEffect(() => {
-    if (eventId) {
+    if (eventId && isOpen) {
       fetchRecommendedDonors();
     }
-  }, [eventId]);
+  }, [eventId, isOpen, fetchRecommendedDonors]);
 
   useEffect(() => {
     setFilteredRecommendedDonors(recommendedDonors);
-  }, [recommendedDonors]);
+  }, [recommendedDonors, fetchRecommendedDonors]);
 
   const handleSearch = (e) => {
     setTempSearchQuery(e.target.value);
@@ -97,29 +157,6 @@ const AddDonorModal = ({
     }
   };
 
-  const fetchAvailableDonors = async (customSearchQuery = searchQuery, pageNumber = currentPage) => {
-    if (!eventId) return;
-    
-    setLoading(true);
-    setError(null);
-    
-    try {
-      const response = await getAvailableDonors(eventId, {
-        page: pageNumber,
-        limit: 10,
-        search: customSearchQuery
-      });
-      
-      setAvailableDonors(response.data || []);
-      setTotalPages(response.total_pages || 1);
-    } catch (err) {
-      console.error('Error fetching available donors:', err);
-      setError(err.message || 'Failed to load available donors');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleRefresh = async () => {
     setIsRefreshing(true);
     await fetchAvailableDonors(); // Use current searchQuery
@@ -133,25 +170,6 @@ const AddDonorModal = ({
       }
       return [...prev, donor];
     });
-  };
-
-  const handleAddDonor = async (donorId) => {
-    try {
-      setLoading(true);
-      await addDonorToEvent(eventId, donorId);
-      if (onDonorAdded) {
-        onDonorAdded();
-      }
-      // Remove the added donor from both available and recommended donors
-      setAvailableDonors(prev => prev.filter(d => d.id !== donorId));
-      setRecommendedDonors(prev => prev.filter(d => d.id !== donorId));
-      // Remove from selected donors
-      setSelectedDonors(prev => prev.filter(d => d.id !== donorId));
-    } catch (err) {
-      setError(err.message || 'Failed to add donor');
-    } finally {
-      setLoading(false);
-    }
   };
 
   const handleAddMultipleDonors = async () => {
@@ -189,8 +207,10 @@ const AddDonorModal = ({
         throw new Error('Could not find donor list for this event');
       }
       
-      // Use batch API to add donors
+      // Extract donor IDs from selected donors
       const donorIds = selectedDonors.map(donor => donor.id);
+      
+      // Use batch API to add donors
       const response = await addDonorsToList(donorListId, donorIds);
       
       // Notify parent component to update
@@ -200,16 +220,16 @@ const AddDonorModal = ({
       
       // Remove added donors from both lists
       setAvailableDonors(prev => 
-        prev.filter(donor => !donorIds.includes(donor.id))
+        prev.filter(donor => !selectedDonors.some(d => d.id === donor.id))
       );
       setRecommendedDonors(prev => 
-        prev.filter(donor => !donorIds.includes(donor.id))
+        prev.filter(donor => !selectedDonors.some(d => d.id === donor.id))
       );
       
       // Clear selection
       setSelectedDonors([]);
       
-      toast.success(`Successfully added ${response.added || donorIds.length} donors`);
+      toast.success(`Successfully added ${response.added || selectedDonors.length} donors`);
       onClose();
     } catch (err) {
       console.error('Failed to add donors:', err);
@@ -229,43 +249,6 @@ const AddDonorModal = ({
       setSelectedDonors(uniqueDonors);
     } else {
       setSelectedDonors([]);
-    }
-  };
-
-  const fetchRecommendedDonors = async () => {
-    try {
-      setLoadingRecommended(true);
-      const token = localStorage.getItem('token');
-      if (!token) {
-        throw new Error('No authentication token found');
-      }
-
-      const response = await fetch(
-        `${process.env.REACT_APP_API_URL || 'http://localhost:5001'}/api/events/${eventId}/recommended-donors`,
-        {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
-      
-      // Filter out already participating donors
-      const filteredDonors = data.recommendedDonors.filter(donor => 
-        !currentEventDonors.some(eventDonor => eventDonor.id === donor.id)
-      );
-      
-      setRecommendedDonors(filteredDonors);
-    } catch (err) {
-      console.error('Error fetching recommended donors:', err);
-    } finally {
-      setLoadingRecommended(false);
     }
   };
 

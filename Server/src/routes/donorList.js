@@ -325,157 +325,117 @@ router.put('/:id/status', protect, async (req, res) => {
  * @memberof module:DonorListAPI
  * @param {number} req.params.id - Donor list ID
  * @param {object} req.body - Request body
- * @param {Array} req.body.donors - Array of donors
- * @param {number} req.body.donors[].donor_id - Donor ID
- * @param {string} req.body.donors[].status - Status ('Pending', 'Approved', 'Excluded', 'AutoExcluded')
- * @param {number} [req.body.donors[].reviewer_id] - Reviewer ID (optional)
- * @param {string} [req.body.donors[].comments] - Comments (optional)
+ * @param {Array} req.body.donorIds - Array of donor IDs
  * @param {string} req.headers.authorization - Bearer token for authentication
  * @returns {object} 201 - Added donors information
  * @returns {Error} 400 - Invalid request format
  * @returns {Error} 404 - List not found
  * @returns {Error} 500 - Server error
- * 
- * @example Request Example:
- * POST /api/lists/1/donors
- * Authorization: Bearer <token>
- * Content-Type: application/json
- * 
- * {
- *   "donors": [
- *     {
- *       "donor_id": 301,
- *       "status": "Pending",
- *       "comments": "Potential major donor"
- *     },
- *     {
- *       "donor_id": 302,
- *       "status": "Approved",
- *       "comments": "Reliable donor"
- *     }
- *   ]
- * }
- * 
- * @example Success Response:
- * {
- *   "message": "Donors added successfully.",
- *   "added_donors": [
- *     {
- *       "id": 201,
- *       "donorListId": 1,
- *       "donorId": 301,
- *       "status": "Pending",
- *       "comments": "Potential major donor",
- *       "donor": {
- *         "id": 301,
- *         "firstName": "John",
- *         "lastName": "Doe",
- *         "totalDonations": 5000,
- *         "largestGift": 2000
- *       }
- *     },
- *     {
- *       "id": 202,
- *       "donorListId": 1,
- *       "donorId": 302,
- *       "status": "Approved",
- *       "comments": "Reliable donor",
- *       "donor": {
- *         "id": 302,
- *         "firstName": "Jane",
- *         "lastName": "Smith",
- *         "totalDonations": 3000,
- *         "largestGift": 1000
- *       }
- *     }
- *   ]
- * }
  */
 router.post('/:id/donors', protect, async (req, res) => {
   try {
     const listId = parseInt(req.params.id);
-    const { donors } = req.body;
+    const { donorIds } = req.body;
 
-    if (!Array.isArray(donors)) {
-      return res.status(400).json({ message: 'Invalid request format: donors must be an array' });
+    if (!Array.isArray(donorIds) || donorIds.length === 0) {
+      return res.status(400).json({ message: 'Invalid donor IDs array' });
     }
 
+    // 确保所有 ID 都是数字类型
+    const numericDonorIds = donorIds.map(id => Number(id));
+    if (numericDonorIds.some(isNaN)) {
+      return res.status(400).json({ message: 'Invalid donor ID format' });
+    }
+
+    // Check if list exists
     const list = await prisma.eventDonorList.findUnique({
       where: { id: listId }
     });
 
     if (!list) {
-      return res.status(404).json({ message: 'List not found' });
+      return res.status(404).json({ message: 'Donor list not found' });
     }
 
-    // Validate donor IDs exist
-    const donorIds = donors.map(d => parseInt(d.donor_id));
+    // Check if donors exist
     const existingDonors = await prisma.donor.findMany({
       where: {
         id: {
-          in: donorIds
+          in: numericDonorIds
         }
+      },
+      select: {
+        id: true
       }
     });
 
-    if (existingDonors.length !== donorIds.length) {
-      return res.status(400).json({ message: 'One or more donor IDs do not exist' });
+    const existingDonorIds = existingDonors.map(d => d.id);
+    const invalidDonorIds = numericDonorIds.filter(id => !existingDonorIds.includes(id));
+
+    if (invalidDonorIds.length > 0) {
+      return res.status(400).json({ 
+        message: 'Some donor IDs are invalid', 
+        invalidDonorIds 
+      });
     }
 
-    const added_donors = await prisma.$transaction(
-      donors.map(donor => 
-        prisma.eventDonor.create({
-          data: {
-            donorListId: listId,
-            donorId: parseInt(donor.donor_id),
-            status: donor.status,
-            reviewerId: donor.reviewer_id ? parseInt(donor.reviewer_id) : null,
-            comments: donor.comments
-          },
-          include: {
-            donor: true
-          }
-        })
-      )
-    );
+    // Check for existing donors in the list
+    const existingListDonors = await prisma.eventDonor.findMany({
+      where: {
+        donorListId: listId,
+        donorId: {
+          in: numericDonorIds
+        }
+      },
+      select: {
+        donorId: true
+      }
+    });
 
-    // Update list statistics
-    await prisma.eventDonorList.update({
+    const existingListDonorIds = existingListDonors.map(d => d.donorId);
+    const newDonorIds = numericDonorIds.filter(id => !existingListDonorIds.includes(id));
+
+    if (newDonorIds.length === 0) {
+      return res.status(400).json({ message: 'All donors are already in the list' });
+    }
+
+    // Add new donors to the list
+    const addedDonors = await prisma.eventDonor.createMany({
+      data: newDonorIds.map(donorId => ({
+        donorListId: listId,
+        donorId,
+        status: 'Pending'
+      }))
+    });
+
+    // Update list counts
+    const updatedList = await prisma.eventDonorList.update({
       where: { id: listId },
       data: {
         totalDonors: {
-          increment: donors.length
+          increment: addedDonors.count
         },
         pending: {
-          increment: donors.filter(d => d.status === 'Pending').length
-        },
-        approved: {
-          increment: donors.filter(d => d.status === 'Approved').length
-        },
-        excluded: {
-          increment: donors.filter(d => d.status === 'Excluded').length
-        },
-        autoExcluded: {
-          increment: donors.filter(d => d.status === 'AutoExcluded').length
+          increment: addedDonors.count
+        }
+      },
+      include: {
+        _count: {
+          select: {
+            eventDonors: true
+          }
         }
       }
     });
 
-    res.status(201).json({
-      message: 'Donors added successfully.',
-      added_donors: added_donors
+    res.json({
+      message: `Successfully added ${addedDonors.count} donors to the list`,
+      added: addedDonors.count,
+      totalDonors: updatedList.totalDonors,
+      pending: updatedList.pending
     });
   } catch (error) {
-    console.error('Error adding donors:', error);
-    console.error('Error details:', {
-      code: error.code,
-      message: error.message,
-      meta: error.meta
-    });
-    res.status(500).json({ 
-      message: 'Internal server error',
-      error: error.message
-    });
+    console.error('Error adding donors to list:', error);
+    res.status(500).json({ message: 'Internal server error' });
   }
 });
 
@@ -877,125 +837,6 @@ router.get('/:id/donors', protect, async (req, res) => {
   } catch (error) {
     console.error('Error fetching donors from list:', error);
     res.status(500).json({ message: 'Internal server error', error: error.message });
-  }
-});
-
-/**
- * Add multiple donors to a list
- * 
- * @name POST /api/lists/:id/donors
- * @function
- * @memberof module:DonorListAPI
- * @param {number} req.params.id - Donor list ID
- * @param {Array} req.body.donorIds - Array of donor IDs to add
- * @param {string} req.headers.authorization - Bearer token for authentication
- * @returns {object} 200 - Success message with added donors count
- * @returns {Error} 400 - Invalid request data
- * @returns {Error} 404 - List not found
- * @returns {Error} 500 - Server error
- * 
- * @example Request Example:
- * POST /api/lists/1/donors
- * Authorization: Bearer <token>
- * {
- *   "donorIds": [1, 2, 3]
- * }
- * 
- * @example Success Response:
- * {
- *   "message": "Successfully added 3 donors to the list",
- *   "added": 3
- * }
- */
-router.post('/:id/donors', protect, async (req, res) => {
-  try {
-    const listId = parseInt(req.params.id);
-    const { donorIds } = req.body;
-
-    if (!Array.isArray(donorIds) || donorIds.length === 0) {
-      return res.status(400).json({ message: 'Invalid donor IDs array' });
-    }
-
-    // Check if list exists
-    const list = await prisma.eventDonorList.findUnique({
-      where: { id: listId }
-    });
-
-    if (!list) {
-      return res.status(404).json({ message: 'Donor list not found' });
-    }
-
-    // Check if donors exist
-    const existingDonors = await prisma.donor.findMany({
-      where: {
-        id: {
-          in: donorIds
-        }
-      },
-      select: {
-        id: true
-      }
-    });
-
-    const existingDonorIds = existingDonors.map(d => d.id);
-    const invalidDonorIds = donorIds.filter(id => !existingDonorIds.includes(id));
-
-    if (invalidDonorIds.length > 0) {
-      return res.status(400).json({ 
-        message: 'Some donor IDs are invalid', 
-        invalidDonorIds 
-      });
-    }
-
-    // Check for existing donors in the list
-    const existingListDonors = await prisma.eventDonor.findMany({
-      where: {
-        donorListId: listId,
-        donorId: {
-          in: donorIds
-        }
-      },
-      select: {
-        donorId: true
-      }
-    });
-
-    const existingListDonorIds = existingListDonors.map(d => d.donorId);
-    const newDonorIds = donorIds.filter(id => !existingListDonorIds.includes(id));
-
-    if (newDonorIds.length === 0) {
-      return res.status(400).json({ message: 'All donors are already in the list' });
-    }
-
-    // Add new donors to the list
-    const addedDonors = await prisma.eventDonor.createMany({
-      data: newDonorIds.map(donorId => ({
-        donorListId: listId,
-        donorId,
-        status: 'Pending'
-      }))
-    });
-
-    // Update list counts
-    await prisma.eventDonorList.update({
-      where: { id: listId },
-      data: {
-        totalDonors: {
-          increment: addedDonors.count
-        },
-        pending: {
-          increment: addedDonors.count
-        }
-      }
-    });
-
-    res.json({
-      message: `Successfully added ${addedDonors.count} donors to the list`,
-      added: addedDonors.count
-    });
-  } catch (error) {
-    console.error('Error adding donors to list:', error);
-    res.status(500).json({ message: 'Internal server error' });
   }
 });
 

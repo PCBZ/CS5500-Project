@@ -1,4 +1,3 @@
-import React from 'react';
 import './EventDetails.css';
 import { FaCalendarAlt, FaMapMarkerAlt, FaUsers, FaClock } from 'react-icons/fa';
 

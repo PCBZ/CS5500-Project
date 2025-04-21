@@ -2,9 +2,7 @@ name: CD
 
 on:
   push:
-    branches: [ main, FE_Dev, Deploy ]
-  pull_request:
-    branches: [ main, FE_Dev, Deploy ]
+    branches: [ main ]
   workflow_dispatch:
 
 jobs:
@@ -51,4 +49,11 @@ jobs:
           publish_branch: gh-pages
           commit_message: "Deploy: ${{ github.event.head_commit.message }}"
           force: true
-          clean: true 
+          clean: true
+
+      - name: Deploy to Render
+        run: |
+            curl -X POST \
+            -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
+            -H "Content-Type: application/json" \
+            "https://api.render.com/v1/services/${{ secrets.RENDER_SERVICE_ID }}/deploys"

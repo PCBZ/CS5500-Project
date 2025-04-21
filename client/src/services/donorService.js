@@ -1,6 +1,4 @@
 // Import mock data from mockData module
-// import { MOCK_DONORS, MOCK_EVENT_DONORS, MOCK_EVENT_STATS } from './mockData';
-import { getEventDonors } from './eventService';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001';
 
@@ -729,11 +727,7 @@ export const addDonorsToList = async (listId, donorIds) => {
       throw new Error('No authentication token found');
     }
 
-    // Convert donorIds array to the required donors array format
-    const donors = donorIds.map(id => ({
-      donor_id: id,
-      status: 'Pending'
-    }));
+    const numericDonorIds = donorIds.map(id => Number(id));
 
     const response = await fetch(`${API_URL}/api/lists/${listId}/donors`, {
       method: 'POST',
@@ -741,7 +735,7 @@ export const addDonorsToList = async (listId, donorIds) => {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ donors })
+      body: JSON.stringify({ donorIds: numericDonorIds })
     });
 
     if (!response.ok) {
