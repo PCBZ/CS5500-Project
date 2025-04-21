@@ -189,8 +189,10 @@ const AddDonorModal = ({
         throw new Error('Could not find donor list for this event');
       }
       
-      // Use batch API to add donors
+      // Extract donor IDs from selected donors
       const donorIds = selectedDonors.map(donor => donor.id);
+      
+      // Use batch API to add donors
       const response = await addDonorsToList(donorListId, donorIds);
       
       // Notify parent component to update
@@ -200,16 +202,16 @@ const AddDonorModal = ({
       
       // Remove added donors from both lists
       setAvailableDonors(prev => 
-        prev.filter(donor => !donorIds.includes(donor.id))
+        prev.filter(donor => !selectedDonors.some(d => d.id === donor.id))
       );
       setRecommendedDonors(prev => 
-        prev.filter(donor => !donorIds.includes(donor.id))
+        prev.filter(donor => !selectedDonors.some(d => d.id === donor.id))
       );
       
       // Clear selection
       setSelectedDonors([]);
       
-      toast.success(`Successfully added ${response.added || donorIds.length} donors`);
+      toast.success(`Successfully added ${response.added || selectedDonors.length} donors`);
       onClose();
     } catch (err) {
       console.error('Failed to add donors:', err);
