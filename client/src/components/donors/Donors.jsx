@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { FaUser, FaPlus, FaAngleDown, FaSpinner, FaDownload} from 'react-icons/fa';
 import { getEvents, getEventById, getEventDonors } from '../../services/eventService';
 import { getAvailableDonors, removeDonorFromEvent, getEventDonorStats, updateEventDonor, exportEventDonorsToCsv } from '../../services/donorService';
@@ -59,46 +59,8 @@ const Donors = () => {
     'Requested removal'
   ];
 
-  // Fetch events on component mount
-  useEffect(() => {
-    fetchEvents();
-  }, []);
-
-  // Handle event selection from location state
-  useEffect(() => {
-    if (location.state?.selectedEventId) {
-      const eventId = location.state.selectedEventId;
-      const event = events.find(e => e.id === eventId);
-      if (event) {
-        setSelectedEvent(event);
-      } else {
-        // If event not found in current events list, fetch it
-        getEventById(eventId)
-          .then(response => {
-            if (response.data) {
-              setSelectedEvent(response.data);
-            }
-          })
-          .catch(error => {
-            console.error('Error fetching event:', error);
-            setError(prev => ({ ...prev, events: 'Failed to load selected event' }));
-          });
-      }
-    }
-  }, [location.state?.selectedEventId, events]);
-
-  // Fetch donors when selected event changes or search/page changes
-  useEffect(() => {
-    if (selectedEvent) {
-      fetchEventDonors();
-      if (!searchQuery) {
-        fetchEventStats();
-      }
-    }
-  }, [selectedEvent, searchQuery, currentPage]);
-
   // Fetch events
-  const fetchEvents = async () => {
+  const fetchEvents = useCallback(async () => {
     setLoading(prev => ({ ...prev, events: true }));
     setError(prev => ({ ...prev, events: null }));
 
@@ -118,19 +80,10 @@ const Donors = () => {
     } finally {
       setLoading(prev => ({ ...prev, events: false }));
     }
-  };
-
-  const handleRelatedEventSelect = (event) => {
-    if (!event || event.id === selectedEvent?.id) return;
-    
-    setSelectedEvent(event);
-    setCurrentPage(1);
-    setSearchQuery('');
-    setStatusFilter('');
-  };
+  }, [selectedEvent]);
 
   // Fetch donors for selected event
-  const fetchEventDonors = async () => {
+  const fetchEventDonors = useCallback(async () => {
     if (!selectedEvent) return;
 
     setLoading(prev => ({ ...prev, donors: true }));
@@ -262,10 +215,10 @@ const Donors = () => {
     } finally {
       setLoading(prev => ({ ...prev, donors: false }));
     }
-  };
+  }, [selectedEvent, currentPage, itemsPerPage, searchQuery, statusFilter]);
 
-  // Fetch event statistics
-  const fetchEventStats = async () => {
+  // Fetch event stats
+  const fetchEventStats = useCallback(async () => {
     if (!selectedEvent) return;
 
     setLoading(prev => ({ ...prev, stats: true }));
@@ -273,20 +226,52 @@ const Donors = () => {
 
     try {
       const response = await getEventDonorStats(selectedEvent.id);
-      setStats({
-        pending: response.pending_review || 0,
-        approved: response.approved || 0,
-        excluded: response.excluded || 0
-      });
+      setStats(response.data || { pending: 0, approved: 0, excluded: 0 });
     } catch (err) {
-      console.error('Failed to fetch event statistics:', err);
-      setError(prev => ({ ...prev, stats: 'Failed to load statistics: ' + (err.message || 'Unknown error') }));
-      // 设置默认的空统计信息
-      setStats({ pending: 0, approved: 0, excluded: 0 });
+      console.error('Failed to fetch event stats:', err);
+      setError(prev => ({ ...prev, stats: 'Failed to load event stats' }));
     } finally {
       setLoading(prev => ({ ...prev, stats: false }));
     }
-  };
+  }, [selectedEvent]);
+
+  // Fetch events on component mount
+  useEffect(() => {
+    fetchEvents();
+  }, [fetchEvents]);
+
+  // Handle event selection from location state
+  useEffect(() => {
+    if (location.state?.selectedEventId) {
+      const eventId = location.state.selectedEventId;
+      const event = events.find(e => e.id === eventId);
+      if (event) {
+        setSelectedEvent(event);
+      } else {
+        // If event not found in current events list, fetch it
+        getEventById(eventId)
+          .then(response => {
+            if (response.data) {
+              setSelectedEvent(response.data);
+            }
+          })
+          .catch(error => {
+            console.error('Error fetching event:', error);
+            setError(prev => ({ ...prev, events: 'Failed to load selected event' }));
+          });
+      }
+    }
+  }, [location.state?.selectedEventId, events]);
+
+  // Fetch donors when selected event changes or search/page changes
+  useEffect(() => {
+    if (selectedEvent) {
+      fetchEventDonors();
+      if (!searchQuery) {
+        fetchEventStats();
+      }
+    }
+  }, [selectedEvent, searchQuery, currentPage, fetchEventDonors, fetchEventStats]);
 
   /**
    * Open the add donor modal
@@ -670,6 +655,15 @@ const Donors = () => {
   const handleSuggestionSelect = (suggestion) => {
     setEditExcludeReason(suggestion);
     setShowExcludeSuggestions(false);
+  };
+
+  const handleRelatedEventSelect = (event) => {
+    if (!event || event.id === selectedEvent?.id) return;
+    
+    setSelectedEvent(event);
+    setCurrentPage(1);
+    setSearchQuery('');
+    setStatusFilter('');
   };
 
   return (
