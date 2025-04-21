@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { FaUser, FaCalendarAlt, FaMapMarkerAlt, FaUsers, FaClock, FaPlus, FaTrash, FaAngleDown, FaSpinner, FaEdit, FaComment, FaDownload, FaSync, FaEnvelope, FaPhone } from 'react-icons/fa';
+import { FaUser, FaPlus, FaAngleDown, FaSpinner, FaDownload} from 'react-icons/fa';
 import { getEvents, getEventById, getEventDonors } from '../../services/eventService';
-import { getAvailableDonors, addDonorToEvent, removeDonorFromEvent, getEventDonorStats, updateDonorStatus, updateEventDonor, exportEventDonorsToCsv } from '../../services/donorService';
+import { getAvailableDonors, removeDonorFromEvent, getEventDonorStats, updateEventDonor, exportEventDonorsToCsv } from '../../services/donorService';
 import { useLocation } from 'react-router-dom';
 import './Donors.css';
 import DonorList from './DonorList';
@@ -9,22 +9,12 @@ import EventDetail from './EventDetail';
 import AddDonorModal from './AddDonorModal';
 
 
-// Temporary workaround to ensure mock data works without authentication
-// REMOVE THIS FOR PRODUCTION
-const setupMockToken = () => {
-  if (!localStorage.getItem('token')) {
-    console.warn('Setting temporary mock token for development');
-    localStorage.setItem('token', 'mock-token-for-development-only');
-  }
-};
-
 const Donors = () => {
   const location = useLocation();
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [showEventDropdown, setShowEventDropdown] = useState(false);
-  const [availableDonors, setAvailableDonors] = useState([]);
   const [showAddDonorModal, setShowAddDonorModal] = useState(false);
   const [events, setEvents] = useState([]);
   const [eventDonors, setEventDonors] = useState([]);
@@ -43,7 +33,7 @@ const Donors = () => {
   });
   const [totalPages, setTotalPages] = useState(1);
   const [totalDonors, setTotalDonors] = useState(0);
-  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [itemsPerPage] = useState(10);
   const [success, setSuccess] = useState('');
   const [editComments, setEditComments] = useState('');
   const [editExcludeReason, setEditExcludeReason] = useState('');
@@ -52,14 +42,10 @@ const Donors = () => {
   const [editStatus, setEditStatus] = useState('Pending');
   const [exporting, setExporting] = useState(false);
   const [statusFilter, setStatusFilter] = useState('');
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const [isAddingDonorToList, setIsAddingDonorToList] = useState(null);
-  const [modalSearchQuery, setModalSearchQuery] = useState('');
-  const [modalCurrentPage, setModalCurrentPage] = useState(1);
-  const [modalTotalPages, setModalTotalPages] = useState(1);
-  const [modalTotalDonors, setModalTotalDonors] = useState(0);
-  const [modalItemsPerPage, setModalItemsPerPage] = useState(10);
-  const [selectedDonors, setSelectedDonors] = useState([]);
+  const [setModalCurrentPage] = useState(1);
+  const [setModalTotalPages] = useState(1);
+  const [setModalTotalDonors] = useState(0);
+  const [modalItemsPerPage] = useState(10);
   const [dropdownSearch, setDropdownSearch] = useState('');
   const [showExcludeSuggestions, setShowExcludeSuggestions] = useState(false);
   
@@ -72,12 +58,6 @@ const Donors = () => {
     'Contact information invalid',
     'Requested removal'
   ];
-
-
-  // Set up mock token for development
-  useEffect(() => {
-    setupMockToken();
-  }, []);
 
   // Fetch events on component mount
   useEffect(() => {
@@ -332,7 +312,6 @@ const Donors = () => {
         search: ''
       });
       
-      setAvailableDonors(result.data || []);
       setModalTotalPages(result.total_pages || 1);
       setModalTotalDonors(result.total_count || 0);
     } catch (error) {
@@ -372,19 +351,6 @@ const Donors = () => {
       setLoading(prev => ({ ...prev, donors: false }));
     }
   };
-
-  // Handle close modal
-  const handleCloseModal = () => {
-    setShowAddDonorModal(false);
-  };
-
-  // 添加关闭添加捐赠者模态框的函数
-  const handleCloseAddDonorModal = () => {
-    setShowAddDonorModal(false);
-    setModalSearchQuery('');
-    setIsAddingDonorToList(null);
-  };
-
   // Handle pagination
   const handlePageChange = async (page) => {
     if (page < 1 || page > totalPages) return;
@@ -468,70 +434,6 @@ const Donors = () => {
     setShowEventDropdown(false);
     setCurrentPage(1); // Reset to first page when changing events
     setSearchQuery(''); // Clear search when changing events
-  };
-
-  /**
-   * Add a donor to the currently selected event
-   * @param {number} donorId - The ID of the donor to add
-   */
-  const handleAddDonor = async (donorId) => {
-    if (!selectedEvent || !donorId) return;
-
-    try {
-      setLoading(prev => ({ ...prev, donors: true }));
-      
-      // Call API to add donor to event
-      const result = await addDonorToEvent(selectedEvent.id, donorId);
-      
-      // If response includes information about newly created list, update UI
-      if (result.donorList) {
-        console.log('Donor list created or updated:', result.donorList);
-      }
-      
-      // Update event donor data
-      await fetchEventDonors();
-      await fetchEventStats();
-      
-      // Remove this donor from available donors list
-      setAvailableDonors(prev => prev.filter(donor => {
-        const id = donor.id || donor.donor_id || donor.donorId;
-        return id !== donorId;
-      }));
-      
-      // Show success message
-      setSuccess('Donor added successfully');
-      setTimeout(() => setSuccess(''), 3000);
-      
-      // Refresh available donors list
-      try {
-        const updatedAvailableDonors = await getAvailableDonors(selectedEvent.id, {
-          page: 1,
-          limit: 100
-        });
-        setAvailableDonors(updatedAvailableDonors.data || []);
-      } catch (refreshError) {
-        console.error('Error refreshing available donors:', refreshError);
-        // Error already handled, but does not affect main process
-      }
-    } catch (error) {
-      console.error('Error adding donor to event:', error);
-      
-      // Special handling for donors already in the event
-      if (error.message && error.message.includes('already in this event')) {
-        setError(prev => ({ ...prev, donors: 'This donor is already in this event' }));
-      } else {
-        setError(prev => ({ ...prev, donors: 'Failed to add donor: ' + (error.message || 'Unknown error') }));
-      }
-      
-      // Refresh donor list to ensure UI consistency
-      try {
-        await fetchEventDonors();
-      } catch (fetchError) {
-        console.error('Failed to refresh donors after error:', fetchError);
-      }
-    } finally {
-      setLoading(prev => ({ ...prev, donors: false }));
-    }
   };
 
   /**
@@ -746,166 +648,6 @@ const Donors = () => {
     }
   };
 
-  /**
-   * Refresh available donors list
-   */
-  const handleRefreshAvailableDonors = async () => {
-    if (!selectedEvent) return;
-    
-    setIsRefreshing(true);
-    
-    try {
-      // refresh available donors list
-      const refreshedDonors = await getAvailableDonors(selectedEvent.id, {
-        page: 1,
-        limit: 100
-      });
-      setAvailableDonors(refreshedDonors.data || []);
-    } catch (error) {
-      console.error('Error refreshing available donors:', error);
-      setError(prev => ({ ...prev, availableDonors: 'Failed to refresh donor list' }));
-    } finally {
-      setIsRefreshing(false);
-    }
-  };
-
-  // 添加模态框搜索处理函数
-  const handleModalSearch = async (e) => {
-    const searchValue = e.target.value;
-    setModalSearchQuery(searchValue);
-    
-    if (!selectedEvent) return;
-    
-    try {
-      setLoading(prev => ({ ...prev, availableDonors: true }));
-      setError(prev => ({ ...prev, availableDonors: null }));
-      
-      const result = await getAvailableDonors(selectedEvent.id, {
-        page: 1,
-        limit: modalItemsPerPage,
-        search: searchValue
-      });
-      
-      setAvailableDonors(result.data || []);
-      setModalCurrentPage(1);
-      setModalTotalPages(result.total_pages || 1);
-      setModalTotalDonors(result.total_count || 0);
-    } catch (error) {
-      console.error('Error searching available donors:', error);
-      setError(prev => ({ ...prev, availableDonors: error.message }));
-    } finally {
-      setLoading(prev => ({ ...prev, availableDonors: false }));
-    }
-  };
-
-  // 过滤可用捐赠者列表
-  const filteredAvailableDonors = availableDonors.filter(donor => {
-    if (!donor || typeof donor !== 'object') {
-      console.warn('Invalid donor object:', donor);
-      return false;
-    }
-    
-    const searchTerm = modalSearchQuery.toLowerCase();
-    
-    // 安全地访问可能为null的字段
-    const firstName = String(donor.firstName || '').toLowerCase();
-    const lastName = String(donor.lastName || '').toLowerCase();
-    const organizationName = String(donor.organizationName || '').toLowerCase();
-    
-    return firstName.includes(searchTerm) ||
-      lastName.includes(searchTerm) ||
-      organizationName.includes(searchTerm);
-  });
-
-  const handleAddDonorToList = async (donor) => {
-    if (!selectedEvent) return;
-    
-    try {
-      setIsAddingDonorToList(donor.id);
-      await addDonorToEvent(selectedEvent.id, donor.id);
-      setSuccess('Donor added successfully!');
-      setTimeout(() => setSuccess(''), 3000);
-      
-      await Promise.all([
-        fetchEventDonors(),
-        handleRefreshAvailableDonors(),
-        fetchEventStats()
-      ]);
-    } catch (err) {
-      setError(prev => ({ ...prev, donors: err.message }));
-    } finally {
-      setIsAddingDonorToList(null);
-    }
-  };
-
-  const handleModalPageChange = async (newPage) => {
-    if (!selectedEvent) return;
-    
-    try {
-      setLoading(prev => ({ ...prev, availableDonors: true }));
-      setError(prev => ({ ...prev, availableDonors: null }));
-      
-      const result = await getAvailableDonors(selectedEvent.id, {
-        page: newPage,
-        limit: modalItemsPerPage,
-        search: modalSearchQuery
-      });
-      
-      setAvailableDonors(result.data || []);
-      setModalCurrentPage(newPage);
-      setModalTotalPages(result.total_pages || 1);
-      setModalTotalDonors(result.total_count || 0);
-    } catch (error) {
-      console.error('Error fetching available donors:', error);
-      setError(prev => ({ ...prev, availableDonors: error.message }));
-    } finally {
-      setLoading(prev => ({ ...prev, availableDonors: false }));
-    }
-  };
-
-  // 添加批量添加捐赠者的函数
-  const handleAddMultipleDonors = async () => {
-    if (!selectedEvent || selectedDonors.length === 0) return;
-    
-    try {
-      setLoading(prev => ({ ...prev, donors: true }));
-      
-      // 批量添加捐赠者
-      await Promise.all(selectedDonors.map(donor => 
-        addDonorToEvent(selectedEvent.id, donor.id)
-      ));
-      
-      setSuccess(`${selectedDonors.length} donors added successfully!`);
-      setTimeout(() => setSuccess(''), 3000);
-      
-      // 更新UI
-      await Promise.all([
-        fetchEventDonors(),
-        handleRefreshAvailableDonors(),
-        fetchEventStats()
-      ]);
-      
-      // 清空选中状态
-      setSelectedDonors([]);
-    } catch (err) {
-      setError(prev => ({ ...prev, donors: err.message }));
-    } finally {
-      setLoading(prev => ({ ...prev, donors: false }));
-    }
-  };
-
-  // 添加处理选中状态的函数
-  const handleDonorSelect = (donor) => {
-    setSelectedDonors(prev => {
-      const isSelected = prev.some(d => d.id === donor.id);
-      if (isSelected) {
-        return prev.filter(d => d.id !== donor.id);
-      } else {
-        return [...prev, donor];
-      }
-    });
-  };
-
   const handleDonorAdded = async () => {
     try {
       // 重新获取活动的捐赠者列表
@@ -925,7 +667,6 @@ const Donors = () => {
     event.name.toLowerCase().includes(dropdownSearch.toLowerCase())
   );
 
-  // 添加处理建议选择的函数
   const handleSuggestionSelect = (suggestion) => {
     setEditExcludeReason(suggestion);
     setShowExcludeSuggestions(false);
