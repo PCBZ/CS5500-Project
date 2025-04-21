@@ -32,36 +32,6 @@ const Register = () => {
     }
   };
 
-  // Form validation
-  const validateForm = () => {
-    const newErrors = {};
-    
-    if (!formData.name) {
-      newErrors.name = 'Please enter your name';
-    } else if (formData.name.length < 2) {
-      newErrors.name = 'Name must be at least 2 characters';
-    }
-    
-    if (!formData.email) {
-      newErrors.email = 'Please enter your email';
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'Please enter a valid email address';
-    }
-    
-    if (!formData.password) {
-      newErrors.password = 'Please enter your password';
-    } else if (formData.password.length < 6) {
-      newErrors.password = 'Password must be at least 6 characters';
-    }
-    
-    if (!formData.role) {
-      newErrors.role = 'Please select a role';
-    }
-    
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
   // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
