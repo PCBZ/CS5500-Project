@@ -51,4 +51,11 @@ jobs:
           publish_branch: gh-pages
           commit_message: "Deploy: ${{ github.event.head_commit.message }}"
           force: true
-          clean: true 
+          clean: true
+
+      - name: Deploy to Render
+        uses: render-actions/build-and-deploy@v1
+        with:
+          serviceId: ${{ secrets.RENDER_SERVICE_ID }}
+          apiKey: ${{ secrets.RENDER_API_KEY }}
+          environment: production 
