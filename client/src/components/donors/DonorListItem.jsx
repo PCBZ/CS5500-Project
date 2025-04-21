@@ -1,7 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { FaEdit, FaTrash } from 'react-icons/fa';
-import { formatDonorName, formatCurrency, formatAddress } from '../../utils/formatters';
 import './DonorListItem.css';
 
 const DonorListItem = ({ donor, onEdit, onDelete, isDeleting }) => {
