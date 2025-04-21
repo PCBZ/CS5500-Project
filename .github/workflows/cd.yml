@@ -54,7 +54,7 @@ jobs:
           clean: true
 
       - name: Deploy to Render
-        uses: render-actions/build-and-deploy@v1
+        uses: render-actions/deploy-action@main
         with:
           serviceId: ${{ secrets.RENDER_SERVICE_ID }}
           apiKey: ${{ secrets.RENDER_API_KEY }}
