@@ -1,24 +1,17 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   FaSearch,
   FaSpinner,
   FaDownload,
   FaSync,
   FaCheckCircle,
-  FaFilter,
-  FaUpload,
-  FaEdit,
-  FaTrash,
-  FaPlus
 } from 'react-icons/fa';
 import {
   getAllDonors,
   exportDonorsToCsv,
   updateDonor,
-  importDonors,
   deleteDonor
 } from '../../services/donorService';
-import { formatCurrency } from '../../utils/formatters';
 import DonorListItem from './DonorListItem';
 import EditDonorModal from './EditDonorModal';
 import ImportDonors from './ImportDonors'; // Import the component
@@ -32,7 +25,7 @@ const AllDonors = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalDonors, setTotalDonors] = useState(0);
-  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [itemsPerPage] = useState(10);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [exporting, setExporting] = useState(false);
@@ -42,7 +35,7 @@ const AllDonors = () => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [selectedDonor, setSelectedDonor] = useState(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [importing, setImporting] = useState(false);
+  const [importing] = useState(false);
 
   const navigate = useNavigate();
   
@@ -58,12 +51,7 @@ const AllDonors = () => {
   // Remove toggling; the filter panel will always be visible.
   // (If you still have a toggleFilters function/state elsewhere, ignore it.)
 
-  // Fetch all donor data when searchQuery, currentPage, or filters change
-  useEffect(() => {
-    fetchDonors();
-  }, [searchQuery, currentPage, filters]);
-  
-  const fetchDonors = async () => {
+  const fetchDonors = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
@@ -94,7 +82,11 @@ const AllDonors = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentPage, itemsPerPage, searchQuery, filters]);
+
+  useEffect(() => {
+    fetchDonors();
+  }, [fetchDonors]);
   
   // Filter and search handlers
   const handleFilterChange = (e) => {
