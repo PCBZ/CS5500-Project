@@ -1,4 +1,4 @@
-# Event Management System
+# BC Cancer Fundation Donor Management System
 
 A comprehensive event management system for handling donor events, donor management, and event-donor relationships.
 
@@ -18,20 +18,11 @@ A comprehensive event management system for handling donor events, donor managem
   - Export donor data
   - Advanced search and filtering
 
-- User Interface
-  - Modern and responsive design using Material-UI
-  - Intuitive navigation with role-based access control
-  - Real-time status updates
-  - Advanced search and filter capabilities
-  - Dark/Light mode support
-
 ## Tech Stack
 
 - Frontend:
   - React.js
-  - Material-UI for components
   - Redux for state management
-  - Axios for API calls
   - React Router for navigation
 
 - Backend:
@@ -90,23 +81,29 @@ npm start
 .
 ├── Server/                 # Backend server
 │   ├── src/               # Source code
-│   │   ├── controllers/   # Route controllers
-│   │   ├── models/        # Database models
-│   │   ├── routes/        # API routes
+│   │   ├── routes/        # API route handlers
 │   │   ├── middleware/    # Custom middleware
-│   │   └── utils/         # Utility functions
-│   ├── tests/             # Test files
-│   └── package.json       # Backend dependencies
-├── client/                # Frontend application
-│   ├── src/              # Source code
-│   │   ├── components/   # React components
-│   │   ├── pages/        # Page components
-│   │   ├── store/        # Redux store
-│   │   ├── hooks/        # Custom hooks
-│   │   └── utils/        # Utility functions
-│   ├── public/           # Static files
-│   └── package.json      # Frontend dependencies
-└── scripts/              # Utility scripts
+│   │   ├── lib/          # Prisma ORM and utilities
+│   │   └── index.js      # Application entry point
+│   ├── prisma/           # Prisma configuration
+│   │   ├── migrations/   # Database migrations
+│   │   └── schema.prisma # Database schema
+│   ├── test/            # Test files
+│   ├── docs/            # API documentation
+│   └── package.json     # Backend dependencies
+├── client/               # Frontend application
+│   ├── src/             # Source code
+│   │   ├── components/  # React components
+│   │   │   ├── common/  # Shared components
+│   │   │   ├── donors/  # Donor-related components
+│   │   │   ├── events/  # Event-related components
+│   │   │   └── lists/   # List-related components
+│   │   ├── pages/       # Page components
+│   │   ├── services/    # API service functions
+│   │   └── App.js       # Application entry
+│   ├── public/          # Static files
+│   └── package.json     # Frontend dependencies
+└── scripts/             # Utility scripts
     └── uploadTestData.js # Test data upload script
 ```
 
@@ -162,7 +159,3 @@ Configure the application using environment variables:
 ## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
-
-## Support
-
-For support, please create an issue in the repository or contact the maintainers.
