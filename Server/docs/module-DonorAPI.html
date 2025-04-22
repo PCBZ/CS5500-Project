@@ -70,7 +70,7 @@
             
             <nav>
                 
-                    <h2><a href="index.html">Documentation</a></h2><div class="category"><h3>Modules</h3><ul><li><a href="module-DonorAPI.html">DonorAPI</a></li><li><a href="module-DonorListAPI.html">DonorListAPI</a></li><li><a href="module-UserAPI.html">UserAPI</a></li></ul></div>
+                    <h2><a href="index.html">Documentation</a></h2><div class="category"><h3>Modules</h3><ul><li><a href="module-DonorListAPI.html">DonorListAPI</a></li></ul><h3>Classes</h3><ul><li><a href="ProgressService.html">ProgressService</a></li></ul><h3>Global</h3><ul><li><a href="global.html#GET/api/progress/:id">GET /api/progress/:id</a></li></ul></div><div class="category"><h2>Routes</h2><h3>Modules</h3><ul><li><a href="module-DonorAPI.html">DonorAPI</a></li><li><a href="module-EventAPI.html">EventAPI</a></li><li><a href="module-UserAPI.html">UserAPI</a></li></ul></div>
                 
             </nav>
         </div>
@@ -120,6 +120,262 @@
         <div class='vertical-section'>
             <h1>Methods</h1>
             <div class="members">
+            
+                <div class="member">
+
+
+    
+    <h4 class="name" id="~DELETE/api/donors/batch">
+        <a class="href-link" href="#~DELETE/api/donors/batch">#</a>
+        
+            
+                <span class='tag'>inner</span>
+            
+        
+        <span class="code-name">
+            
+                DELETE /api/donors/batch<span class="signature">()</span><span class="type-signature"> &rarr; {Object|Error|Error|Error}</span>
+            
+        </span>
+    </h4>
+    
+
+    
+    
+    <div class="description">
+        <p>Batch delete donors</p>
+    </div>
+    
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+<div class="table-container">
+    <table class="params table">
+        <thead>
+        <tr>
+            
+            <th>Name</th>
+            
+
+            <th>Type</th>
+
+            
+
+            
+
+            <th class="last">Description</th>
+        </tr>
+        </thead>
+
+        <tbody>
+        
+
+            
+<tr class="deep-level-0">
+  
+      <td class="name"><code>req.body.ids</code></td>
+  
+
+  <td class="type">
+  
+      
+<code class="param-type">Array</code>
+
+
+  
+  </td>
+
+  
+
+  
+
+  <td class="description last"><p>Array of donor IDs to delete</p></td>
+</tr>
+
+
+        
+
+            
+<tr class="deep-level-0">
+  
+      <td class="name"><code>req.headers.authorization</code></td>
+  
+
+  <td class="type">
+  
+      
+<code class="param-type">string</code>
+
+
+  
+  </td>
+
+  
+
+  
+
+  <td class="description last"><p>Bearer token for authentication</p></td>
+</tr>
+
+
+        
+        </tbody>
+    </table>
+</div>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    
+
+    
+
+    
+
+    
+        <p class="tag-source">
+            <a href="donor.js.html" class="button">View Source</a>
+            <span>
+                <a href="donor.js.html">donor.js</a>, <a href="donor.js.html#line767">line 767</a>
+            </span>
+        </p>
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <div class='columns method-parameter'>
+        <div class="column is-2"><label>Returns:</label></div>
+        <div class="column is-10">
+            
+                    
+
+<div class="columns">
+    
+    <div class='param-desc column is-7'><p>200 - Success message</p></div>
+    
+    
+    <div class='column is-5 has-text-left'>
+        <label>Type: </label>
+        
+<code class="param-type">Object</code>
+
+
+    </div>
+    
+</div>
+
+                
+                    
+
+<div class="columns">
+    
+    <div class='param-desc column is-7'><p>400 - Invalid request</p></div>
+    
+    
+    <div class='column is-5 has-text-left'>
+        <label>Type: </label>
+        
+<code class="param-type">Error</code>
+
+
+    </div>
+    
+</div>
+
+                
+                    
+
+<div class="columns">
+    
+    <div class='param-desc column is-7'><p>401 - Unauthorized access</p></div>
+    
+    
+    <div class='column is-5 has-text-left'>
+        <label>Type: </label>
+        
+<code class="param-type">Error</code>
+
+
+    </div>
+    
+</div>
+
+                
+                    
+
+<div class="columns">
+    
+    <div class='param-desc column is-7'><p>500 - Server error</p></div>
+    
+    
+    <div class='column is-5 has-text-left'>
+        <label>Type: </label>
+        
+<code class="param-type">Error</code>
+
+
+    </div>
+    
+</div>
+
+                
+        </div>
+    </div>
+
+
+
+
+</div>
             
                 <div class="member">
 
@@ -247,7 +503,7 @@
 
   
 
-  <td class="description last"><p>Field to sort by (e.g., &quot;last_name&quot;, &quot;total_donations&quot;)</p></td>
+  <td class="description last"><p>Field to sort by (e.g., &quot;lastName&quot;, &quot;totalDonations&quot;)</p></td>
 </tr>
 
 
@@ -406,7 +662,7 @@
             
 <tr class="deep-level-0">
   
-      <td class="name"><code>req.query.minDonation</code></td>
+      <td class="name"><code>req.query.min_donation</code></td>
   
 
   <td class="type">
@@ -520,7 +776,7 @@
         <p class="tag-source">
             <a href="donor.js.html" class="button">View Source</a>
             <span>
-                <a href="donor.js.html">donor.js</a>, <a href="donor.js.html#line57">line 57</a>
+                <a href="donor.js.html">donor.js</a>, <a href="donor.js.html#line58">line 58</a>
             </span>
         </p>
     
@@ -611,7 +867,7 @@
     
     
         <pre class="prettyprint"><code>// Request
-GET /api/donors?page=1&amp;limit=20&amp;city=Vancouver&amp;minDonation=10000
+GET /api/donors?page=1&amp;limit=20&amp;city=Vancouver&amp;min_donation=10000
 Authorization: Bearer &lt;token>
 
 // Success Response
@@ -620,9 +876,9 @@ Authorization: Bearer &lt;token>
     {
       "id": "1",
       "pmm": "Parvati Patel",
-      "first_name": "Mei",
-      "last_name": "Lee",
-      "total_donations": 89267,
+      "firstName": "Mei",
+      "lastName": "Lee",
+      "totalDonations": 89267,
       "tags": ["High Priority", "Cancer Research Interest"]
     },
     ...
@@ -786,7 +1042,7 @@ Authorization: Bearer &lt;token>
         <p class="tag-source">
             <a href="donor.js.html" class="button">View Source</a>
             <span>
-                <a href="donor.js.html">donor.js</a>, <a href="donor.js.html#line191">line 191</a>
+                <a href="donor.js.html">donor.js</a>, <a href="donor.js.html#line208">line 208</a>
             </span>
         </p>
     
@@ -921,9 +1177,9 @@ Authorization: Bearer &lt;token>
   "id": "123",
   "constituentId": "D-10023",
   "pmm": "Parvati Patel",
-  "first_name": "Mei",
-  "last_name": "Lee",
-  "total_donations": 89267,
+  "firstName": "Mei",
+  "lastName": "Lee",
+  "totalDonations": 89267,
   "tags": ["High Priority", "Cancer Research Interest"],
   ...
 }</code></pre>
@@ -945,7 +1201,7 @@ Authorization: Bearer &lt;token>
         
         <span class="code-name">
             
-                POST /api/donors/import<span class="signature">()</span><span class="type-signature"> &rarr; {Object|Error|Error|Error}</span>
+                POST /api/donors/import<span class="signature">()</span><span class="type-signature"></span>
             
         </span>
     </h4>
@@ -954,7 +1210,108 @@ Authorization: Bearer &lt;token>
     
     
     <div class="description">
-        <p>Import donors from CSV or Excel file</p>
+        <p>Import donors from CSV or Excel file with progress tracking</p>
+    </div>
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    
+
+    
+
+    
+
+    
+        <p class="tag-source">
+            <a href="donor.js.html" class="button">View Source</a>
+            <span>
+                <a href="donor.js.html">donor.js</a>, <a href="donor.js.html#line386">line 386</a>
+            </span>
+        </p>
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+            
+                <div class="member">
+
+
+    
+    <h4 class="name" id="~PUT/api/donors/:id">
+        <a class="href-link" href="#~PUT/api/donors/:id">#</a>
+        
+            
+                <span class='tag'>inner</span>
+            
+        
+        <span class="code-name">
+            
+                PUT /api/donors/:id<span class="signature">()</span><span class="type-signature"> &rarr; {Object|Error|Error|Error|Error}</span>
+            
+        </span>
+    </h4>
+    
+
+    
+    
+    <div class="description">
+        <p>Update donor information</p>
     </div>
     
 
@@ -992,13 +1349,13 @@ Authorization: Bearer &lt;token>
             
 <tr class="deep-level-0">
   
-      <td class="name"><code>req.file</code></td>
+      <td class="name"><code>req.params.id</code></td>
   
 
   <td class="type">
   
       
-<code class="param-type">File</code>
+<code class="param-type">string</code>
 
 
   
@@ -1008,7 +1365,32 @@ Authorization: Bearer &lt;token>
 
   
 
-  <td class="description last"><p>CSV or Excel file</p></td>
+  <td class="description last"><p>Donor ID</p></td>
+</tr>
+
+
+        
+
+            
+<tr class="deep-level-0">
+  
+      <td class="name"><code>req.body</code></td>
+  
+
+  <td class="type">
+  
+      
+<code class="param-type">Object</code>
+
+
+  
+  </td>
+
+  
+
+  
+
+  <td class="description last"><p>Updated donor data</p></td>
 </tr>
 
 
@@ -1081,7 +1463,7 @@ Authorization: Bearer &lt;token>
         <p class="tag-source">
             <a href="donor.js.html" class="button">View Source</a>
             <span>
-                <a href="donor.js.html">donor.js</a>, <a href="donor.js.html#line256">line 256</a>
+                <a href="donor.js.html">donor.js</a>, <a href="donor.js.html#line278">line 278</a>
             </span>
         </p>
     
@@ -1112,7 +1494,7 @@ Authorization: Bearer &lt;token>
 
 <div class="columns">
     
-    <div class='param-desc column is-7'><p>200 - Import results</p></div>
+    <div class='param-desc column is-7'><p>200 - Updated donor details</p></div>
     
     
     <div class='column is-5 has-text-left'>
@@ -1130,7 +1512,7 @@ Authorization: Bearer &lt;token>
 
 <div class="columns">
     
-    <div class='param-desc column is-7'><p>400 - Missing file or invalid format</p></div>
+    <div class='param-desc column is-7'><p>400 - Invalid donor ID format</p></div>
     
     
     <div class='column is-5 has-text-left'>
@@ -1149,6 +1531,24 @@ Authorization: Bearer &lt;token>
 <div class="columns">
     
     <div class='param-desc column is-7'><p>401 - Unauthorized access</p></div>
+    
+    
+    <div class='column is-5 has-text-left'>
+        <label>Type: </label>
+        
+<code class="param-type">Error</code>
+
+
+    </div>
+    
+</div>
+
+                
+                    
+
+<div class="columns">
+    
+    <div class='param-desc column is-7'><p>404 - Donor not found</p></div>
     
     
     <div class='column is-5 has-text-left'>
@@ -1189,23 +1589,23 @@ Authorization: Bearer &lt;token>
     <h5>Example</h5>
     
     
-        <pre class="prettyprint"><code>// Request (multipart/form-data)
-POST /api/donors/import
+        <pre class="prettyprint"><code>// Request
+PUT /api/donors/123
 Authorization: Bearer &lt;token>
-[file data]
+{
+  "firstName": "Mei",
+  "lastName": "Lee-Wong",
+  "pmm": "John Smith",
+  ...
+}
 
 // Success Response
 {
-  "success": true,
-  "imported": 127,
-  "updated": 43,
-  "errors": [
-    {
-      "row": 15,
-      "error": "Missing required field: last_name"
-    }
-  ],
-  "message": "Donor import completed with 1 error"
+  "id": "123",
+  "firstName": "Mei",
+  "lastName": "Lee-Wong",
+  "pmm": "John Smith",
+  ...
 }</code></pre>
     
 
