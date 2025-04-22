@@ -7,8 +7,7 @@ const DonorList = ({
   onRemove, 
   onStatusUpdate, 
   isEventReady, 
-  loading,
-  formatDate 
+  loading
 }) => {
   return (
     <div className="donor-list-container">

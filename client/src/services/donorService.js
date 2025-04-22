@@ -1,6 +1,4 @@
 // Import mock data from mockData module
-// import { MOCK_DONORS, MOCK_EVENT_DONORS, MOCK_EVENT_STATS } from './mockData';
-import { getEventDonors } from './eventService';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001';
 
