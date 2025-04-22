@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './CreateNewEvent.css';
 import { createEvent } from '../../services/eventService';
-import authService from '../../services/authService.js';
 
 function CreateNewEvent({ onClose, onEventCreated }) {
   const [formData, setFormData] = useState({

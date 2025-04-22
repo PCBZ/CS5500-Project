@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { FaTimes, FaSearch, FaSync, FaPlus, FaSpinner, FaInfoCircle } from 'react-icons/fa';
-import { addDonorToEvent, addDonorsToList, getAvailableDonors } from '../../services/donorService';
+import { FaTimes, FaSearch, FaSync, FaPlus, FaInfoCircle } from 'react-icons/fa';
+import { addDonorsToList, getAvailableDonors } from '../../services/donorService';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import './AddDonorModal.css';
@@ -133,25 +133,6 @@ const AddDonorModal = ({
       }
       return [...prev, donor];
     });
-  };
-
-  const handleAddDonor = async (donorId) => {
-    try {
-      setLoading(true);
-      await addDonorToEvent(eventId, donorId);
-      if (onDonorAdded) {
-        onDonorAdded();
-      }
-      // Remove the added donor from both available and recommended donors
-      setAvailableDonors(prev => prev.filter(d => d.id !== donorId));
-      setRecommendedDonors(prev => prev.filter(d => d.id !== donorId));
-      // Remove from selected donors
-      setSelectedDonors(prev => prev.filter(d => d.id !== donorId));
-    } catch (err) {
-      setError(err.message || 'Failed to add donor');
-    } finally {
-      setLoading(false);
-    }
   };
 
   const handleAddMultipleDonors = async () => {

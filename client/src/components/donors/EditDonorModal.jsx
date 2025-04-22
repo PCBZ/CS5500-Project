@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
-import { FaTimes, FaSave, FaSpinner, FaChevronDown, FaChevronUp } from 'react-icons/fa';
+import { FaSave, FaSpinner, FaChevronDown, FaChevronUp } from 'react-icons/fa';
 import './EditDonorModal.css';
 
 const EditDonorModal = ({ donor, onSave, onClose, isOpen }) => {
