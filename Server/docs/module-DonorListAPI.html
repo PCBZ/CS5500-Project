@@ -70,7 +70,7 @@
             
             <nav>
                 
-                    <h2><a href="index.html">Documentation</a></h2><div class="category"><h3>Modules</h3><ul><li><a href="module-DonorAPI.html">DonorAPI</a></li><li><a href="module-DonorListAPI.html">DonorListAPI</a></li><li><a href="module-UserAPI.html">UserAPI</a></li></ul></div>
+                    <h2><a href="index.html">Documentation</a></h2><div class="category"><h3>Modules</h3><ul><li><a href="module-DonorListAPI.html">DonorListAPI</a></li></ul><h3>Classes</h3><ul><li><a href="ProgressService.html">ProgressService</a></li></ul><h3>Global</h3><ul><li><a href="global.html#GET/api/progress/:id">GET /api/progress/:id</a></li></ul></div><div class="category"><h2>Routes</h2><h3>Modules</h3><ul><li><a href="module-DonorAPI.html">DonorAPI</a></li><li><a href="module-EventAPI.html">EventAPI</a></li><li><a href="module-UserAPI.html">UserAPI</a></li></ul></div>
                 
             </nav>
         </div>
@@ -631,7 +631,7 @@ Authorization: Bearer &lt;token></code></pre>
         <p class="tag-source">
             <a href="donorList.js.html" class="button">View Source</a>
             <span>
-                <a href="donorList.js.html">donorList.js</a>, <a href="donorList.js.html#line482">line 482</a>
+                <a href="donorList.js.html">donorList.js</a>, <a href="donorList.js.html#line442">line 442</a>
             </span>
         </p>
     
@@ -739,6 +739,466 @@ Authorization: Bearer &lt;token></code></pre>
     "auto_excluded": 5,
     "review_status": "pending"
   }
+}</code></pre>
+    
+
+
+</div>
+            
+                <div class="member">
+
+
+    
+    <h4 class="name" id=".GET/api/donor-lists/:id/donors">
+        <a class="href-link" href="#.GET/api/donor-lists/:id/donors">#</a>
+        
+            
+                <span class='tag'>static</span>
+            
+        
+        <span class="code-name">
+            
+                GET /api/donor-lists/:id/donors<span class="signature">()</span><span class="type-signature"> &rarr; {object|Error|Error}</span>
+            
+        </span>
+    </h4>
+    
+
+    
+    
+    <div class="description">
+        <p>Get donors from a specific donor list with pagination and filtering</p>
+    </div>
+    
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+<div class="table-container">
+    <table class="params table">
+        <thead>
+        <tr>
+            
+            <th>Name</th>
+            
+
+            <th>Type</th>
+
+            
+            <th>Attributes</th>
+            
+
+            
+            <th>Default</th>
+            
+
+            <th class="last">Description</th>
+        </tr>
+        </thead>
+
+        <tbody>
+        
+
+            
+<tr class="deep-level-0">
+  
+      <td class="name"><code>req.params.id</code></td>
+  
+
+  <td class="type">
+  
+      
+<code class="param-type">number</code>
+
+
+  
+  </td>
+
+  
+      <td class="attributes">
+      
+
+      
+
+      
+      </td>
+  
+
+  
+      <td class="default">
+      
+      </td>
+  
+
+  <td class="description last"><p>Donor list ID</p></td>
+</tr>
+
+
+        
+
+            
+<tr class="deep-level-0">
+  
+      <td class="name"><code>req.query.page</code></td>
+  
+
+  <td class="type">
+  
+      
+<code class="param-type">number</code>
+
+
+  
+  </td>
+
+  
+      <td class="attributes">
+      
+          &lt;optional><br>
+      
+
+      
+
+      
+      </td>
+  
+
+  
+      <td class="default">
+      
+          1
+      
+      </td>
+  
+
+  <td class="description last"><p>Page number for pagination</p></td>
+</tr>
+
+
+        
+
+            
+<tr class="deep-level-0">
+  
+      <td class="name"><code>req.query.limit</code></td>
+  
+
+  <td class="type">
+  
+      
+<code class="param-type">number</code>
+
+
+  
+  </td>
+
+  
+      <td class="attributes">
+      
+          &lt;optional><br>
+      
+
+      
+
+      
+      </td>
+  
+
+  
+      <td class="default">
+      
+          20
+      
+      </td>
+  
+
+  <td class="description last"><p>Number of results per page</p></td>
+</tr>
+
+
+        
+
+            
+<tr class="deep-level-0">
+  
+      <td class="name"><code>req.query.search</code></td>
+  
+
+  <td class="type">
+  
+      
+<code class="param-type">string</code>
+
+
+  
+  </td>
+
+  
+      <td class="attributes">
+      
+          &lt;optional><br>
+      
+
+      
+
+      
+      </td>
+  
+
+  
+      <td class="default">
+      
+      </td>
+  
+
+  <td class="description last"><p>Search term for donor name</p></td>
+</tr>
+
+
+        
+
+            
+<tr class="deep-level-0">
+  
+      <td class="name"><code>req.query.status</code></td>
+  
+
+  <td class="type">
+  
+      
+<code class="param-type">string</code>
+
+
+  
+  </td>
+
+  
+      <td class="attributes">
+      
+          &lt;optional><br>
+      
+
+      
+
+      
+      </td>
+  
+
+  
+      <td class="default">
+      
+      </td>
+  
+
+  <td class="description last"><p>Filter by donor status</p></td>
+</tr>
+
+
+        
+
+            
+<tr class="deep-level-0">
+  
+      <td class="name"><code>req.headers.authorization</code></td>
+  
+
+  <td class="type">
+  
+      
+<code class="param-type">string</code>
+
+
+  
+  </td>
+
+  
+      <td class="attributes">
+      
+
+      
+
+      
+      </td>
+  
+
+  
+      <td class="default">
+      
+      </td>
+  
+
+  <td class="description last"><p>Bearer token for authentication</p></td>
+</tr>
+
+
+        
+        </tbody>
+    </table>
+</div>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    
+
+    
+
+    
+
+    
+        <p class="tag-source">
+            <a href="donorList.js.html" class="button">View Source</a>
+            <span>
+                <a href="donorList.js.html">donorList.js</a>, <a href="donorList.js.html#line696">line 696</a>
+            </span>
+        </p>
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <div class='columns method-parameter'>
+        <div class="column is-2"><label>Returns:</label></div>
+        <div class="column is-10">
+            
+                    
+
+<div class="columns">
+    
+    <div class='param-desc column is-7'><p>200 - Donors in the specified list with pagination info</p></div>
+    
+    
+    <div class='column is-5 has-text-left'>
+        <label>Type: </label>
+        
+<code class="param-type">object</code>
+
+
+    </div>
+    
+</div>
+
+                
+                    
+
+<div class="columns">
+    
+    <div class='param-desc column is-7'><p>404 - List not found</p></div>
+    
+    
+    <div class='column is-5 has-text-left'>
+        <label>Type: </label>
+        
+<code class="param-type">Error</code>
+
+
+    </div>
+    
+</div>
+
+                
+                    
+
+<div class="columns">
+    
+    <div class='param-desc column is-7'><p>500 - Server error</p></div>
+    
+    
+    <div class='column is-5 has-text-left'>
+        <label>Type: </label>
+        
+<code class="param-type">Error</code>
+
+
+    </div>
+    
+</div>
+
+                
+        </div>
+    </div>
+
+
+
+
+    <h5>Examples</h5>
+    
+    
+        <pre class="prettyprint"><code>Request Example:
+GET /api/donor-lists/1/donors?page=1&amp;limit=10&amp;search=john
+Authorization: Bearer &lt;token></code></pre>
+    
+
+    
+        <pre class="prettyprint"><code>Success Response:
+{
+  "donors": [
+    {
+      "id": 201,
+      "donor_id": 301,
+      "status": "Approved",
+      "comments": "Important donor",
+      "donor": {
+        "id": 301,
+        "first_name": "John",
+        "last_name": "Doe",
+        "organization_name": null,
+        "total_donations": 5000
+      }
+    }
+  ],
+  "total": 1,
+  "page": 1,
+  "limit": 10,
+  "pages": 1
 }</code></pre>
     
 
@@ -1399,6 +1859,490 @@ Authorization: Bearer &lt;token></code></pre>
 
 
     
+    <h4 class="name" id=".GET/api/lists/:listId/stats">
+        <a class="href-link" href="#.GET/api/lists/:listId/stats">#</a>
+        
+            
+                <span class='tag'>static</span>
+            
+        
+        <span class="code-name">
+            
+                GET /api/lists/:listId/stats<span class="signature">()</span><span class="type-signature"> &rarr; {object|Error|Error}</span>
+            
+        </span>
+    </h4>
+    
+
+    
+    
+    <div class="description">
+        <p>Get summary statistics for a specific donor list</p>
+    </div>
+    
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+<div class="table-container">
+    <table class="params table">
+        <thead>
+        <tr>
+            
+            <th>Name</th>
+            
+
+            <th>Type</th>
+
+            
+
+            
+
+            <th class="last">Description</th>
+        </tr>
+        </thead>
+
+        <tbody>
+        
+
+            
+<tr class="deep-level-0">
+  
+      <td class="name"><code>req.params.listId</code></td>
+  
+
+  <td class="type">
+  
+      
+<code class="param-type">string</code>
+
+
+  
+  </td>
+
+  
+
+  
+
+  <td class="description last"><p>The ID of the donor list to retrieve stats for</p></td>
+</tr>
+
+
+        
+
+            
+<tr class="deep-level-0">
+  
+      <td class="name"><code>req.headers.authorization</code></td>
+  
+
+  <td class="type">
+  
+      
+<code class="param-type">string</code>
+
+
+  
+  </td>
+
+  
+
+  
+
+  <td class="description last"><p>Bearer token for authentication</p></td>
+</tr>
+
+
+        
+        </tbody>
+    </table>
+</div>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    
+
+    
+
+    
+
+    
+        <p class="tag-source">
+            <a href="donorList.js.html" class="button">View Source</a>
+            <span>
+                <a href="donorList.js.html">donorList.js</a>, <a href="donorList.js.html#line533">line 533</a>
+            </span>
+        </p>
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <div class='columns method-parameter'>
+        <div class="column is-2"><label>Returns:</label></div>
+        <div class="column is-10">
+            
+                    
+
+<div class="columns">
+    
+    <div class='param-desc column is-7'><p>200 - Statistics about reviewed and pending donors</p></div>
+    
+    
+    <div class='column is-5 has-text-left'>
+        <label>Type: </label>
+        
+<code class="param-type">object</code>
+
+
+    </div>
+    
+</div>
+
+                
+                    
+
+<div class="columns">
+    
+    <div class='param-desc column is-7'><p>404 - Donor list not found</p></div>
+    
+    
+    <div class='column is-5 has-text-left'>
+        <label>Type: </label>
+        
+<code class="param-type">Error</code>
+
+
+    </div>
+    
+</div>
+
+                
+                    
+
+<div class="columns">
+    
+    <div class='param-desc column is-7'><p>500 - Server error</p></div>
+    
+    
+    <div class='column is-5 has-text-left'>
+        <label>Type: </label>
+        
+<code class="param-type">Error</code>
+
+
+    </div>
+    
+</div>
+
+                
+        </div>
+    </div>
+
+
+
+
+    <h5>Examples</h5>
+    
+    
+        <pre class="prettyprint"><code>Request Example:
+GET /api/lists/123/stats
+Authorization: Bearer &lt;token></code></pre>
+    
+
+    
+        <pre class="prettyprint"><code>Success Response:
+{
+  "list_id": 123,
+  "list_name": "Summer Gala 2024",
+  "total_donors": 150,
+  "reviewed": 135,
+  "pending_review": 15,
+  "approved": 120,
+  "excluded": 15,
+  "auto_excluded": 5,
+  "approval_rate": 80, // percentage
+  "review_status": "pending",
+  "event_name": "Summer Gala 2024"
+}</code></pre>
+    
+
+
+</div>
+            
+                <div class="member">
+
+
+    
+    <h4 class="name" id=".GET/api/lists/stats/summary">
+        <a class="href-link" href="#.GET/api/lists/stats/summary">#</a>
+        
+            
+                <span class='tag'>static</span>
+            
+        
+        <span class="code-name">
+            
+                GET /api/lists/stats/summary<span class="signature">()</span><span class="type-signature"> &rarr; {object|Error}</span>
+            
+        </span>
+    </h4>
+    
+
+    
+    
+    <div class="description">
+        <p>Get summary statistics for all donor lists</p>
+    </div>
+    
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+<div class="table-container">
+    <table class="params table">
+        <thead>
+        <tr>
+            
+            <th>Name</th>
+            
+
+            <th>Type</th>
+
+            
+
+            
+
+            <th class="last">Description</th>
+        </tr>
+        </thead>
+
+        <tbody>
+        
+
+            
+<tr class="deep-level-0">
+  
+      <td class="name"><code>req.headers.authorization</code></td>
+  
+
+  <td class="type">
+  
+      
+<code class="param-type">string</code>
+
+
+  
+  </td>
+
+  
+
+  
+
+  <td class="description last"><p>Bearer token for authentication</p></td>
+</tr>
+
+
+        
+        </tbody>
+    </table>
+</div>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    
+
+    
+
+    
+
+    
+        <p class="tag-source">
+            <a href="donorList.js.html" class="button">View Source</a>
+            <span>
+                <a href="donorList.js.html">donorList.js</a>, <a href="donorList.js.html#line611">line 611</a>
+            </span>
+        </p>
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <div class='columns method-parameter'>
+        <div class="column is-2"><label>Returns:</label></div>
+        <div class="column is-10">
+            
+                    
+
+<div class="columns">
+    
+    <div class='param-desc column is-7'><p>200 - Overall statistics about all donor lists</p></div>
+    
+    
+    <div class='column is-5 has-text-left'>
+        <label>Type: </label>
+        
+<code class="param-type">object</code>
+
+
+    </div>
+    
+</div>
+
+                
+                    
+
+<div class="columns">
+    
+    <div class='param-desc column is-7'><p>500 - Server error</p></div>
+    
+    
+    <div class='column is-5 has-text-left'>
+        <label>Type: </label>
+        
+<code class="param-type">Error</code>
+
+
+    </div>
+    
+</div>
+
+                
+        </div>
+    </div>
+
+
+
+
+    <h5>Examples</h5>
+    
+    
+        <pre class="prettyprint"><code>Request Example:
+GET /api/lists/stats/summary
+Authorization: Bearer &lt;token></code></pre>
+    
+
+    
+        <pre class="prettyprint"><code>Success Response:
+{
+  "total_lists": 10,
+  "total_donors": 1500,
+  "total_reviewed": 1200,
+  "total_pending": 300,
+  "total_approved": 1000,
+  "total_excluded": 200,
+  "total_auto_excluded": 50,
+  "overall_approval_rate": 75, // percentage
+  "completed_lists": 7,
+  "pending_lists": 3
+}</code></pre>
+    
+
+
+</div>
+            
+                <div class="member">
+
+
+    
     <h4 class="name" id=".POST/api/lists/:id/donors">
         <a class="href-link" href="#.POST/api/lists/:id/donors">#</a>
         
@@ -1442,8 +2386,6 @@ Authorization: Bearer &lt;token></code></pre>
             <th>Type</th>
 
             
-            <th>Attributes</th>
-            
 
             
 
@@ -1470,14 +2412,6 @@ Authorization: Bearer &lt;token></code></pre>
   </td>
 
   
-      <td class="attributes">
-      
-
-      
-
-      
-      </td>
-  
 
   
 
@@ -1503,14 +2437,6 @@ Authorization: Bearer &lt;token></code></pre>
   </td>
 
   
-      <td class="attributes">
-      
-
-      
-
-      
-      </td>
-  
 
   
 
@@ -1522,7 +2448,7 @@ Authorization: Bearer &lt;token></code></pre>
     
 <tr class="deep-level-1">
   
-      <td class="name"><code>donors</code></td>
+      <td class="name"><code>donorIds</code></td>
   
 
   <td class="type">
@@ -1535,146 +2461,10 @@ Authorization: Bearer &lt;token></code></pre>
   </td>
 
   
-      <td class="attributes">
-      
-
-      
-
-      
-      </td>
-  
 
   
 
-  <td class="description last"><p>Array of donors</p></td>
-</tr>
-
-  
-    
-<tr class="deep-level-1">
-  
-      <td class="name"><code>donors[].donor_id</code></td>
-  
-
-  <td class="type">
-  
-      
-<code class="param-type">number</code>
-
-
-  
-  </td>
-
-  
-      <td class="attributes">
-      
-
-      
-
-      
-      </td>
-  
-
-  
-
-  <td class="description last"><p>Donor ID</p></td>
-</tr>
-
-  
-    
-<tr class="deep-level-1">
-  
-      <td class="name"><code>donors[].status</code></td>
-  
-
-  <td class="type">
-  
-      
-<code class="param-type">string</code>
-
-
-  
-  </td>
-
-  
-      <td class="attributes">
-      
-
-      
-
-      
-      </td>
-  
-
-  
-
-  <td class="description last"><p>Status ('Pending', 'Approved', 'Excluded', 'AutoExcluded')</p></td>
-</tr>
-
-  
-    
-<tr class="deep-level-1">
-  
-      <td class="name"><code>donors[].reviewer_id</code></td>
-  
-
-  <td class="type">
-  
-      
-<code class="param-type">number</code>
-
-
-  
-  </td>
-
-  
-      <td class="attributes">
-      
-          &lt;optional><br>
-      
-
-      
-
-      
-      </td>
-  
-
-  
-
-  <td class="description last"><p>Reviewer ID (optional)</p></td>
-</tr>
-
-  
-    
-<tr class="deep-level-1">
-  
-      <td class="name"><code>donors[].comments</code></td>
-  
-
-  <td class="type">
-  
-      
-<code class="param-type">string</code>
-
-
-  
-  </td>
-
-  
-      <td class="attributes">
-      
-          &lt;optional><br>
-      
-
-      
-
-      
-      </td>
-  
-
-  
-
-  <td class="description last"><p>Comments (optional)</p></td>
+  <td class="description last"><p>Array of donor IDs</p></td>
 </tr>
 
   
@@ -1697,14 +2487,6 @@ Authorization: Bearer &lt;token></code></pre>
   
   </td>
 
-  
-      <td class="attributes">
-      
-
-      
-
-      
-      </td>
   
 
   
@@ -1860,68 +2642,6 @@ Authorization: Bearer &lt;token></code></pre>
     </div>
 
 
-
-
-    <h5>Examples</h5>
-    
-    
-        <pre class="prettyprint"><code>Request Example:
-POST /api/lists/1/donors
-Authorization: Bearer &lt;token>
-Content-Type: application/json
-
-{
-  "donors": [
-    {
-      "donor_id": 301,
-      "status": "Pending",
-      "comments": "Potential major donor"
-    },
-    {
-      "donor_id": 302,
-      "status": "Approved",
-      "comments": "Reliable donor"
-    }
-  ]
-}</code></pre>
-    
-
-    
-        <pre class="prettyprint"><code>Success Response:
-{
-  "message": "Donors added successfully.",
-  "added_donors": [
-    {
-      "id": 201,
-      "donorListId": 1,
-      "donorId": 301,
-      "status": "Pending",
-      "comments": "Potential major donor",
-      "donor": {
-        "id": 301,
-        "firstName": "John",
-        "lastName": "Doe",
-        "totalDonations": 5000,
-        "largestGift": 2000
-      }
-    },
-    {
-      "id": 202,
-      "donorListId": 1,
-      "donorId": 302,
-      "status": "Approved",
-      "comments": "Reliable donor",
-      "donor": {
-        "id": 302,
-        "firstName": "Jane",
-        "lastName": "Smith",
-        "totalDonations": 3000,
-        "largestGift": 1000
-      }
-    }
-  ]
-}</code></pre>
-    
 
 
 </div>

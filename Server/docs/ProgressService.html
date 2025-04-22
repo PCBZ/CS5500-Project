@@ -5,7 +5,7 @@
   
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>User Management API Documentation UserAPI</title>
+  <title>User Management API Documentation ProgressService</title>
 
   <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -77,8 +77,8 @@
         <div class="core" id="main-content-wrapper">
             <div class="content">
                 <header class="page-title">
-                    <p>Module</p>
-                    <h1>UserAPI</h1>
+                    <p>Class</p>
+                    <h1>ProgressService</h1>
                 </header>
                 
 
@@ -89,6 +89,10 @@
 
 <header>
     
+        <h2><span class="attribs"><span class="type-signature"></span></span>ProgressService<span class="signature">()</span><span class="type-signature"></span></h2>
+        
+            <div class="class-description"><p>Simple progress tracking service
+Used to track progress of long-running operations</p></div>
         
     
 </header>
@@ -97,7 +101,107 @@
     <div class="container-overview">
     
         
+            <div class='vertical-section'>
+                <div class="members">
+                    <div class="member">
+                        <div class=name>
+                            <span class="tag">Constructor</span>
+                        </div>
+                        
 
+
+    
+    <h4 class="name" id="ProgressService">
+        <a class="href-link" href="#ProgressService">#</a>
+        
+        <span class="code-name">
+            
+                new ProgressService<span class="signature">()</span><span class="type-signature"></span>
+            
+        </span>
+    </h4>
+    
+
+    
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    
+
+    
+
+    
+
+    
+        <p class="tag-source">
+            <a href="progressService.js.html" class="button">View Source</a>
+            <span>
+                <a href="progressService.js.html">progressService.js</a>, <a href="progressService.js.html#line7">line 7</a>
+            </span>
+        </p>
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                    </div>
+                </div>
+            </div>
         
     
     </div>
@@ -125,16 +229,12 @@
 
 
     
-    <h4 class="name" id=".GET/api/user/:id">
-        <a class="href-link" href="#.GET/api/user/:id">#</a>
-        
-            
-                <span class='tag'>static</span>
-            
+    <h4 class="name" id="cancelOperation">
+        <a class="href-link" href="#cancelOperation">#</a>
         
         <span class="code-name">
             
-                GET /api/user/:id<span class="signature">()</span><span class="type-signature"> &rarr; {object|Error|Error|Error|Error}</span>
+                cancelOperation<span class="signature">(operationId, userId)</span><span class="type-signature"> &rarr; {boolean}</span>
             
         </span>
     </h4>
@@ -143,7 +243,7 @@
     
     
     <div class="description">
-        <p>Get user details by ID</p>
+        <p>Cancel an operation</p>
     </div>
     
 
@@ -181,7 +281,818 @@
             
 <tr class="deep-level-0">
   
-      <td class="name"><code>req.params.id</code></td>
+      <td class="name"><code>operationId</code></td>
+  
+
+  <td class="type">
+  
+      
+<code class="param-type">string</code>
+
+
+  
+  </td>
+
+  
+
+  
+
+  <td class="description last"><p>Operation ID</p></td>
+</tr>
+
+
+        
+
+            
+<tr class="deep-level-0">
+  
+      <td class="name"><code>userId</code></td>
+  
+
+  <td class="type">
+  
+      
+<code class="param-type">string</code>
+
+
+  
+  </td>
+
+  
+
+  
+
+  <td class="description last"><p>User ID (for permission check)</p></td>
+</tr>
+
+
+        
+        </tbody>
+    </table>
+</div>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    
+
+    
+
+    
+
+    
+        <p class="tag-source">
+            <a href="progressService.js.html" class="button">View Source</a>
+            <span>
+                <a href="progressService.js.html">progressService.js</a>, <a href="progressService.js.html#line139">line 139</a>
+            </span>
+        </p>
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <div class='columns method-parameter'>
+        <div class="column is-2"><label>Returns:</label></div>
+        <div class="column is-10">
+            
+                    
+
+<div class="columns">
+    
+    <div class='param-desc column is-7'><p>Whether the cancellation was successful</p></div>
+    
+    
+    <div class='column is-5 has-text-left'>
+        <label>Type: </label>
+        
+<code class="param-type">boolean</code>
+
+
+    </div>
+    
+</div>
+
+                
+        </div>
+    </div>
+
+
+
+
+</div>
+            
+                <div class="member">
+
+
+    
+    <h4 class="name" id="createOperation">
+        <a class="href-link" href="#createOperation">#</a>
+        
+        <span class="code-name">
+            
+                createOperation<span class="signature">(type, userId, totalItems)</span><span class="type-signature"> &rarr; {Object}</span>
+            
+        </span>
+    </h4>
+    
+
+    
+    
+    <div class="description">
+        <p>Create a new operation and return operation ID</p>
+    </div>
+    
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+<div class="table-container">
+    <table class="params table">
+        <thead>
+        <tr>
+            
+            <th>Name</th>
+            
+
+            <th>Type</th>
+
+            
+
+            
+            <th>Default</th>
+            
+
+            <th class="last">Description</th>
+        </tr>
+        </thead>
+
+        <tbody>
+        
+
+            
+<tr class="deep-level-0">
+  
+      <td class="name"><code>type</code></td>
+  
+
+  <td class="type">
+  
+      
+<code class="param-type">string</code>
+
+
+  
+  </td>
+
+  
+
+  
+      <td class="default">
+      
+      </td>
+  
+
+  <td class="description last"><p>Operation type (e.g., 'import', 'export')</p></td>
+</tr>
+
+
+        
+
+            
+<tr class="deep-level-0">
+  
+      <td class="name"><code>userId</code></td>
+  
+
+  <td class="type">
+  
+      
+<code class="param-type">string</code>
+
+
+  
+  </td>
+
+  
+
+  
+      <td class="default">
+      
+      </td>
+  
+
+  <td class="description last"><p>User ID</p></td>
+</tr>
+
+
+        
+
+            
+<tr class="deep-level-0">
+  
+      <td class="name"><code>totalItems</code></td>
+  
+
+  <td class="type">
+  
+      
+<code class="param-type">number</code>
+
+
+  
+  </td>
+
+  
+
+  
+      <td class="default">
+      
+          100
+      
+      </td>
+  
+
+  <td class="description last"><p>Total number of items (for calculating progress percentage)</p></td>
+</tr>
+
+
+        
+        </tbody>
+    </table>
+</div>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    
+
+    
+
+    
+
+    
+        <p class="tag-source">
+            <a href="progressService.js.html" class="button">View Source</a>
+            <span>
+                <a href="progressService.js.html">progressService.js</a>, <a href="progressService.js.html#line25">line 25</a>
+            </span>
+        </p>
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <div class='columns method-parameter'>
+        <div class="column is-2"><label>Returns:</label></div>
+        <div class="column is-10">
+            
+                    
+
+<div class="columns">
+    
+    <div class='param-desc column is-7'><p>Contains operation object and operation ID</p></div>
+    
+    
+    <div class='column is-5 has-text-left'>
+        <label>Type: </label>
+        
+<code class="param-type">Object</code>
+
+
+    </div>
+    
+</div>
+
+                
+        </div>
+    </div>
+
+
+
+
+</div>
+            
+                <div class="member">
+
+
+    
+    <h4 class="name" id="getProgress">
+        <a class="href-link" href="#getProgress">#</a>
+        
+        <span class="code-name">
+            
+                getProgress<span class="signature">(operationId)</span><span class="type-signature"> &rarr; {Object|null}</span>
+            
+        </span>
+    </h4>
+    
+
+    
+    
+    <div class="description">
+        <p>Get operation progress</p>
+    </div>
+    
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+<div class="table-container">
+    <table class="params table">
+        <thead>
+        <tr>
+            
+            <th>Name</th>
+            
+
+            <th>Type</th>
+
+            
+
+            
+
+            <th class="last">Description</th>
+        </tr>
+        </thead>
+
+        <tbody>
+        
+
+            
+<tr class="deep-level-0">
+  
+      <td class="name"><code>operationId</code></td>
+  
+
+  <td class="type">
+  
+      
+<code class="param-type">string</code>
+
+
+  
+  </td>
+
+  
+
+  
+
+  <td class="description last"><p>Operation ID</p></td>
+</tr>
+
+
+        
+        </tbody>
+    </table>
+</div>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    
+
+    
+
+    
+
+    
+        <p class="tag-source">
+            <a href="progressService.js.html" class="button">View Source</a>
+            <span>
+                <a href="progressService.js.html">progressService.js</a>, <a href="progressService.js.html#line89">line 89</a>
+            </span>
+        </p>
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <div class='columns method-parameter'>
+        <div class="column is-2"><label>Returns:</label></div>
+        <div class="column is-10">
+            
+                    
+
+<div class="columns">
+    
+    <div class='param-desc column is-7'><p>Operation progress information or null if operation doesn't exist</p></div>
+    
+    
+    <div class='column is-5 has-text-left'>
+        <label>Type: </label>
+        
+<code class="param-type">Object</code>
+|
+
+<code class="param-type">null</code>
+
+
+    </div>
+    
+</div>
+
+                
+        </div>
+    </div>
+
+
+
+
+</div>
+            
+                <div class="member">
+
+
+    
+    <h4 class="name" id="getUserOperations">
+        <a class="href-link" href="#getUserOperations">#</a>
+        
+        <span class="code-name">
+            
+                getUserOperations<span class="signature">(userId)</span><span class="type-signature"> &rarr; {Array}</span>
+            
+        </span>
+    </h4>
+    
+
+    
+    
+    <div class="description">
+        <p>Get all operations for a user</p>
+    </div>
+    
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+<div class="table-container">
+    <table class="params table">
+        <thead>
+        <tr>
+            
+            <th>Name</th>
+            
+
+            <th>Type</th>
+
+            
+
+            
+
+            <th class="last">Description</th>
+        </tr>
+        </thead>
+
+        <tbody>
+        
+
+            
+<tr class="deep-level-0">
+  
+      <td class="name"><code>userId</code></td>
+  
+
+  <td class="type">
+  
+      
+<code class="param-type">string</code>
+
+
+  
+  </td>
+
+  
+
+  
+
+  <td class="description last"><p>User ID</p></td>
+</tr>
+
+
+        
+        </tbody>
+    </table>
+</div>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    
+
+    
+
+    
+
+    
+        <p class="tag-source">
+            <a href="progressService.js.html" class="button">View Source</a>
+            <span>
+                <a href="progressService.js.html">progressService.js</a>, <a href="progressService.js.html#line113">line 113</a>
+            </span>
+        </p>
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <div class='columns method-parameter'>
+        <div class="column is-2"><label>Returns:</label></div>
+        <div class="column is-10">
+            
+                    
+
+<div class="columns">
+    
+    <div class='param-desc column is-7'><p>List of user's operations</p></div>
+    
+    
+    <div class='column is-5 has-text-left'>
+        <label>Type: </label>
+        
+<code class="param-type">Array</code>
+
+
+    </div>
+    
+</div>
+
+                
+        </div>
+    </div>
+
+
+
+
+</div>
+            
+                <div class="member">
+
+
+    
+    <h4 class="name" id="updateProgress">
+        <a class="href-link" href="#updateProgress">#</a>
+        
+        <span class="code-name">
+            
+                updateProgress<span class="signature">(operationId, progress, message, status)</span><span class="type-signature"> &rarr; {boolean}</span>
+            
+        </span>
+    </h4>
+    
+
+    
+    
+    <div class="description">
+        <p>Update operation progress</p>
+    </div>
+    
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+<div class="table-container">
+    <table class="params table">
+        <thead>
+        <tr>
+            
+            <th>Name</th>
+            
+
+            <th>Type</th>
+
+            
+
+            
+
+            <th class="last">Description</th>
+        </tr>
+        </thead>
+
+        <tbody>
+        
+
+            
+<tr class="deep-level-0">
+  
+      <td class="name"><code>operationId</code></td>
+  
+
+  <td class="type">
+  
+      
+<code class="param-type">string</code>
+
+
+  
+  </td>
+
+  
+
+  
+
+  <td class="description last"><p>Operation ID</p></td>
+</tr>
+
+
+        
+
+            
+<tr class="deep-level-0">
+  
+      <td class="name"><code>progress</code></td>
   
 
   <td class="type">
@@ -197,7 +1108,7 @@
 
   
 
-  <td class="description last"><p>User ID</p></td>
+  <td class="description last"><p>Progress percentage (0-100)</p></td>
 </tr>
 
 
@@ -206,7 +1117,7 @@
             
 <tr class="deep-level-0">
   
-      <td class="name"><code>req.headers.authorization</code></td>
+      <td class="name"><code>message</code></td>
   
 
   <td class="type">
@@ -222,7 +1133,32 @@
 
   
 
-  <td class="description last"><p>Bearer token for authentication</p></td>
+  <td class="description last"><p>Progress message</p></td>
+</tr>
+
+
+        
+
+            
+<tr class="deep-level-0">
+  
+      <td class="name"><code>status</code></td>
+  
+
+  <td class="type">
+  
+      
+<code class="param-type">string</code>
+
+
+  
+  </td>
+
+  
+
+  
+
+  <td class="description last"><p>Operation status</p></td>
 </tr>
 
 
@@ -268,9 +1204,9 @@
 
     
         <p class="tag-source">
-            <a href="user.js.html" class="button">View Source</a>
+            <a href="progressService.js.html" class="button">View Source</a>
             <span>
-                <a href="user.js.html">user.js</a>, <a href="user.js.html#line15">line 15</a>
+                <a href="progressService.js.html">progressService.js</a>, <a href="progressService.js.html#line61">line 61</a>
             </span>
         </p>
     
@@ -301,85 +1237,13 @@
 
 <div class="columns">
     
-    <div class='param-desc column is-7'><p>200 - User details</p></div>
+    <div class='param-desc column is-7'><p>Whether the update was successful</p></div>
     
     
     <div class='column is-5 has-text-left'>
         <label>Type: </label>
         
-<code class="param-type">object</code>
-
-
-    </div>
-    
-</div>
-
-                
-                    
-
-<div class="columns">
-    
-    <div class='param-desc column is-7'><p>400 - Invalid user ID format</p></div>
-    
-    
-    <div class='column is-5 has-text-left'>
-        <label>Type: </label>
-        
-<code class="param-type">Error</code>
-
-
-    </div>
-    
-</div>
-
-                
-                    
-
-<div class="columns">
-    
-    <div class='param-desc column is-7'><p>401 - Unauthorized access</p></div>
-    
-    
-    <div class='column is-5 has-text-left'>
-        <label>Type: </label>
-        
-<code class="param-type">Error</code>
-
-
-    </div>
-    
-</div>
-
-                
-                    
-
-<div class="columns">
-    
-    <div class='param-desc column is-7'><p>404 - User not found</p></div>
-    
-    
-    <div class='column is-5 has-text-left'>
-        <label>Type: </label>
-        
-<code class="param-type">Error</code>
-
-
-    </div>
-    
-</div>
-
-                
-                    
-
-<div class="columns">
-    
-    <div class='param-desc column is-7'><p>500 - Server error</p></div>
-    
-    
-    <div class='column is-5 has-text-left'>
-        <label>Type: </label>
-        
-<code class="param-type">Error</code>
+<code class="param-type">boolean</code>
 
 
     </div>
@@ -391,877 +1255,6 @@
     </div>
 
 
-
-
-    <h5>Examples</h5>
-    
-    
-        <pre class="prettyprint"><code>Request Example:
-GET /api/user/123
-Authorization: Bearer &lt;token></code></pre>
-    
-
-    
-        <pre class="prettyprint"><code>Success Response:
-{
-  "id": 123,
-  "name": "John Doe",
-  "email": "john@example.com",
-  "role": "pmm"
-}</code></pre>
-    
-
-
-</div>
-            
-                <div class="member">
-
-
-    
-    <h4 class="name" id=".POST/api/user/login">
-        <a class="href-link" href="#.POST/api/user/login">#</a>
-        
-            
-                <span class='tag'>static</span>
-            
-        
-        <span class="code-name">
-            
-                POST /api/user/login<span class="signature">()</span><span class="type-signature"> &rarr; {object|Error|Error}</span>
-            
-        </span>
-    </h4>
-    
-
-    
-    
-    <div class="description">
-        <p>User login</p>
-    </div>
-    
-
-
-
-
-
-
-
-
-
-    <h5>Parameters:</h5>
-    
-<div class="table-container">
-    <table class="params table">
-        <thead>
-        <tr>
-            
-            <th>Name</th>
-            
-
-            <th>Type</th>
-
-            
-
-            
-
-            <th class="last">Description</th>
-        </tr>
-        </thead>
-
-        <tbody>
-        
-
-            
-<tr class="deep-level-0">
-  
-      <td class="name"><code>req.body</code></td>
-  
-
-  <td class="type">
-  
-      
-<code class="param-type">object</code>
-
-
-  
-  </td>
-
-  
-
-  
-
-  <td class="description last"><p>Request body</p></td>
-</tr>
-
-  
-  
-    
-<tr class="deep-level-1">
-  
-      <td class="name"><code>email</code></td>
-  
-
-  <td class="type">
-  
-      
-<code class="param-type">string</code>
-
-
-  
-  </td>
-
-  
-
-  
-
-  <td class="description last"><p>User email</p></td>
-</tr>
-
-  
-    
-<tr class="deep-level-1">
-  
-      <td class="name"><code>password</code></td>
-  
-
-  <td class="type">
-  
-      
-<code class="param-type">string</code>
-
-
-  
-  </td>
-
-  
-
-  
-
-  <td class="description last"><p>User password</p></td>
-</tr>
-
-  
-
-
-        
-        </tbody>
-    </table>
-</div>
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    
-
-    
-
-    
-
-    
-        <p class="tag-source">
-            <a href="user.js.html" class="button">View Source</a>
-            <span>
-                <a href="user.js.html">user.js</a>, <a href="user.js.html#line74">line 74</a>
-            </span>
-        </p>
-    
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    <div class='columns method-parameter'>
-        <div class="column is-2"><label>Returns:</label></div>
-        <div class="column is-10">
-            
-                    
-
-<div class="columns">
-    
-    <div class='param-desc column is-7'><p>200 - Login successful</p></div>
-    
-    
-    <div class='column is-5 has-text-left'>
-        <label>Type: </label>
-        
-<code class="param-type">object</code>
-
-
-    </div>
-    
-</div>
-
-                
-                    
-
-<div class="columns">
-    
-    <div class='param-desc column is-7'><p>400 - Missing credentials or invalid credentials</p></div>
-    
-    
-    <div class='column is-5 has-text-left'>
-        <label>Type: </label>
-        
-<code class="param-type">Error</code>
-
-
-    </div>
-    
-</div>
-
-                
-                    
-
-<div class="columns">
-    
-    <div class='param-desc column is-7'><p>500 - Server error</p></div>
-    
-    
-    <div class='column is-5 has-text-left'>
-        <label>Type: </label>
-        
-<code class="param-type">Error</code>
-
-
-    </div>
-    
-</div>
-
-                
-        </div>
-    </div>
-
-
-
-
-    <h5>Examples</h5>
-    
-    
-        <pre class="prettyprint"><code>Request Example:
-POST /api/user/login
-{
-  "email": "john@example.com",
-  "password": "password123"
-}</code></pre>
-    
-
-    
-        <pre class="prettyprint"><code>Success Response:
-{
-  "message": "Login successful",
-  "token": "jwt_token_here",
-  "user": {
-    "id": 123,
-    "name": "John Doe",
-    "email": "john@example.com",
-    "role": "pmm"
-  }
-}</code></pre>
-    
-
-
-</div>
-            
-                <div class="member">
-
-
-    
-    <h4 class="name" id=".POST/api/user/logout">
-        <a class="href-link" href="#.POST/api/user/logout">#</a>
-        
-            
-                <span class='tag'>static</span>
-            
-        
-        <span class="code-name">
-            
-                POST /api/user/logout<span class="signature">()</span><span class="type-signature"> &rarr; {object|Error|Error}</span>
-            
-        </span>
-    </h4>
-    
-
-    
-    
-    <div class="description">
-        <p>User logout</p>
-    </div>
-    
-
-
-
-
-
-
-
-
-
-    <h5>Parameters:</h5>
-    
-<div class="table-container">
-    <table class="params table">
-        <thead>
-        <tr>
-            
-            <th>Name</th>
-            
-
-            <th>Type</th>
-
-            
-
-            
-
-            <th class="last">Description</th>
-        </tr>
-        </thead>
-
-        <tbody>
-        
-
-            
-<tr class="deep-level-0">
-  
-      <td class="name"><code>req.headers.authorization</code></td>
-  
-
-  <td class="type">
-  
-      
-<code class="param-type">string</code>
-
-
-  
-  </td>
-
-  
-
-  
-
-  <td class="description last"><p>Bearer token for authentication</p></td>
-</tr>
-
-
-        
-        </tbody>
-    </table>
-</div>
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    
-
-    
-
-    
-
-    
-        <p class="tag-source">
-            <a href="user.js.html" class="button">View Source</a>
-            <span>
-                <a href="user.js.html">user.js</a>, <a href="user.js.html#line257">line 257</a>
-            </span>
-        </p>
-    
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    <div class='columns method-parameter'>
-        <div class="column is-2"><label>Returns:</label></div>
-        <div class="column is-10">
-            
-                    
-
-<div class="columns">
-    
-    <div class='param-desc column is-7'><p>200 - Logout successful</p></div>
-    
-    
-    <div class='column is-5 has-text-left'>
-        <label>Type: </label>
-        
-<code class="param-type">object</code>
-
-
-    </div>
-    
-</div>
-
-                
-                    
-
-<div class="columns">
-    
-    <div class='param-desc column is-7'><p>401 - Unauthorized access</p></div>
-    
-    
-    <div class='column is-5 has-text-left'>
-        <label>Type: </label>
-        
-<code class="param-type">Error</code>
-
-
-    </div>
-    
-</div>
-
-                
-                    
-
-<div class="columns">
-    
-    <div class='param-desc column is-7'><p>500 - Server error</p></div>
-    
-    
-    <div class='column is-5 has-text-left'>
-        <label>Type: </label>
-        
-<code class="param-type">Error</code>
-
-
-    </div>
-    
-</div>
-
-                
-        </div>
-    </div>
-
-
-
-
-    <h5>Examples</h5>
-    
-    
-        <pre class="prettyprint"><code>Request Example:
-POST /api/user/logout
-Authorization: Bearer &lt;token></code></pre>
-    
-
-    
-        <pre class="prettyprint"><code>Success Response:
-{
-  "message": "Logout successful."
-}</code></pre>
-    
-
-
-</div>
-            
-                <div class="member">
-
-
-    
-    <h4 class="name" id=".POST/api/user/register">
-        <a class="href-link" href="#.POST/api/user/register">#</a>
-        
-            
-                <span class='tag'>static</span>
-            
-        
-        <span class="code-name">
-            
-                POST /api/user/register<span class="signature">()</span><span class="type-signature"> &rarr; {object|Error|Error}</span>
-            
-        </span>
-    </h4>
-    
-
-    
-    
-    <div class="description">
-        <p>Register new user</p>
-    </div>
-    
-
-
-
-
-
-
-
-
-
-    <h5>Parameters:</h5>
-    
-<div class="table-container">
-    <table class="params table">
-        <thead>
-        <tr>
-            
-            <th>Name</th>
-            
-
-            <th>Type</th>
-
-            
-
-            
-
-            <th class="last">Description</th>
-        </tr>
-        </thead>
-
-        <tbody>
-        
-
-            
-<tr class="deep-level-0">
-  
-      <td class="name"><code>req.body</code></td>
-  
-
-  <td class="type">
-  
-      
-<code class="param-type">object</code>
-
-
-  
-  </td>
-
-  
-
-  
-
-  <td class="description last"><p>Request body</p></td>
-</tr>
-
-  
-  
-    
-<tr class="deep-level-1">
-  
-      <td class="name"><code>name</code></td>
-  
-
-  <td class="type">
-  
-      
-<code class="param-type">string</code>
-
-
-  
-  </td>
-
-  
-
-  
-
-  <td class="description last"><p>User full name</p></td>
-</tr>
-
-  
-    
-<tr class="deep-level-1">
-  
-      <td class="name"><code>email</code></td>
-  
-
-  <td class="type">
-  
-      
-<code class="param-type">string</code>
-
-
-  
-  </td>
-
-  
-
-  
-
-  <td class="description last"><p>User email</p></td>
-</tr>
-
-  
-    
-<tr class="deep-level-1">
-  
-      <td class="name"><code>password</code></td>
-  
-
-  <td class="type">
-  
-      
-<code class="param-type">string</code>
-
-
-  
-  </td>
-
-  
-
-  
-
-  <td class="description last"><p>User password</p></td>
-</tr>
-
-  
-    
-<tr class="deep-level-1">
-  
-      <td class="name"><code>role</code></td>
-  
-
-  <td class="type">
-  
-      
-<code class="param-type">string</code>
-
-
-  
-  </td>
-
-  
-
-  
-
-  <td class="description last"><p>User role (pmm, smm, or vmm)</p></td>
-</tr>
-
-  
-
-
-        
-        </tbody>
-    </table>
-</div>
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    
-
-    
-
-    
-
-    
-        <p class="tag-source">
-            <a href="user.js.html" class="button">View Source</a>
-            <span>
-                <a href="user.js.html">user.js</a>, <a href="user.js.html#line168">line 168</a>
-            </span>
-        </p>
-    
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    <div class='columns method-parameter'>
-        <div class="column is-2"><label>Returns:</label></div>
-        <div class="column is-10">
-            
-                    
-
-<div class="columns">
-    
-    <div class='param-desc column is-7'><p>201 - User created</p></div>
-    
-    
-    <div class='column is-5 has-text-left'>
-        <label>Type: </label>
-        
-<code class="param-type">object</code>
-
-
-    </div>
-    
-</div>
-
-                
-                    
-
-<div class="columns">
-    
-    <div class='param-desc column is-7'><p>400 - Missing fields, invalid role, or user already exists</p></div>
-    
-    
-    <div class='column is-5 has-text-left'>
-        <label>Type: </label>
-        
-<code class="param-type">Error</code>
-
-
-    </div>
-    
-</div>
-
-                
-                    
-
-<div class="columns">
-    
-    <div class='param-desc column is-7'><p>500 - Server error</p></div>
-    
-    
-    <div class='column is-5 has-text-left'>
-        <label>Type: </label>
-        
-<code class="param-type">Error</code>
-
-
-    </div>
-    
-</div>
-
-                
-        </div>
-    </div>
-
-
-
-
-    <h5>Examples</h5>
-    
-    
-        <pre class="prettyprint"><code>Request Example:
-POST /api/user/register
-{
-  "name": "John Doe",
-  "email": "john@example.com",
-  "password": "password123",
-  "role": "pmm"
-}</code></pre>
-    
-
-    
-        <pre class="prettyprint"><code>Success Response:
-{
-  "message": "User registered successfully.",
-  "user": {
-    "id": 123,
-    "name": "John Doe",
-    "email": "john@example.com",
-    "role": "pmm"
-  }
-}</code></pre>
-    
 
 
 </div>

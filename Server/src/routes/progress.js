@@ -52,7 +52,7 @@ router.get('/:id', protect, async (req, res) => {
 });
 
 /**
- * 获取当前用户的所有操作
+ * Get all operations for the current user
  * @route GET /api/progress/user/operations
  * @access Private
  */
@@ -62,7 +62,7 @@ router.get('/user/operations', protect, (req, res) => {
 });
 
 /**
- * 取消操作
+ * Cancel an operation
  * @route DELETE /api/progress/:operationId
  * @access Private
  */
@@ -72,10 +72,10 @@ router.delete('/:operationId', protect, (req, res) => {
   const result = progressService.cancelOperation(operationId, req.user?.id);
   
   if (!result) {
-    return res.status(404).json({ message: '操作不存在或无权取消' });
+    return res.status(404).json({ message: 'Operation not found or unauthorized to cancel' });
   }
   
-  res.json({ message: '操作已取消', operationId });
+  res.json({ message: 'Operation cancelled successfully', operationId });
 });
 
 export default router;

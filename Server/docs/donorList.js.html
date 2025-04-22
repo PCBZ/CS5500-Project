@@ -72,7 +72,7 @@
             
             <nav>
                 
-                    <h2><a href="index.html">Documentation</a></h2><div class="category"><h3>Modules</h3><ul><li><a href="module-DonorAPI.html">DonorAPI</a></li><li><a href="module-DonorListAPI.html">DonorListAPI</a></li><li><a href="module-UserAPI.html">UserAPI</a></li></ul></div>
+                    <h2><a href="index.html">Documentation</a></h2><div class="category"><h3>Modules</h3><ul><li><a href="module-DonorListAPI.html">DonorListAPI</a></li></ul><h3>Classes</h3><ul><li><a href="ProgressService.html">ProgressService</a></li></ul><h3>Global</h3><ul><li><a href="global.html#GET/api/progress/:id">GET /api/progress/:id</a></li></ul></div><div class="category"><h2>Routes</h2><h3>Modules</h3><ul><li><a href="module-DonorAPI.html">DonorAPI</a></li><li><a href="module-EventAPI.html">EventAPI</a></li><li><a href="module-UserAPI.html">UserAPI</a></li></ul></div>
                 
             </nav>
         </div>
@@ -416,157 +416,117 @@ router.put('/:id/status', protect, async (req, res) => {
  * @memberof module:DonorListAPI
  * @param {number} req.params.id - Donor list ID
  * @param {object} req.body - Request body
- * @param {Array} req.body.donors - Array of donors
- * @param {number} req.body.donors[].donor_id - Donor ID
- * @param {string} req.body.donors[].status - Status ('Pending', 'Approved', 'Excluded', 'AutoExcluded')
- * @param {number} [req.body.donors[].reviewer_id] - Reviewer ID (optional)
- * @param {string} [req.body.donors[].comments] - Comments (optional)
+ * @param {Array} req.body.donorIds - Array of donor IDs
  * @param {string} req.headers.authorization - Bearer token for authentication
  * @returns {object} 201 - Added donors information
  * @returns {Error} 400 - Invalid request format
  * @returns {Error} 404 - List not found
  * @returns {Error} 500 - Server error
- * 
- * @example Request Example:
- * POST /api/lists/1/donors
- * Authorization: Bearer &lt;token>
- * Content-Type: application/json
- * 
- * {
- *   "donors": [
- *     {
- *       "donor_id": 301,
- *       "status": "Pending",
- *       "comments": "Potential major donor"
- *     },
- *     {
- *       "donor_id": 302,
- *       "status": "Approved",
- *       "comments": "Reliable donor"
- *     }
- *   ]
- * }
- * 
- * @example Success Response:
- * {
- *   "message": "Donors added successfully.",
- *   "added_donors": [
- *     {
- *       "id": 201,
- *       "donorListId": 1,
- *       "donorId": 301,
- *       "status": "Pending",
- *       "comments": "Potential major donor",
- *       "donor": {
- *         "id": 301,
- *         "firstName": "John",
- *         "lastName": "Doe",
- *         "totalDonations": 5000,
- *         "largestGift": 2000
- *       }
- *     },
- *     {
- *       "id": 202,
- *       "donorListId": 1,
- *       "donorId": 302,
- *       "status": "Approved",
- *       "comments": "Reliable donor",
- *       "donor": {
- *         "id": 302,
- *         "firstName": "Jane",
- *         "lastName": "Smith",
- *         "totalDonations": 3000,
- *         "largestGift": 1000
- *       }
- *     }
- *   ]
- * }
  */
 router.post('/:id/donors', protect, async (req, res) => {
   try {
     const listId = parseInt(req.params.id);
-    const { donors } = req.body;
+    const { donorIds } = req.body;
 
-    if (!Array.isArray(donors)) {
-      return res.status(400).json({ message: 'Invalid request format: donors must be an array' });
+    if (!Array.isArray(donorIds) || donorIds.length === 0) {
+      return res.status(400).json({ message: 'Invalid donor IDs array' });
     }
 
+    // 确保所有 ID 都是数字类型
+    const numericDonorIds = donorIds.map(id => Number(id));
+    if (numericDonorIds.some(isNaN)) {
+      return res.status(400).json({ message: 'Invalid donor ID format' });
+    }
+
+    // Check if list exists
     const list = await prisma.eventDonorList.findUnique({
       where: { id: listId }
     });
 
     if (!list) {
-      return res.status(404).json({ message: 'List not found' });
+      return res.status(404).json({ message: 'Donor list not found' });
     }
 
-    // Validate donor IDs exist
-    const donorIds = donors.map(d => parseInt(d.donor_id));
+    // Check if donors exist
     const existingDonors = await prisma.donor.findMany({
       where: {
         id: {
-          in: donorIds
+          in: numericDonorIds
         }
+      },
+      select: {
+        id: true
       }
     });
 
-    if (existingDonors.length !== donorIds.length) {
-      return res.status(400).json({ message: 'One or more donor IDs do not exist' });
+    const existingDonorIds = existingDonors.map(d => d.id);
+    const invalidDonorIds = numericDonorIds.filter(id => !existingDonorIds.includes(id));
+
+    if (invalidDonorIds.length > 0) {
+      return res.status(400).json({ 
+        message: 'Some donor IDs are invalid', 
+        invalidDonorIds 
+      });
     }
 
-    const added_donors = await prisma.$transaction(
-      donors.map(donor => 
-        prisma.eventDonor.create({
-          data: {
-            donorListId: listId,
-            donorId: parseInt(donor.donor_id),
-            status: donor.status,
-            reviewerId: donor.reviewer_id ? parseInt(donor.reviewer_id) : null,
-            comments: donor.comments
-          },
-          include: {
-            donor: true
-          }
-        })
-      )
-    );
+    // Check for existing donors in the list
+    const existingListDonors = await prisma.eventDonor.findMany({
+      where: {
+        donorListId: listId,
+        donorId: {
+          in: numericDonorIds
+        }
+      },
+      select: {
+        donorId: true
+      }
+    });
 
-    // Update list statistics
-    await prisma.eventDonorList.update({
+    const existingListDonorIds = existingListDonors.map(d => d.donorId);
+    const newDonorIds = numericDonorIds.filter(id => !existingListDonorIds.includes(id));
+
+    if (newDonorIds.length === 0) {
+      return res.status(400).json({ message: 'All donors are already in the list' });
+    }
+
+    // Add new donors to the list
+    const addedDonors = await prisma.eventDonor.createMany({
+      data: newDonorIds.map(donorId => ({
+        donorListId: listId,
+        donorId,
+        status: 'Pending'
+      }))
+    });
+
+    // Update list counts
+    const updatedList = await prisma.eventDonorList.update({
       where: { id: listId },
       data: {
         totalDonors: {
-          increment: donors.length
+          increment: addedDonors.count
         },
         pending: {
-          increment: donors.filter(d => d.status === 'Pending').length
-        },
-        approved: {
-          increment: donors.filter(d => d.status === 'Approved').length
-        },
-        excluded: {
-          increment: donors.filter(d => d.status === 'Excluded').length
-        },
-        autoExcluded: {
-          increment: donors.filter(d => d.status === 'AutoExcluded').length
+          increment: addedDonors.count
+        }
+      },
+      include: {
+        _count: {
+          select: {
+            eventDonors: true
+          }
         }
       }
     });
 
-    res.status(201).json({
-      message: 'Donors added successfully.',
-      added_donors: added_donors
+    res.json({
+      message: `Successfully added ${addedDonors.count} donors to the list`,
+      added: addedDonors.count,
+      totalDonors: updatedList.totalDonors,
+      pending: updatedList.pending
     });
   } catch (error) {
-    console.error('Error adding donors:', error);
-    console.error('Error details:', {
-      code: error.code,
-      message: error.message,
-      meta: error.meta
-    });
-    res.status(500).json({ 
-      message: 'Internal server error',
-      error: error.message
-    });
+    console.error('Error adding donors to list:', error);
+    res.status(500).json({ message: 'Internal server error' });
   }
 });
 
@@ -658,6 +618,316 @@ router.delete('/:id/donors/:donorId', protect, async (req, res) => {
   } catch (error) {
     console.error('Error removing donor from list:', error);
     res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+/**
+ * Get summary statistics for a specific donor list
+ * 
+ * @name GET /api/lists/:listId/stats
+ * @function
+ * @memberof module:DonorListAPI
+ * @param {string} req.params.listId - The ID of the donor list to retrieve stats for
+ * @param {string} req.headers.authorization - Bearer token for authentication
+ * @returns {object} 200 - Statistics about reviewed and pending donors
+ * @returns {Error} 404 - Donor list not found
+ * @returns {Error} 500 - Server error
+ * 
+ * @example Request Example:
+ * GET /api/lists/123/stats
+ * Authorization: Bearer &lt;token>
+ * 
+ * @example Success Response:
+ * {
+ *   "list_id": 123,
+ *   "list_name": "Summer Gala 2024",
+ *   "total_donors": 150,
+ *   "reviewed": 135,
+ *   "pending_review": 15,
+ *   "approved": 120,
+ *   "excluded": 15,
+ *   "auto_excluded": 5,
+ *   "approval_rate": 80, // percentage
+ *   "review_status": "pending",
+ *   "event_name": "Summer Gala 2024"
+ * }
+ */
+router.get('/:listId/stats', protect, async (req, res) => {
+  try {
+    const listId = parseInt(req.params.listId);
+
+    // Get the donor list with its associated event
+    const donorList = await prisma.eventDonorList.findUnique({
+      where: { id: listId },
+      include: {
+        event: {
+          select: {
+            name: true
+          }
+        }
+      }
+    });
+
+    if (!donorList) {
+      return res.status(404).json({ message: 'Donor list not found' });
+    }
+
+    // Calculate review statistics
+    const approvalRate = donorList.totalDonors > 0 
+      ? Math.round((donorList.approved / donorList.totalDonors) * 100) 
+      : 0;
+
+    // Compile statistics
+    const stats = {
+      list_id: donorList.id,
+      list_name: donorList.name,
+      total_donors: donorList.totalDonors,
+      reviewed: donorList.approved + donorList.excluded,
+      pending_review: donorList.pending,
+      approved: donorList.approved,
+      excluded: donorList.excluded,
+      auto_excluded: donorList.autoExcluded,
+      approval_rate: approvalRate,
+      review_status: donorList.reviewStatus,
+      event_name: donorList.event?.name || 'Unknown Event'
+    };
+
+    res.status(200).json(stats);
+  } catch (error) {
+    console.error('Error fetching donor list statistics:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+/**
+ * Get summary statistics for all donor lists
+ * 
+ * @name GET /api/lists/stats/summary
+ * @function
+ * @memberof module:DonorListAPI
+ * @param {string} req.headers.authorization - Bearer token for authentication
+ * @returns {object} 200 - Overall statistics about all donor lists
+ * @returns {Error} 500 - Server error
+ * 
+ * @example Request Example:
+ * GET /api/lists/stats/summary
+ * Authorization: Bearer &lt;token>
+ * 
+ * @example Success Response:
+ * {
+ *   "total_lists": 10,
+ *   "total_donors": 1500,
+ *   "total_reviewed": 1200,
+ *   "total_pending": 300,
+ *   "total_approved": 1000,
+ *   "total_excluded": 200,
+ *   "total_auto_excluded": 50,
+ *   "overall_approval_rate": 75, // percentage
+ *   "completed_lists": 7,
+ *   "pending_lists": 3
+ * }
+ */
+router.get('/stats/summary', protect, async (req, res) => {
+  try {
+    // Get all donor lists
+    const donorLists = await prisma.eventDonorList.findMany();
+    
+    if (donorLists.length === 0) {
+      return res.status(200).json({
+        total_lists: 0,
+        total_donors: 0,
+        total_reviewed: 0,
+        total_pending: 0,
+        total_approved: 0,
+        total_excluded: 0,
+        total_auto_excluded: 0,
+        overall_approval_rate: 0,
+        completed_lists: 0,
+        pending_lists: 0
+      });
+    }
+
+    // Calculate aggregated statistics
+    const totalLists = donorLists.length;
+    const totalDonors = donorLists.reduce((sum, list) => sum + list.totalDonors, 0);
+    const totalApproved = donorLists.reduce((sum, list) => sum + list.approved, 0);
+    const totalExcluded = donorLists.reduce((sum, list) => sum + list.excluded, 0);
+    const totalPending = donorLists.reduce((sum, list) => sum + list.pending, 0);
+    const totalAutoExcluded = donorLists.reduce((sum, list) => sum + list.autoExcluded, 0);
+    const totalReviewed = totalApproved + totalExcluded;
+    
+    const completedLists = donorLists.filter(list => list.reviewStatus === 'completed').length;
+    const pendingLists = donorLists.filter(list => list.reviewStatus === 'pending').length;
+    
+    const overallApprovalRate = totalDonors > 0 
+      ? Math.round((totalApproved / totalDonors) * 100) 
+      : 0;
+
+    // Compile summary statistics
+    const summary = {
+      total_lists: totalLists,
+      total_donors: totalDonors,
+      total_reviewed: totalReviewed,
+      total_pending: totalPending,
+      total_approved: totalApproved,
+      total_excluded: totalExcluded,
+      total_auto_excluded: totalAutoExcluded,
+      overall_approval_rate: overallApprovalRate,
+      completed_lists: completedLists,
+      pending_lists: pendingLists
+    };
+
+    res.status(200).json(summary);
+  } catch (error) {
+    console.error('Error fetching donor lists summary statistics:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+/**
+ * Get donors from a specific donor list with pagination and filtering
+ * 
+ * @name GET /api/donor-lists/:id/donors
+ * @function
+ * @memberof module:DonorListAPI
+ * @param {number} req.params.id - Donor list ID
+ * @param {number} [req.query.page=1] - Page number for pagination
+ * @param {number} [req.query.limit=20] - Number of results per page
+ * @param {string} [req.query.search] - Search term for donor name
+ * @param {string} [req.query.status] - Filter by donor status
+ * @param {string} req.headers.authorization - Bearer token for authentication
+ * @returns {object} 200 - Donors in the specified list with pagination info
+ * @returns {Error} 404 - List not found
+ * @returns {Error} 500 - Server error
+ * 
+ * @example Request Example:
+ * GET /api/donor-lists/1/donors?page=1&amp;limit=10&amp;search=john
+ * Authorization: Bearer &lt;token>
+ * 
+ * @example Success Response:
+ * {
+ *   "donors": [
+ *     {
+ *       "id": 201,
+ *       "donor_id": 301,
+ *       "status": "Approved",
+ *       "comments": "Important donor",
+ *       "donor": {
+ *         "id": 301,
+ *         "first_name": "John",
+ *         "last_name": "Doe",
+ *         "organization_name": null,
+ *         "total_donations": 5000
+ *       }
+ *     }
+ *   ],
+ *   "total": 1,
+ *   "page": 1,
+ *   "limit": 10,
+ *   "pages": 1
+ * }
+ */
+router.get('/:id/donors', protect, async (req, res) => {
+  try {
+    const listId = parseInt(req.params.id);
+    const {
+      page = '1',
+      limit = '20',
+      search = '',
+      status = ''
+    } = req.query;
+
+    const pageNum = parseInt(page);
+    const limitNum = parseInt(limit);
+    const skip = (pageNum - 1) * limitNum;
+
+    // 验证捐赠者列表是否存在
+    const list = await prisma.eventDonorList.findUnique({
+      where: { id: listId }
+    });
+
+    if (!list) {
+      return res.status(404).json({ message: 'Donor list not found' });
+    }
+
+    // 构建查询条件
+    const where = {
+      donorListId: listId
+    };
+
+    // 添加状态过滤
+    if (status) {
+      where.status = status;
+    }
+
+    // 添加名称搜索过滤（搜索关联的捐赠者的名称）
+    if (search) {
+      where.donor = {
+        OR: [
+          { firstName: { contains: search, mode: 'insensitive' } },
+          { lastName: { contains: search, mode: 'insensitive' } },
+          { organizationName: { contains: search, mode: 'insensitive' } }
+        ]
+      };
+    }
+
+    // 获取总记录数
+    const total = await prisma.eventDonor.count({ where });
+
+    // 获取捐赠者数据
+    const eventDonors = await prisma.eventDonor.findMany({
+      where,
+      skip,
+      take: limitNum,
+      orderBy: { createdAt: 'desc' },
+      include: {
+        donor: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            organizationName: true,
+            totalDonations: true,
+            city: true,
+            tags: true
+          }
+        }
+      }
+    });
+
+    // 转换数据为API期望的格式
+    const formattedDonors = eventDonors.map(ed => ({
+      id: ed.id,
+      donor_id: ed.donorId,
+      status: ed.status,
+      exclude_reason: ed.excludeReason,
+      reviewer_id: ed.reviewerId,
+      review_date: ed.reviewDate,
+      comments: ed.comments,
+      auto_excluded: ed.autoExcluded,
+      created_at: ed.createdAt,
+      updated_at: ed.updatedAt,
+      donor: {
+        id: ed.donor.id,
+        first_name: ed.donor.firstName,
+        last_name: ed.donor.lastName,
+        organization_name: ed.donor.organizationName,
+        total_donations: ed.donor.totalDonations,
+        city: ed.donor.city,
+        tags: ed.donor.tags
+      }
+    }));
+
+    res.json({
+      donors: formattedDonors,
+      total,
+      page: pageNum,
+      limit: limitNum,
+      pages: Math.ceil(total / limitNum)
+    });
+  } catch (error) {
+    console.error('Error fetching donors from list:', error);
+    res.status(500).json({ message: 'Internal server error', error: error.message });
   }
 });
 
