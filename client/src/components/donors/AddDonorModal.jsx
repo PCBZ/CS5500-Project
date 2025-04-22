@@ -25,6 +25,29 @@ const AddDonorModal = ({
   const [loadingRecommended, setLoadingRecommended] = useState(false);
   const [filteredRecommendedDonors, setFilteredRecommendedDonors] = useState([]);
 
+  const fetchAvailableDonors = useCallback(async (customSearchQuery = searchQuery, pageNumber = currentPage) => {
+    if (!eventId) return;
+    
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const response = await getAvailableDonors(eventId, {
+        page: pageNumber,
+        limit: 10,
+        search: customSearchQuery
+      });
+      
+      setAvailableDonors(response.data || []);
+      setTotalPages(response.total_pages || 1);
+    } catch (err) {
+      console.error('Error fetching available donors:', err);
+      setError(err.message || 'Failed to load available donors');
+    } finally {
+      setLoading(false);
+    }
+  }, [eventId, searchQuery, currentPage]);
+
   useEffect(() => {
     if (isOpen) {
       setSelectedDonors([]);
@@ -32,23 +55,60 @@ const AddDonorModal = ({
       setCurrentPage(1);
       fetchAvailableDonors();
     }
-  }, [isOpen, eventId]);
+  }, [isOpen, eventId, fetchAvailableDonors]);
 
   useEffect(() => {
     if (isOpen && eventId) {
       fetchAvailableDonors();
     }
-  }, [currentPage]);
+  }, [currentPage, isOpen, eventId, fetchAvailableDonors]);
+
+  const fetchRecommendedDonors = useCallback(async () => {
+    try {
+      setLoadingRecommended(true);
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
+
+      const response = await fetch(
+        `${process.env.REACT_APP_API_URL || 'http://localhost:5001'}/api/events/${eventId}/recommended-donors`,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      
+      // Filter out already participating donors
+      const filteredDonors = data.recommendedDonors.filter(donor => 
+        !currentEventDonors.some(eventDonor => eventDonor.id === donor.id)
+      );
+      
+      setRecommendedDonors(filteredDonors);
+    } catch (err) {
+      console.error('Error fetching recommended donors:', err);
+    } finally {
+      setLoadingRecommended(false);
+    }
+  }, [eventId, currentEventDonors]);
 
   useEffect(() => {
-    if (eventId) {
+    if (eventId && isOpen) {
       fetchRecommendedDonors();
     }
-  }, [eventId]);
+  }, [eventId, isOpen, fetchRecommendedDonors]);
 
   useEffect(() => {
     setFilteredRecommendedDonors(recommendedDonors);
-  }, [recommendedDonors]);
+  }, [recommendedDonors, fetchRecommendedDonors]);
 
   const handleSearch = (e) => {
     setTempSearchQuery(e.target.value);
@@ -85,29 +145,6 @@ const AddDonorModal = ({
         page: 1, // Always start from first page for new search
         limit: 10,
         search: tempSearchQuery // Pass tempSearchQuery directly, not searchQuery state
-      });
-      
-      setAvailableDonors(response.data || []);
-      setTotalPages(response.total_pages || 1);
-    } catch (err) {
-      console.error('Error fetching available donors:', err);
-      setError(err.message || 'Failed to load available donors');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchAvailableDonors = async (customSearchQuery = searchQuery, pageNumber = currentPage) => {
-    if (!eventId) return;
-    
-    setLoading(true);
-    setError(null);
-    
-    try {
-      const response = await getAvailableDonors(eventId, {
-        page: pageNumber,
-        limit: 10,
-        search: customSearchQuery
       });
       
       setAvailableDonors(response.data || []);
@@ -212,43 +249,6 @@ const AddDonorModal = ({
       setSelectedDonors(uniqueDonors);
     } else {
       setSelectedDonors([]);
-    }
-  };
-
-  const fetchRecommendedDonors = async () => {
-    try {
-      setLoadingRecommended(true);
-      const token = localStorage.getItem('token');
-      if (!token) {
-        throw new Error('No authentication token found');
-      }
-
-      const response = await fetch(
-        `${process.env.REACT_APP_API_URL || 'http://localhost:5001'}/api/events/${eventId}/recommended-donors`,
-        {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
-      
-      // Filter out already participating donors
-      const filteredDonors = data.recommendedDonors.filter(donor => 
-        !currentEventDonors.some(eventDonor => eventDonor.id === donor.id)
-      );
-      
-      setRecommendedDonors(filteredDonors);
-    } catch (err) {
-      console.error('Error fetching recommended donors:', err);
-    } finally {
-      setLoadingRecommended(false);
     }
   };
 
