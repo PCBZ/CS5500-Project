@@ -10,8 +10,9 @@ The BC Cancer Foundation Donor Management System is a web-based application desi
 
 - **User Authentication**: Secure login and registration system
 - **Dashboard**: Visual overview of active events, donor statistics, and recent activities
-- **Donor Management**: Review and manage donor lists for upcoming events
 - **Event Management**: Create and manage fundraising events
+- **Event Donors**: Review and manage donor lists for events
+- **All Donors** Manage all donors
 
 ## Technologies Used
 
@@ -32,7 +33,7 @@ The BC Cancer Foundation Donor Management System is a web-based application desi
 
 1. Clone the repository:
    ```
-   git clone git@github.com:J3rrrrry/CS5500-Project.git
+   git clone git@github.com:PCBZ/CS5500-Project.git
    cd CS5500-Project/client
    ```
 
@@ -46,7 +47,7 @@ The BC Cancer Foundation Donor Management System is a web-based application desi
    npm start
    ```
 
-4. The application will be available at http://localhost:3001
+4. The application will be available at http://localhost:3000
 
 ## Project Structure
 
@@ -75,12 +76,6 @@ The frontend communicates with a Node.js/Express backend that provides the follo
 - `/api/user`: User authentication endpoints
 - `/api/events`: Event management endpoints
 - `/api/donors`: Donor management endpoints
-
-## Screenshots
-
-- Dashboard: Overview of key metrics and recent activities
-- Donor Management: Review and manage donor lists for upcoming events
-- Event Management: Create and manage fundraising events
 
 ## License
 
