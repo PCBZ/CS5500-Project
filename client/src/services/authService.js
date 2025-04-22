@@ -1,45 +1,22 @@
-import { fetchWithAuthMiddleware } from '../middleware/authMiddleware';
-
-// API base URL
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001';
-
-// Create a generic fetch function with authentication
-const fetchWithAuth = async (endpoint, options = {}) => {
-  // Ensure headers exist
-  if (!options.headers) {
-    options.headers = {};
-  }
-  
-  // Add content type header
-  options.headers['Content-Type'] = 'application/json';
-  
-  // Add token to request header if it exists
-  const token = localStorage.getItem('token');
-  if (token) {
-    options.headers['Authorization'] = `Bearer ${token}`;
-  }
-  
-  // Execute the request using middleware
-  const response = await fetchWithAuthMiddleware(`${API_URL}/api/user${endpoint}`, options);
-  
-  // Throw error if response is not successful
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({ message: 'Request failed' }));
-    throw errorData;
-  }
-  
-  // Return response data
-  return response.json();
-};
+import { API_URL } from '../config';
 
 // User registration
 export const register = async (userData) => {
   try {
-    const data = await fetchWithAuth('/register', {
+    const response = await fetch(`${API_URL}/api/user/register`, {
       method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
       body: JSON.stringify(userData)
     });
-    return data;
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ message: 'Registration failed' }));
+      throw errorData;
+    }
+
+    return response.json();
   } catch (error) {
     throw error.message ? error : new Error('Registration failed, please try again later');
   }
@@ -64,14 +41,14 @@ export const login = async (email, password) => {
 
     const data = await response.json();
     
-    // Store token and user data in localStorage
+    // Store token and user data in sessionStorage
     if (data.token) {
-      localStorage.setItem('token', data.token);
+      sessionStorage.setItem('token', data.token);
       console.log('Token stored successfully');
       
       // Store user data if available
       if (data.user) {
-        localStorage.setItem('user', JSON.stringify(data.user));
+        sessionStorage.setItem('user', JSON.stringify(data.user));
         console.log('User data stored successfully');
       }
       
@@ -97,8 +74,8 @@ export const login = async (email, password) => {
 
 // User logout
 export const logout = () => {
-  localStorage.removeItem('token');
-  localStorage.removeItem('user');
+  sessionStorage.removeItem('token');
+  sessionStorage.removeItem('user');
   
   // Use different routing format based on environment
   if (process.env.NODE_ENV === 'production') {
@@ -112,7 +89,7 @@ export const logout = () => {
 
 // Get current logged-in user
 export const getCurrentUser = () => {
-  const userStr = localStorage.getItem('user');
+  const userStr = sessionStorage.getItem('user');
   if (userStr) {
     return JSON.parse(userStr);
   }
@@ -121,7 +98,7 @@ export const getCurrentUser = () => {
 
 // Check if user is authenticated
 export const isAuthenticated = () => {
-  return localStorage.getItem('token') !== null;
+  return sessionStorage.getItem('token') !== null;
 };
 
 const authService = {
@@ -131,6 +108,5 @@ const authService = {
   getCurrentUser,
   isAuthenticated
 }; 
-
 
 export default authService;
