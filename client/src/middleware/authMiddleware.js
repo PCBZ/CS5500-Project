@@ -1,15 +1,11 @@
 import authService from '../services/authService';
 
 // Create a generic fetch wrapper function to handle 401 errors
-export const fetchWithAuthMiddleware = async (url, options = {}) => {
-  const response = await fetch(url, options);
-  
+export const withAuth = async (response) => {
   // Check if it's a 401 error
   if (response.status === 401) {
     // Clear authentication information from local storage
     authService.logout();
-    
-    // Redirection handled automatically by logout function, no need for additional redirect here
     return;
   }
   
@@ -20,4 +16,10 @@ export const fetchWithAuthMiddleware = async (url, options = {}) => {
   }
   
   return response;
+};
+
+// Create a fetch wrapper, using middleware
+export const fetchWithAuth = async (url, options = {}) => {
+  const response = await fetch(url, options);
+  return withAuth(response);
 };
