@@ -313,7 +313,7 @@ router.get('/:id', protect, async (req, res) => {
  */
 router.put('/:id', protect, async (req, res) => {
   try {
-    // 解析并验证捐赠者ID
+    // Parse and validate donor ID
     let donorId;
     try {
       donorId = parseInt(req.params.id);
@@ -324,7 +324,7 @@ router.put('/:id', protect, async (req, res) => {
       return res.status(400).json({ message: 'Invalid donor ID format' });
     }
 
-    // 验证捐赠者是否存在
+    // Verify if donor exists
     const donorExists = await prisma.donor.findUnique({
       where: { id: donorId }
     });
@@ -333,10 +333,10 @@ router.put('/:id', protect, async (req, res) => {
       return res.status(404).json({ message: 'Donor not found' });
     }
 
-    // 从请求体中获取更新数据
+    // Get update data from request body
     const rawUpdateData = req.body;
     
-    // 只保留有效的捐赠者字段
+    // Keep only valid donor fields
     const validFields = [
       'pmm', 'smm', 'vmm', 'excluded', 'deceased', 
       'firstName', 'nickName', 'lastName', 'organizationName', 
@@ -347,7 +347,7 @@ router.put('/:id', protect, async (req, res) => {
       'subscriptionEventsInPerson', 'subscriptionEventsMagazine', 'communicationPreference'
     ];
     
-    // 过滤掉不存在的字段
+    // Filter out non-existent fields
     const updateData = {};
     validFields.forEach(field => {
       if (rawUpdateData[field] !== undefined) {
@@ -355,10 +355,10 @@ router.put('/:id', protect, async (req, res) => {
       }
     });
     
-    // 记录更新操作
+    // Log update operation
     console.log(`Updating donor with ID ${donorId}:`, updateData);
     
-    // 处理日期字段，确保它们是有效的格式
+    // Process date fields to ensure they are in valid format
     if (updateData.firstGiftDate) {
       updateData.firstGiftDate = new Date(updateData.firstGiftDate);
     }
@@ -367,13 +367,13 @@ router.put('/:id', protect, async (req, res) => {
       updateData.lastGiftDate = new Date(updateData.lastGiftDate);
     }
 
-    // 更新捐赠者信息
+    // Update donor information
     const updatedDonor = await prisma.donor.update({
       where: { id: donorId },
       data: updateData
     });
 
-    // 返回更新后的捐赠者信息
+    // Return updated donor information
     res.json(formatDonor(updatedDonor));
   } catch (error) {
     console.error('Error updating donor:', error);
@@ -789,7 +789,7 @@ router.delete('/batch', protect, async (req, res) => {
       });
     }
 
-    // 验证所有ID都是有效的数字
+    // Validate that all IDs are valid numbers
     const validIds = ids.map(id => parseInt(id)).filter(id => !isNaN(id));
     
     if (validIds.length !== ids.length) {
@@ -799,9 +799,9 @@ router.delete('/batch', protect, async (req, res) => {
       });
     }
 
-    // 使用事务来确保数据一致性
+    // Use transaction to ensure data consistency
     await prisma.$transaction([
-      // 先删除相关的eventDonor记录
+      // First delete related eventDonor records
       prisma.eventDonor.deleteMany({
         where: {
           donorId: {
@@ -809,7 +809,7 @@ router.delete('/batch', protect, async (req, res) => {
           }
         }
       }),
-      // 然后删除捐赠者
+      // Then delete the donors
       prisma.donor.deleteMany({
         where: {
           id: {
