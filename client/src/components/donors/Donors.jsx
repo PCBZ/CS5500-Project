@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { FaUser, FaPlus, FaAngleDown, FaSpinner, FaDownload } from 'react-icons/fa';
 import { getEvents, getEventById, getEventDonors } from '../../services/eventService';
 import { getAvailableDonors, removeDonorFromEvent, getEventDonorStats, updateEventDonor, exportEventDonorsToCsv } from '../../services/donorService';
-import { getAvailableDonors, removeDonorFromEvent, getEventDonorStats, updateEventDonor, exportEventDonorsToCsv } from '../../services/donorService';
 import { useLocation } from 'react-router-dom';
 import './Donors.css';
 import DonorList from './DonorList';
@@ -33,7 +32,6 @@ const Donors = () => {
   });
   const [totalPages, setTotalPages] = useState(1);
   const [totalDonors, setTotalDonors] = useState(0);
-  const [itemsPerPage] = useState(10);
   const [itemsPerPage] = useState(10);
   const [success, setSuccess] = useState('');
   const [editComments, setEditComments] = useState('');
