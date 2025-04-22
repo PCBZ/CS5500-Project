@@ -1,8 +1,6 @@
-// Import mock data from mockData module
-
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001';
-
-const getAuthToken = () => localStorage.getItem('token');
+import { fetchWithAuth } from './baseService';
+import { API_URL } from '../config';
+import { logout } from './authService';
 
 // Helper function to convert JSON data to CSV
 const jsonToCsv = (data, options = {}) => {
@@ -56,13 +54,7 @@ const jsonToCsv = (data, options = {}) => {
  */
 export const getDonors = async (params = {}) => {
   try {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      throw new Error('No authentication token found');
-    }
-
     // Build URL with query parameters
-    // We can now directly use snake_case parameters as the server supports them
     const url = new URL(`${API_URL}/api/donors`);
     Object.keys(params).forEach(key => {
       if (params[key] !== undefined && params[key] !== '') {
@@ -70,19 +62,7 @@ export const getDonors = async (params = {}) => {
       }
     });
 
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      }
-    });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const data = await response.json();
+    const data = await fetchWithAuth(url.toString());
     
     // Response is already formatted with snake_case field names
     return {
@@ -94,7 +74,7 @@ export const getDonors = async (params = {}) => {
     };
   } catch (error) {
     console.error('Error fetching donors:', error);
-    throw error; // No longer return mock data, pass error to caller
+    throw error;
   }
 };
 
@@ -117,11 +97,6 @@ export const getDonors = async (params = {}) => {
  */
 export const getAllDonors = async (params = {}) => {
   try {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      throw new Error('Authentication token not found');
-    }
-
     const queryParams = new URLSearchParams({
       page: params.page || 1,
       limit: params.limit || 10,
@@ -134,19 +109,7 @@ export const getAllDonors = async (params = {}) => {
       ...(params.tags && { tags: params.tags })
     }).toString();
 
-    const response = await fetch(`${API_URL}/api/donors?${queryParams}`, {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      }
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.message || `Failed to fetch donors: ${response.status}`);
-    }
-
-    const data = await response.json();
+    const data = await fetchWithAuth(`/api/donors?${queryParams}`);
     
     // Ensure we have valid data structure
     return {
@@ -169,14 +132,7 @@ export const getAllDonors = async (params = {}) => {
  * @returns {Promise<Object>} Available donors data
  */
 export const getAvailableDonors = async (eventId, params = {}) => {
-  try {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      throw new Error('No authentication token found');
-    }
-
-    console.log('Getting available donors for event ID', eventId);
-    
+  try {    
     // Use the new API endpoint
     const url = new URL(`${API_URL}/api/events/${eventId}/available-donors`);
     
@@ -186,23 +142,7 @@ export const getAvailableDonors = async (eventId, params = {}) => {
         url.searchParams.append(key, params[key]);
       }
     });
-    
-    console.log('Fetching available donors:', url.toString());
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      }
-    });
-    
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.message || `Failed to fetch available donors: ${response.status}`);
-    }
-    
-    const data = await response.json();
-    console.log('Available donors data received:', data);
+    const data = await fetchWithAuth(url.toString());
     
     // Return formatted data
     return {
@@ -225,35 +165,16 @@ export const getAvailableDonors = async (eventId, params = {}) => {
  * @returns {Promise<Object>} Response data
  */
 export const addDonorToEvent = async (eventId, donorId) => {
-  try {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      throw new Error('No authentication token found');
-    }
-
-    console.log(`Adding donor ${donorId} to event ${eventId}`);
-    
+  try {    
     // Use /api/events/{eventId}/donors endpoint to add donor
-    const response = await fetch(`${API_URL}/api/events/${eventId}/donors`, {
+    const data = await fetchWithAuth(`/api/events/${eventId}/donors`, {
       method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      },
       body: JSON.stringify({ donorId })
     });
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      console.error('Failed to add donor:', errorData);
-      throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
-    }
-
-    const result = await response.json();
-    console.log('Donor added successfully:', result);
-    return result;
+    return data;
   } catch (error) {
-    console.error('Error adding donor to event:', error);
+    console.error('Failed to add donor:', error);
     throw error;
   }
 };
@@ -261,39 +182,18 @@ export const addDonorToEvent = async (eventId, donorId) => {
 /**
  * Remove a donor from an event
  * @param {string} eventId - Event ID
- * @param {string} eventDonorId - Event Donor ID (the ID of the donor-event relationship record)
+ * @param {string} eventDonorId - Event Donor ID
  * @returns {Promise<Object>} Response data
  */
 export const removeDonorFromEvent = async (eventId, eventDonorId) => {
   try {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      throw new Error('No authentication token found');
-    }
-
-    console.log(`Removing donor relationship ${eventDonorId} from event ${eventId}`);
-    
-    // Use /api/events/{eventId}/donors/{eventDonorId} endpoint to remove donor
-    const response = await fetch(`${API_URL}/api/events/${eventId}/donors/${eventDonorId}`, {
-      method: 'DELETE',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      }
+    const result = await fetchWithAuth(`/api/events/${eventId}/donors/${eventDonorId}`, {
+      method: 'DELETE'
     });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      console.error('Failed to remove donor:', errorData);
-      throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
-    }
-
-    const result = await response.json();
-    console.log('Donor removed successfully:', result);
     return result;
   } catch (error) {
     console.error('Error removing donor from event:', error);
-    throw error; // Pass the error to the caller
+    throw error;
   }
 };
 
@@ -304,25 +204,7 @@ export const removeDonorFromEvent = async (eventId, eventDonorId) => {
  */
 export const getEventDonorStats = async (eventId) => {
   try {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      throw new Error('No authentication token found');
-    }
-
-    // Fetch all donors for this event (with a high limit to get all records)
-    const donorsResponse = await fetch(`${API_URL}/api/events/${eventId}/donors?limit=1000`, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      }
-    });
-
-    if (!donorsResponse.ok) {
-      throw new Error(`HTTP error! status: ${donorsResponse.status}`);
-    }
-
-    const donorsData = await donorsResponse.json();
+    const donorsData = await fetchWithAuth(`/api/events/${eventId}/donors?limit=1000`);
     const donors = donorsData.donors || [];
     
     // Calculate statistics based on donor data
@@ -345,14 +227,6 @@ export const getEventDonorStats = async (eventId) => {
     const total = donors.length;
     const approvalRate = total > 0 ? Math.round((approved / total) * 100) : 0;
     
-    console.log('Calculated donor statistics:', {
-      total_donors: total,
-      pending_review: pending,
-      approved: approved,
-      excluded: excluded,
-      approval_rate: approvalRate
-    });
-    
     return {
       event_id: parseInt(eventId),
       total_donors: total,
@@ -363,52 +237,23 @@ export const getEventDonorStats = async (eventId) => {
     };
   } catch (error) {
     console.error('Error calculating event donor statistics:', error);
-    // Return a default empty stats object if calculation fails
-    return {
-      event_id: parseInt(eventId),
-      total_donors: 0,
-      pending_review: 0,
-      approved: 0,
-      excluded: 0,
-      approval_rate: 0
-    };
+    throw error;
   }
 };
 
 /**
  * Update the status of a donor in an event
  * @param {string} eventId - Event ID
- * @param {string} eventDonorId - Event Donor ID (the ID of the donor-event relationship record)
- * @param {string} status - New status ('Pending', 'Approved', or 'Excluded')
+ * @param {string} eventDonorId - Event Donor ID
+ * @param {string} status - New status
  * @returns {Promise<Object>} Response data
  */
 export const updateDonorStatus = async (eventId, eventDonorId, status) => {
   try {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      throw new Error('No authentication token found');
-    }
-
-    console.log(`Updating status for donor relationship ${eventDonorId} in event ${eventId} to ${status}`);
-    
-    // Use PATCH request to update donor status
-    const response = await fetch(`${API_URL}/api/events/${eventId}/donors/${eventDonorId}/status`, {
+    const result = await fetchWithAuth(`/api/events/${eventId}/donors/${eventDonorId}/status`, {
       method: 'PATCH',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      },
       body: JSON.stringify({ status })
     });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      console.error('Failed to update donor status:', errorData);
-      throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
-    }
-
-    const result = await response.json();
-    console.log('Donor status updated successfully:', result);
     return result;
   } catch (error) {
     console.error('Error updating donor status:', error);
@@ -417,44 +262,23 @@ export const updateDonorStatus = async (eventId, eventDonorId, status) => {
 };
 
 /**
- * Update the event donor information (comments, auto_excluded, etc.)
+ * Update event donor information
  * @param {string} eventId - Event ID
- * @param {string} eventDonorId - Event Donor ID (the ID of the donor-event relationship record)
- * @param {Object} updateData - Data to update (comments, auto_excluded, etc.)
+ * @param {string} eventDonorId - Event Donor ID
+ * @param {Object} updateData - Data to update
  * @returns {Promise<Object>} Response data
  */
 export const updateEventDonor = async (eventId, eventDonorId, updateData) => {
   try {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      throw new Error('No authentication token found');
-    }
-
-    console.log(`Updating donor with ID ${eventDonorId} in event ${eventId}`, updateData);
-    
     if (!eventId || !eventDonorId) {
       console.error('Missing required parameters:', { eventId, eventDonorId });
       throw new Error('Missing eventId or eventDonorId');
     }
     
-    // Use PATCH request to update donor information
-    const response = await fetch(`${API_URL}/api/events/${eventId}/donors/${eventDonorId}`, {
+    const result = await fetchWithAuth(`/api/events/${eventId}/donors/${eventDonorId}`, {
       method: 'PATCH',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      },
       body: JSON.stringify(updateData)
     });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      console.error(`Failed to update donor (status: ${response.status}):`, errorData);
-      throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
-    }
-
-    const result = await response.json();
-    console.log('Donor information updated successfully:', result);
     return result;
   } catch (error) {
     console.error('Error updating donor information:', error);
@@ -497,85 +321,36 @@ export const exportDonorsToCsv = async () => {
  * @returns {Promise<Blob>} CSV file as a blob
  */
 export const exportEventDonorsToCsv = async (eventId) => {
-  console.log(`Starting export for event ID: ${eventId}`);
   try {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      throw new Error('No authentication token found');
-    }
-
     // Get event details
-    const eventResponse = await fetch(`${API_URL}/api/events/${eventId}`, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      }
-    });
-    
-    if (!eventResponse.ok) {
-      throw new Error(`HTTP error! status: ${eventResponse.status}`);
-    }
-    
-    const eventData = await eventResponse.json();
+    const eventData = await fetchWithAuth(`/api/events/${eventId}`);
     const eventName = eventData.name || `Event-${eventId}`;
-    console.log(`Exporting donors for event: ${eventName}`);
     
     // Get event donor list
-    const response = await fetch(`${API_URL}/api/events/${eventId}/donors?limit=1000`, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      }
-    });
-    
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    
-    const donorsData = await response.json();
+    const donorsData = await fetchWithAuth(`/api/events/${eventId}/donors?limit=1000`);
     let eventDonors = donorsData.donors || [];
-    console.log(`Found ${eventDonors.length} donor relationship records`);
     
     if (eventDonors.length === 0) {
       throw new Error('No donors to export');
     }
     
-    // Get complete donor data from API
-    console.log('Fetching complete donor data for each donor...');
     const donorPromises = eventDonors.map(async (eventDonor) => {
       // Get donor ID from eventDonor
       const donorId = eventDonor.donor?.id || eventDonor.donor_id || eventDonor.donorId;
       
       if (!donorId) {
         console.warn('Could not find donor ID:', eventDonor);
-        return null; // Return null to filter out later
+        return null;
       }
       
       // Skip excluded donors
       if (eventDonor.status === 'Excluded') {
-        console.log(`Skipping excluded donor ID=${donorId}`);
         return null;
       }
       
       try {
         // Get complete donor data
-        console.log(`Fetching data for donor ID=${donorId}`);
-        const donorResponse = await fetch(`${API_URL}/api/donors/${donorId}`, {
-          method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        });
-        
-        if (!donorResponse.ok) {
-          console.warn(`Unable to get data for donor ID=${donorId}, status: ${donorResponse.status}`);
-          return null; // Return null to filter out later
-        }
-        
-        const donorData = await donorResponse.json();
+        const donorData = await fetchWithAuth(`/api/donors/${donorId}`);
         
         // Skip deceased donors
         if (donorData.deceased === true || donorData.is_deceased === true) {
@@ -586,16 +361,14 @@ export const exportEventDonorsToCsv = async (eventId) => {
         // Return only donor data, not event donor relationship data
         return donorData;
       } catch (error) {
-        console.warn(`Error fetching data for donor ID=${donorId}:`, error.message);
-        return null; // Return null to filter out later
+        console.error(`Error fetching data for donor ID=${donorId}:`, error.message);
+        return null;
       }
     });
     
     // Wait for all donor data to be fetched and filter out nulls
     let enrichedDonors = await Promise.all(donorPromises);
     enrichedDonors = enrichedDonors.filter(donor => donor !== null);
-    
-    console.log(`All donor data fetched, valid data: ${enrichedDonors.length} records`);
     
     if (enrichedDonors.length === 0) {
       throw new Error('No valid donors to export');
@@ -613,32 +386,17 @@ export const exportEventDonorsToCsv = async (eventId) => {
 
 /**
  * Update donor information
- * @param {string} donorId - The ID of the donor to update
+ * @param {string} donorId - Donor ID
  * @param {Object} donorData - Updated donor data
  * @returns {Promise<Object>} Updated donor data
  */
 export const updateDonor = async (donorId, donorData) => {
   try {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      throw new Error('Authentication token not found');
-    }
-
-    const response = await fetch(`${API_URL}/api/donors/${donorId}`, {
+    const result = await fetchWithAuth(`/api/donors/${donorId}`, {
       method: 'PUT',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      },
       body: JSON.stringify(donorData)
     });
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.message || `Failed to update donor: ${response.status}`);
-    }
-
-    return await response.json();
+    return result;
   } catch (error) {
     console.error('Error updating donor:', error);
     throw error;
@@ -647,34 +405,15 @@ export const updateDonor = async (donorId, donorData) => {
 
 /**
  * Delete a donor
- * @param {string} donorId - The ID of the donor to delete
- * @returns {Promise<Object>} - Deletion result
+ * @param {string} donorId - Donor ID
+ * @returns {Promise<Object>} Deletion result
  */
 export const deleteDonor = async (donorId) => {
   try {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      throw new Error('Authentication token not found');
-    }
-
-    console.log(`Attempting to delete donor with ID: ${donorId}`);
-
-    const response = await fetch(`${API_URL}/api/donors/${donorId}`, {
-      method: 'DELETE',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      }
+    const result = await fetchWithAuth(`/api/donors/${donorId}`, {
+      method: 'DELETE'
     });
-
-    const data = await response.json();
-    console.log('Delete donor response:', response.status, data);
-
-    if (!response.ok) {
-      throw new Error(data.message || `Failed to delete donor: ${response.status}`);
-    }
-
-    return data;
+    return result;
   } catch (error) {
     console.error('Error deleting donor:', error);
     throw error;
@@ -684,30 +423,15 @@ export const deleteDonor = async (donorId) => {
 /**
  * Create a new donor
  * @param {Object} donorData - New donor data
- * @returns {Promise<Object>} - Created donor data
+ * @returns {Promise<Object>} Created donor data
  */
 export const createDonor = async (donorData) => {
   try {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      throw new Error('Authentication token not found');
-    }
-
-    const response = await fetch(`${API_URL}/api/donors`, {
+    const result = await fetchWithAuth('/api/donors', {
       method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      },
       body: JSON.stringify(donorData)
     });
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.message || `Failed to create donor: ${response.status}`);
-    }
-
-    return await response.json();
+    return result;
   } catch (error) {
     console.error('Error creating donor:', error);
     throw error;
@@ -715,35 +439,19 @@ export const createDonor = async (donorData) => {
 };
 
 /**
- * Add multiple donors to a list
+ * Add donors to a list
  * @param {number} listId - List ID
  * @param {Array} donorIds - Array of donor IDs
  * @returns {Promise<Object>} Addition result
  */
 export const addDonorsToList = async (listId, donorIds) => {
   try {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      throw new Error('No authentication token found');
-    }
-
     const numericDonorIds = donorIds.map(id => Number(id));
-
-    const response = await fetch(`${API_URL}/api/lists/${listId}/donors`, {
+    const result = await fetchWithAuth(`/api/lists/${listId}/donors`, {
       method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      },
       body: JSON.stringify({ donorIds: numericDonorIds })
     });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
-    }
-
-    return await response.json();
+    return result;
   } catch (error) {
     console.error('Error adding donors to list:', error);
     throw error;
@@ -760,11 +468,6 @@ export const addDonorsToList = async (listId, donorIds) => {
  */
 export const importDonors = async (file, onProgress, onComplete, onError) => {
   try {
-    const token = getAuthToken();
-    if (!token) {
-      throw new Error('No authentication token found');
-    }
-
     // Check file type
     const fileExtension = file.name.split('.').pop().toLowerCase();
     if (!['csv', 'xlsx', 'xls'].includes(fileExtension)) {
@@ -785,14 +488,14 @@ export const importDonors = async (file, onProgress, onComplete, onError) => {
       method: 'POST',
       body: formData,
       headers: {
-        'Authorization': `Bearer ${token}`
+        'Authorization': `Bearer ${sessionStorage.getItem('token')}`
       }
     });
 
     if (!response.ok) {
       if (response.status === 401) {
-        localStorage.removeItem('token');
-        throw new Error('Session expired. Please log in again.');
+        sessionStorage.removeItem('token');
+        logout();
       }
       const errorData = await response.json();
       throw new Error(errorData.message || `Import failed with status: ${response.status}`);
@@ -812,12 +515,7 @@ export const importDonors = async (file, onProgress, onComplete, onError) => {
 
     const pollProgress = async () => {
       try {
-        const progressResponse = await fetch(`${API_URL}/api/progress/${operationId}`, {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        });
+        const progressResponse = await fetchWithAuth(`/api/progress/${operationId}`);
 
         if (!progressResponse.ok) {
           clearInterval(pollingInterval);
@@ -855,12 +553,8 @@ export const importDonors = async (file, onProgress, onComplete, onError) => {
       cancel: async () => {
         try {
           clearInterval(pollingInterval);
-          await fetch(`${API_URL}/api/progress/${operationId}`, {
-            method: 'DELETE',
-            headers: {
-              'Authorization': `Bearer ${token}`,
-              'Content-Type': 'application/json'
-            }
+          await fetchWithAuth(`/api/progress/${operationId}`, {
+            method: 'DELETE'
           });
         } catch (error) {
           console.error('Failed to cancel import:', error);

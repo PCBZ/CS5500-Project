@@ -1,11 +1,6 @@
-// 不需要在前端导入PrismaClient，它是服务器端使用的
-// import { PrismaClient } from '@prisma/client';
-
-import { fetchWithAuthMiddleware } from '../middleware/authMiddleware';
+import { fetchWithAuth } from './baseService';
+import { API_URL } from '../config';
 import { toFrontendStatus, toBackendStatus } from '../utils/statusConversion';
-
-
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001';
 
 /**
  * Get events with optional filtering
@@ -18,43 +13,26 @@ const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001';
  */
 export const getEvents = async (params = {}) => {
   try {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      throw new Error('No authentication token found');
-    }
-
     const url = new URL(`${API_URL}/api/events`);
     
-    // 处理传入的active状态，映射到正确的后端状态值
+    // Handle incoming active status, map to correct backend status value
     const modifiedParams = { ...params };
     
-    // 如果status是"active"，将其替换为后端理解的值"Ready"
+    // If status is "active", replace it with backend understood value "Ready"
     if (modifiedParams.status === 'active') {
       modifiedParams.status = 'Ready';
     }
     
-    // 添加查询参数
+    // Add query parameters
     Object.keys(modifiedParams).forEach(key => {
       if (modifiedParams[key] !== undefined && modifiedParams[key] !== '') {
         url.searchParams.append(key, modifiedParams[key]);
       }
     });
 
-    const response = await fetchWithAuthMiddleware(url, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      }
-    });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const data = await response.json();
+    const data = await fetchWithAuth(url.toString());
     
-    // 将后端状态值映射回前端使用的值
+    // Map backend status values back to frontend values
     if (data.events) {
       data.events = data.events.map(event => ({
         ...event,
@@ -82,26 +60,9 @@ export const getEvents = async (params = {}) => {
  */
 export const getEventById = async (eventId) => {
   try {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      throw new Error('No authentication token found');
-    }
-
-    const response = await fetchWithAuthMiddleware(`${API_URL}/api/events/${eventId}`, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      }
-    });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const event = await response.json();
+    const event = await fetchWithAuth(`${API_URL}/api/events/${eventId}`);
     
-    // 如果需要，将后端状态值映射回前端使用的值
+    // If needed, map backend status values back to frontend values
     return {
       ...event,
       status: event.status === 'Ready' ? 'active' : event.status.toLowerCase()
@@ -119,27 +80,12 @@ export const getEventById = async (eventId) => {
  */
 export const createEvent = async (eventData) => {
   try {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      throw new Error('No authentication token found');
-    }
-
-    const response = await fetchWithAuthMiddleware(`${API_URL}/api/events`, {
+    const responseData = await fetchWithAuth(`${API_URL}/api/events`, {
       method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      },
       body: JSON.stringify(eventData)
     });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const responseData = await response.json();
     
-    // 包含自动创建的捐赠者列表信息
+    // Include automatically created donor list information
     return {
       data: {
         ...responseData.event,
@@ -165,18 +111,6 @@ export const createEvent = async (eventData) => {
  */
 export const getEventDonors = async (eventId, params = {}) => {
   try {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      throw new Error('No authentication token found');
-    }
-
-    // Special handling: If event ID is 227, this is a known problematic event, try using another endpoint
-    if (eventId === '227' || eventId === 227) {
-      console.log('Detected event ID 227, trying alternative API endpoint...');
-      return await getEventDonorsAlternative(eventId, params);
-    }
-
-    // Directly use /api/events/{eventId}/donors endpoint to get event donors
     const url = new URL(`${API_URL}/api/events/${eventId}/donors`);
     
     // Add query parameters
@@ -189,56 +123,8 @@ export const getEventDonors = async (eventId, params = {}) => {
     // Always add no_sort=true parameter to avoid 500 error from server using non-existent createdAt field for sorting
     url.searchParams.set('no_sort', 'true');
 
-    console.log('Requesting event donors:', url.toString());
-    
     try {
-      const response = await fetchWithAuthMiddleware(url, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (!response.ok) {
-        // Handle 404 error, indicating event may have no donor list
-        if (response.status === 404) {
-          const errorData = await response.json().catch(() => ({ message: 'Event has no donor list' }));
-          console.warn('Event has no donor list:', errorData.message);
-          
-          // Return empty result with flag indicating list creation is needed
-          return {
-            data: [],
-            page: params.page || 1,
-            limit: params.limit || 10,
-            total_count: 0,
-            total_pages: 0,
-            needsListCreation: true,
-            message: errorData.message || 'Event has no donor list'
-          };
-        }
-        
-        // Handle 500 error - try alternative method
-        if (response.status === 500) {
-          console.error('Server internal error, trying alternative endpoint:', url.toString());
-          return await getEventDonorsAlternative(eventId, params);
-        }
-        
-        // Handle other errors
-        const errorText = await response.text().catch(() => 'Unknown error');
-        let errorMessage;
-        try {
-          const errorJson = JSON.parse(errorText);
-          errorMessage = errorJson.message || `HTTP error! status: ${response.status}`;
-        } catch (e) {
-          errorMessage = `HTTP error! status: ${response.status}, response: ${errorText.slice(0, 100)}`;
-        }
-        
-        throw new Error(errorMessage);
-      }
-
-      // Get API response
-      const responseData = await response.json();
+      const responseData = await fetchWithAuth(url.toString());
       
       // If response message includes needsListCreation flag, pass it to caller
       const needsListCreation = responseData.needsListCreation || false;
@@ -247,216 +133,52 @@ export const getEventDonors = async (eventId, params = {}) => {
       return {
         data: Array.isArray(responseData.donors) ? responseData.donors.map(donor => ({
           ...donor,
-          firstName: donor.donor?.firstName || donor.donor?.first_name,
-          lastName: donor.donor?.lastName || donor.donor?.last_name,
-          nickName: donor.donor?.nickName || donor.donor?.nick_name,
-          organizationName: donor.donor?.organizationName || donor.donor?.organization_name,
+          id: donor.donorId || donor.donor_id,
+          firstName: donor.donor?.firstName || donor.donor?.first_name || '',
+          lastName: donor.donor?.lastName || donor.donor?.last_name || '',
+          email: donor.donor?.email || '',
+          phone: donor.donor?.phone || '',
+          organizationName: donor.donor?.organizationName || donor.donor?.organization_name || '',
           totalDonations: donor.donor?.totalDonations || donor.donor?.total_donations || 0,
           largestGift: donor.donor?.largestGift || donor.donor?.largest_gift || 0,
-          firstGiftDate: donor.donor?.firstGiftDate || donor.donor?.first_gift_date,
-          lastGiftDate: donor.donor?.lastGiftDate || donor.donor?.last_gift_date,
+          firstGiftDate: donor.donor?.firstGiftDate || donor.donor?.first_gift_date || null,
+          lastGiftDate: donor.donor?.lastGiftDate || donor.donor?.last_gift_date || null,
           lastGiftAmount: donor.donor?.lastGiftAmount || donor.donor?.last_gift_amount || 0,
-          status: donor.status,
-          id: donor.donorId || donor.donor_id,
-          name: donor.donor ? `${donor.donor.firstName || donor.donor.first_name || ''} ${donor.donor.lastName || donor.donor.last_name || ''}`.trim() || 
-                donor.donor.organizationName || donor.donor.organization_name || 'Unnamed' : 'Unknown'
+          status: donor.status || 'pending',
+          name: donor.donor ? 
+            `${donor.donor.firstName || donor.donor.first_name || ''} ${donor.donor.lastName || donor.donor.last_name || ''}`.trim() || 
+            donor.donor.organizationName || donor.donor.organization_name || 'Unnamed' : 
+            'Unknown'
         })) : [],
-        page: responseData.page || 1,
-        limit: responseData.limit || 10,
+        page: responseData.page || params.page || 1,
+        limit: responseData.limit || params.limit || 10,
         total_count: responseData.total || 0,
         total_pages: responseData.pages || 1,
-        needsListCreation
+        needsListCreation,
+        message: responseData.message
       };
-    } catch (fetchError) {
-      console.error('Failed to fetch donor list data:', fetchError);
-      throw fetchError;
+    } catch (error) {
+      // Handle 404 error, indicating event may have no donor list
+      if (error.status === 404) {
+        console.warn('Event has no donor list:', error.message);
+        
+        // Return empty result with flag indicating list creation is needed
+        return {
+          data: [],
+          page: params.page || 1,
+          limit: params.limit || 10,
+          total_count: 0,
+          total_pages: 0,
+          needsListCreation: true,
+          message: error.message || 'Event has no donor list'
+        };
+      }
+      
+      throw error;
     }
   } catch (error) {
-    console.error('Failed to get event donors:', error);
+    console.error('Error fetching event donors:', error);
     throw error;
-  }
-};
-
-/**
- * Alternative function to get event donors
- * This function uses an alternative endpoint to avoid known issues
- */
-const getEventDonorsAlternative = async (eventId, params = {}) => {
-  try {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      throw new Error('No authentication token found');
-    }
-    
-    console.log('Using alternative method to get event donors...');
-    
-    // Directly use event donor API to get data
-    const url = new URL(`${API_URL}/api/events/${eventId}/donors`);
-    
-    // Add query parameters
-    Object.keys(params).forEach(key => {
-      if (params[key] !== undefined && params[key] !== '') {
-        url.searchParams.append(key, params[key]);
-      }
-    });
-    
-    // Add no_sort parameter to avoid server-side sorting errors
-    url.searchParams.append('no_sort', 'true');
-    
-    console.log('Using alternative endpoint to request donors:', url.toString());
-    
-    try {
-      const response = await fetchWithAuthMiddleware(url, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-      
-      if (!response.ok) {
-        // Handle 404 error, indicating event may have no donor list
-        if (response.status === 404) {
-          console.log('Event may have no donors, trying to create one...');
-          
-          try {
-            const createResponse = await createEventDonorList(eventId);
-            console.log('Donor list creation successful:', createResponse);
-            
-            // Try to get donors again after list creation
-            const retryResponse = await fetchWithAuthMiddleware(url, {
-              method: 'GET',
-              headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-              }
-            });
-            
-            if (!retryResponse.ok) {
-              throw new Error(`Failed to get donors after list creation: ${retryResponse.status}`);
-            }
-            
-            const donorsData = await retryResponse.json();
-            
-            return {
-              data: Array.isArray(donorsData.donors) ? donorsData.donors.map(donor => ({
-                ...donor,
-                firstName: donor.donor?.firstName || donor.donor?.first_name,
-                lastName: donor.donor?.lastName || donor.donor?.last_name,
-                nickName: donor.donor?.nickName || donor.donor?.nick_name,
-                organizationName: donor.donor?.organizationName || donor.donor?.organization_name,
-                totalDonations: donor.donor?.totalDonations || donor.donor?.total_donations || 0,
-                largestGift: donor.donor?.largestGift || donor.donor?.largest_gift || 0,
-                firstGiftDate: donor.donor?.firstGiftDate || donor.donor?.first_gift_date,
-                lastGiftDate: donor.donor?.lastGiftDate || donor.donor?.last_gift_date,
-                lastGiftAmount: donor.donor?.lastGiftAmount || donor.donor?.last_gift_amount || 0,
-                status: donor.status,
-                id: donor.donorId || donor.donor_id,
-                name: donor.donor ? `${donor.donor.firstName || donor.donor.first_name || ''} ${donor.donor.lastName || donor.donor.last_name || ''}`.trim() || 
-                      donor.donor.organizationName || donor.donor.organization_name || 'Unnamed' : 'Unknown'
-              })) : [],
-              page: donorsData.page || 1,
-              limit: donorsData.limit || 10,
-              total_count: donorsData.total || 0,
-              total_pages: donorsData.pages || 1
-            };
-          } catch (createError) {
-            console.error('Failed to create donor list:', createError);
-            throw new Error(`Failed to create donor list: ${createError.message}`);
-          }
-        }
-        
-        if (response.status === 500) {
-          // For 500 internal server error, try special handling
-          console.error('Server internal error, possibly sorting field problem:', url.toString());
-          
-          // Add no_sort parameter to tell server not to sort
-          url.searchParams.append('no_sort', 'true');
-          console.log('Trying to request without sorting:', url.toString());
-          
-          const noSortResponse = await fetchWithAuthMiddleware(url, {
-            method: 'GET',
-            headers: {
-              'Authorization': `Bearer ${token}`,
-              'Content-Type': 'application/json'
-            }
-          });
-          
-          if (!noSortResponse.ok) {
-            throw new Error(`Even without sorting cannot get donors: ${noSortResponse.status}`);
-          }
-          
-          const donorsData = await noSortResponse.json();
-          
-          return {
-            data: Array.isArray(donorsData.donors) ? donorsData.donors.map(donor => ({
-              ...donor,
-              firstName: donor.donor?.firstName || donor.donor?.first_name,
-              lastName: donor.donor?.lastName || donor.donor?.last_name,
-              nickName: donor.donor?.nickName || donor.donor?.nick_name,
-              organizationName: donor.donor?.organizationName || donor.donor?.organization_name,
-              totalDonations: donor.donor?.totalDonations || donor.donor?.total_donations || 0,
-              largestGift: donor.donor?.largestGift || donor.donor?.largest_gift || 0,
-              firstGiftDate: donor.donor?.firstGiftDate || donor.donor?.first_gift_date,
-              lastGiftDate: donor.donor?.lastGiftDate || donor.donor?.last_gift_date,
-              lastGiftAmount: donor.donor?.lastGiftAmount || donor.donor?.last_gift_amount || 0,
-              status: donor.status,
-              id: donor.donorId || donor.donor_id,
-              name: donor.donor ? `${donor.donor.firstName || donor.donor.first_name || ''} ${donor.donor.lastName || donor.donor.last_name || ''}`.trim() || 
-                    donor.donor.organizationName || donor.donor.organization_name || 'Unnamed' : 'Unknown'
-            })) : [],
-            page: donorsData.page || 1,
-            limit: donorsData.limit || 10,
-            total_count: donorsData.total || 0,
-            total_pages: donorsData.pages || 1
-          };
-        }
-        
-        throw new Error(`Failed to get donors through alternative endpoint: ${response.status}`);
-      }
-      
-      const donorsData = await response.json();
-      
-      // Format data to match frontend expectations
-      return {
-        data: Array.isArray(donorsData.donors) ? donorsData.donors.map(donor => ({
-          ...donor,
-          firstName: donor.donor?.firstName || donor.donor?.first_name,
-          lastName: donor.donor?.lastName || donor.donor?.last_name,
-          nickName: donor.donor?.nickName || donor.donor?.nick_name,
-          organizationName: donor.donor?.organizationName || donor.donor?.organization_name,
-          totalDonations: donor.donor?.totalDonations || donor.donor?.total_donations || 0,
-          largestGift: donor.donor?.largestGift || donor.donor?.largest_gift || 0,
-          firstGiftDate: donor.donor?.firstGiftDate || donor.donor?.first_gift_date,
-          lastGiftDate: donor.donor?.lastGiftDate || donor.donor?.last_gift_date,
-          lastGiftAmount: donor.donor?.lastGiftAmount || donor.donor?.last_gift_amount || 0,
-          status: donor.status,
-          id: donor.donorId || donor.donor_id,
-          name: donor.donor ? `${donor.donor.firstName || donor.donor.first_name || ''} ${donor.donor.lastName || donor.donor.last_name || ''}`.trim() || 
-                donor.donor.organizationName || donor.donor.organization_name || 'Unnamed' : 'Unknown'
-        })) : [],
-        page: donorsData.page || 1,
-        limit: donorsData.limit || 10,
-        total_count: donorsData.total || 0,
-        total_pages: donorsData.pages || 1
-      };
-    } catch (fetchError) {
-      console.error('Failed to fetch donor list data:', fetchError);
-      throw fetchError;
-    }
-  } catch (error) {
-    console.error('Failed to get donors through alternative method:', error);
-    
-    // If alternative method also fails, return empty result
-    return {
-      data: [],
-      page: params.page || 1,
-      limit: params.limit || 10,
-      total_count: 0,
-      total_pages: 0,
-      error: true,
-      message: `Failed to get event donors: ${error.message || 'Unknown error'}`
-    };
   }
 };
 
@@ -467,38 +189,10 @@ const getEventDonorsAlternative = async (eventId, params = {}) => {
  */
 export const createEventDonorList = async (eventId) => {
   try {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      throw new Error('No authentication token found');
-    }
-
-    console.log(`Creating donor list for event ${eventId}`);
-    
-    const response = await fetchWithAuthMiddleware(`${API_URL}/api/events/${eventId}/donor-list`, {
+    const result = await fetchWithAuth(`/api/events/${eventId}/donor-list`, {
       method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      },
       body: JSON.stringify({ eventId })
     });
-
-    if (!response.ok) {
-      // Try to parse error response
-      const errorText = await response.text().catch(() => 'Unknown error');
-      let errorMessage;
-      try {
-        const errorJson = JSON.parse(errorText);
-        errorMessage = errorJson.message || `Failed to create donor list: ${response.status}`;
-      } catch (e) {
-        errorMessage = `Failed to create donor list: ${response.status}, response: ${errorText.slice(0, 100)}`;
-      }
-      
-      throw new Error(errorMessage);
-    }
-
-    const result = await response.json();
-    console.log('Donor list creation successful:', result);
     return result;
   } catch (error) {
     console.error('Failed to create donor list:', error);
@@ -514,31 +208,16 @@ export const createEventDonorList = async (eventId) => {
  */
 export const updateEvent = async (eventId, eventData) => {
   try {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      throw new Error('No authentication token found');
-    }
-
     // Convert frontend status to backend status
     const modifiedEventData = {
       ...eventData,
       status: toBackendStatus(eventData.status)
     };
 
-    const response = await fetchWithAuthMiddleware(`${API_URL}/api/events/${eventId}`, {
+    const updatedEvent = await fetchWithAuth(`/api/events/${eventId}`, {
       method: 'PUT',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      },
       body: JSON.stringify(modifiedEventData)
     });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const updatedEvent = await response.json();
     
     // Convert backend status back to frontend status
     return {
@@ -558,24 +237,9 @@ export const updateEvent = async (eventId, eventData) => {
  */
 export const deleteEvent = async (eventId) => {
   try {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      throw new Error('No authentication token found');
-    }
-
-    const response = await fetchWithAuthMiddleware(`${API_URL}/api/events/${eventId}`, {
-      method: 'DELETE',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      }
+    await fetchWithAuth(`/api/events/${eventId}`, {
+      method: 'DELETE'
     });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    return;
   } catch (error) {
     console.error('Error deleting event:', error);
     throw error;
@@ -588,24 +252,7 @@ export const deleteEvent = async (eventId) => {
  */
 export const getEventTypes = async () => {
   try {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      throw new Error('No authentication token found');
-    }
-
-    const response = await fetchWithAuthMiddleware(`${API_URL}/api/events/types`, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      }
-    });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const data = await response.json();
+    const data = await fetchWithAuth(`/api/events/types`);
     return data.types || [];
   } catch (error) {
     console.error('Error fetching event types:', error);
@@ -619,24 +266,7 @@ export const getEventTypes = async () => {
  */
 export const getEventLocations = async () => {
   try {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      throw new Error('No authentication token found');
-    }
-
-    const response = await fetchWithAuthMiddleware(`${API_URL}/api/events/locations`, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      }
-    });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const data = await response.json();
+    const data = await fetchWithAuth(`/api/events/locations`);
     return data.locations || [];
   } catch (error) {
     console.error('Error fetching event locations:', error);

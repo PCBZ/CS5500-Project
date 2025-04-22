@@ -194,6 +194,7 @@ const Donors = () => {
         }
       }
       
+      console.log('response.data', response.data);
       // Process the donors data normally
       setEventDonors(response.data || []);
       setTotalPages(response.total_pages || 1);
@@ -605,7 +606,6 @@ const Donors = () => {
   // Check if the selected event is in Ready status
   const isEventReady = () => {
     if (!selectedEvent) return false;
-    console.log('Checking event status:', selectedEvent.status);
     return selectedEvent.status === 'active';
   };
 
