@@ -323,11 +323,7 @@ export const exportDonorsToCsv = async () => {
 export const exportEventDonorsToCsv = async (eventId) => {
   try {
     // Get event details
-    const eventData = await fetchWithAuth(`/api/events/${eventId}`);
-    const eventName = eventData.name || `Event-${eventId}`;
-    
-    // Get event donor list
-    const donorsData = await fetchWithAuth(`/api/events/${eventId}/donors?limit=1000`);
+    const donorsData = await fetchWithAuth(`/api/events/${eventId}`);
     let eventDonors = donorsData.donors || [];
     
     if (eventDonors.length === 0) {
