@@ -1855,17 +1855,26 @@ router.get('/:id/available-donors', protect, async (req, res) => {
 router.get('/:eventId/recommended-donors', protect, async (req, res) => {
   try {
     const eventId = parseInt(req.params.eventId);
+    console.log('Getting recommended donors for event:', eventId);
 
-    // 获取事件信息
+    // Get event information
     const event = await prisma.event.findUnique({
       where: { id: eventId }
     });
 
     if (!event) {
+      console.error('Event not found:', eventId);
       return res.status(404).json({ message: 'Event not found' });
     }
 
-    // 获取与事件城市相同的捐赠者
+    if (!event.location) {
+      console.error('Event has no location set:', eventId);
+      return res.status(400).json({ message: 'Event location is not set' });
+    }
+
+    console.log('Event location:', event.location);
+
+    // Get donors from the same city
     const recommendedDonors = await prisma.donor.findMany({
       where: {
         city: event.location,
@@ -1877,7 +1886,9 @@ router.get('/:eventId/recommended-donors', protect, async (req, res) => {
       }
     });
 
-    // 获取已添加到事件的捐赠者ID列表
+    console.log('Found donors in same city:', recommendedDonors.length);
+
+    // Get existing donors in the event
     const existingDonors = await prisma.eventDonor.findMany({
       where: {
         donorList: {
@@ -1890,11 +1901,14 @@ router.get('/:eventId/recommended-donors', protect, async (req, res) => {
     });
 
     const existingDonorIds = existingDonors.map(d => d.donorId);
+    console.log('Existing donor IDs:', existingDonorIds);
 
-    // 过滤掉已添加的捐赠者
+    // Filter out already added donors
     const filteredRecommendedDonors = recommendedDonors.filter(
       donor => !existingDonorIds.includes(donor.id)
     );
+
+    console.log('Filtered recommended donors:', filteredRecommendedDonors.length);
 
     res.json({
       recommendedDonors: formatDonor(filteredRecommendedDonors)
@@ -1902,7 +1916,11 @@ router.get('/:eventId/recommended-donors', protect, async (req, res) => {
 
   } catch (error) {
     console.error('Error getting recommended donors:', error);
-    res.status(500).json({ message: 'Failed to get recommended donors', error: error.message });
+    res.status(500).json({ 
+      message: 'Failed to get recommended donors', 
+      error: error.message,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
   }
 });
 

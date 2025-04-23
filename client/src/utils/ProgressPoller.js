@@ -23,22 +23,7 @@ export class ProgressPoller {
         throw new Error('No authentication token found');
       }
 
-      const response = await fetch(`/api/progress/${this.operationId}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (!response.ok) {
-        if (response.status === 401) {
-          throw new Error('Authentication failed. Please login again.');
-        }
-        throw new Error(`Progress check failed: ${response.status}`);
-      }
-
-      const data = await response.json();
-      console.log('Progress data received:', data);
+      const data = await fetchWithAuth(`/api/progress/${this.operationId}`)
       
       // Ensure we have valid progress data
       if (!data || typeof data !== 'object') {
