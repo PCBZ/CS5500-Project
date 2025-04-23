@@ -13,7 +13,12 @@ dotenv.config();
 const app = express();
 
 // middleware
-app.use(cors());
+app.use(cors({
+  origin: ['https://pcbz.github.io', 'http://localhost:3000'],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 app.use(express.json());
 
 // routes
