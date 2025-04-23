@@ -515,14 +515,7 @@ export const importDonors = async (file, onProgress, onComplete, onError) => {
 
     const pollProgress = async () => {
       try {
-        const progressResponse = await fetchWithAuth(`/api/progress/${operationId}`);
-
-        if (!progressResponse.ok) {
-          clearInterval(pollingInterval);
-          throw new Error('Failed to check progress');
-        }
-
-        const progressData = await progressResponse.json();
+        const progressData = await fetchWithAuth(`/api/progress/${operationId}`);
         
         if (progressData.status === 'processing') {
           onProgress?.(progressData.progress || 0, progressData.message || 'Processing...');
