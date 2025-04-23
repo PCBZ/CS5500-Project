@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { FaTimes, FaSearch, FaSync, FaPlus, FaInfoCircle } from 'react-icons/fa';
-import { addDonorsToList, getAvailableDonors } from '../../services/donorService';
+import { addDonorsToList, getAvailableDonors, getRecommendedDonors } from '../../services/donorService';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import './AddDonorModal.css';
+import { getEventById } from '../../services/eventService';
 
 const AddDonorModal = ({ 
   isOpen, 
@@ -142,22 +143,9 @@ const AddDonorModal = ({
     setError(null);
     
     try {
-      // Get donor list ID for the event
-      const eventResponse = await fetch(
-        `${process.env.REACT_APP_API_URL || 'http://localhost:5001'}/api/events/${eventId}`,
-        {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`,
-            'Content-Type': 'application/json'
-          }
-        }
-      );
+      // Get event details using the service function
+      const eventData = await getEventById(eventId);
       
-      if (!eventResponse.ok) {
-        throw new Error(`Failed to get event info: ${eventResponse.status}`);
-      }
-      
-      const eventData = await eventResponse.json();
       // Find the active donor list - use the first one if multiple exist
       let donorListId = null;
       if (eventData.donorLists && eventData.donorLists.length > 0) {
@@ -218,29 +206,10 @@ const AddDonorModal = ({
   const fetchRecommendedDonors = async () => {
     try {
       setLoadingRecommended(true);
-      const token = localStorage.getItem('token');
-      if (!token) {
-        throw new Error('No authentication token found');
-      }
-
-      const response = await fetch(
-        `${process.env.REACT_APP_API_URL || 'http://localhost:5001'}/api/events/${eventId}/recommended-donors`,
-        {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
+      const recommendedDonors = await getRecommendedDonors(eventId);
       
       // Filter out already participating donors
-      const filteredDonors = data.recommendedDonors.filter(donor => 
+      const filteredDonors = recommendedDonors.filter(donor => 
         !currentEventDonors.some(eventDonor => eventDonor.id === donor.id)
       );
       

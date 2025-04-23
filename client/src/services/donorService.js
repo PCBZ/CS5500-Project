@@ -323,11 +323,7 @@ export const exportDonorsToCsv = async () => {
 export const exportEventDonorsToCsv = async (eventId) => {
   try {
     // Get event details
-    const eventData = await fetchWithAuth(`/api/events/${eventId}`);
-    const eventName = eventData.name || `Event-${eventId}`;
-    
-    // Get event donor list
-    const donorsData = await fetchWithAuth(`/api/events/${eventId}/donors?limit=1000`);
+    const donorsData = await fetchWithAuth(`/api/events/${eventId}`);
     let eventDonors = donorsData.donors || [];
     
     if (eventDonors.length === 0) {
@@ -515,14 +511,7 @@ export const importDonors = async (file, onProgress, onComplete, onError) => {
 
     const pollProgress = async () => {
       try {
-        const progressResponse = await fetchWithAuth(`/api/progress/${operationId}`);
-
-        if (!progressResponse.ok) {
-          clearInterval(pollingInterval);
-          throw new Error('Failed to check progress');
-        }
-
-        const progressData = await progressResponse.json();
+        const progressData = await fetchWithAuth(`/api/progress/${operationId}`);
         
         if (progressData.status === 'processing') {
           onProgress?.(progressData.progress || 0, progressData.message || 'Processing...');
@@ -564,6 +553,38 @@ export const importDonors = async (file, onProgress, onComplete, onError) => {
     };
   } catch (error) {
     onError?.(error);
+    throw error;
+  }
+};
+
+/**
+ * Get recommended donors for an event
+ * @param {string} eventId - Event ID
+ * @returns {Promise<Array>} Array of recommended donors
+ */
+export const getRecommendedDonors = async (eventId) => {
+  try {
+    console.log('Fetching recommended donors for event:', eventId);
+    const data = await fetchWithAuth(`${API_URL}/api/events/${eventId}/recommended-donors`);
+    
+    if (!data) {
+      console.error('No data received from fetchWithAuth');
+      return [];
+    }
+
+    console.log('Received recommended donors data:', {
+      count: data.recommendedDonors?.length || 0,
+      sample: data.recommendedDonors?.[0]
+    });
+
+    if (!data.recommendedDonors) {
+      console.warn('No recommendedDonors field in response:', data);
+      return [];
+    }
+
+    return data.recommendedDonors;
+  } catch (error) {
+    console.error('Error in getRecommendedDonors:', error);
     throw error;
   }
 }; 

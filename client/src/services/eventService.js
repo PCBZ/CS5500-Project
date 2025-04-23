@@ -54,21 +54,22 @@ export const getEvents = async (params = {}) => {
 };
 
 /**
- * Get event by ID
+ * Get event details by ID
  * @param {string} eventId - Event ID
- * @returns {Promise<Object>} Event data
+ * @returns {Promise<Object>} Event details
  */
 export const getEventById = async (eventId) => {
   try {
-    const event = await fetchWithAuth(`${API_URL}/api/events/${eventId}`);
+    const response = await fetchWithAuth(`${API_URL}/api/events/${eventId}`);
     
-    // If needed, map backend status values back to frontend values
-    return {
-      ...event,
-      status: event.status === 'Ready' ? 'active' : event.status.toLowerCase()
-    };
+    if (!response.ok) {
+      throw new Error(`Failed to get event info: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    return data;
   } catch (error) {
-    console.error(`Error fetching event ${eventId}:`, error);
+    console.error('Error fetching event:', error);
     throw error;
   }
 };
