@@ -60,14 +60,7 @@ export const getEvents = async (params = {}) => {
  */
 export const getEventById = async (eventId) => {
   try {
-    const response = await fetchWithAuth(`${API_URL}/api/events/${eventId}`);
-    
-    if (!response.ok) {
-      throw new Error(`Failed to get event info: ${response.status}`);
-    }
-    
-    const data = await response.json();
-    return data;
+    return await fetchWithAuth(`${API_URL}/api/events/${eventId}`);
   } catch (error) {
     console.error('Error fetching event:', error);
     throw error;
