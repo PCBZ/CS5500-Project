@@ -833,4 +833,78 @@ router.delete('/batch', protect, async (req, res) => {
   }
 });
 
+/**
+ * Get multiple donors by their IDs
+ * 
+ * @name GET /api/donors/batch
+ * @function
+ * @memberof module:DonorAPI
+ * @inner
+ * @param {string} req.query.ids - Comma-separated list of donor IDs
+ * @param {string} req.headers.authorization - Bearer token for authentication
+ * @returns {Object} 200 - Array of donor details
+ * @returns {Error} 400 - Invalid donor IDs format
+ * @returns {Error} 401 - Unauthorized access
+ * @returns {Error} 500 - Server error
+ * 
+ * @example
+ * // Request
+ * GET /api/donors/batch?ids=1,2,3
+ * Authorization: Bearer <token>
+ * 
+ * // Success Response
+ * {
+ *   "donors": [
+ *     {
+ *       "id": "1",
+ *       "constituentId": "D-10023",
+ *       "firstName": "Mei",
+ *       "lastName": "Lee",
+ *       ...
+ *     },
+ *     ...
+ *   ]
+ * }
+ */
+router.get('/batch', protect, async (req, res) => {
+  try {
+    const { ids } = req.query;
+    
+    if (!ids) {
+      return res.status(400).json({ message: 'Missing donor IDs parameter' });
+    }
+
+    // Split and convert string IDs to numbers
+    const numericIds = ids.split(',').map(id => {
+      const numId = parseInt(id.trim());
+      if (isNaN(numId)) {
+        throw new Error(`Invalid donor ID format: ${id}`);
+      }
+      return numId;
+    });
+
+    const donors = await prisma.donor.findMany({
+      where: {
+        id: {
+          in: numericIds
+        }
+      },
+      include: { eventDonors: true }
+    });
+
+    // Format the donors with parsed tags
+    const formattedDonors = donors.map(donor => ({
+      ...donor,
+      tags: donor.tags && Array.isArray(donor.tags) ? donor.tags.map(tag => tag.name) : []
+    }));
+
+    res.json({
+      donors: formatDonor(formattedDonors)
+    });
+  } catch (error) {
+    console.error('Error fetching batch donors:', error);
+    res.status(500).json({ message: 'Internal server error', error: error.message });
+  }
+});
+
 export default router;

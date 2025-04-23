@@ -330,48 +330,30 @@ export const exportEventDonorsToCsv = async (eventId) => {
       throw new Error('No donors to export');
     }
     
-    const donorPromises = eventDonors.map(async (eventDonor) => {
-      // Get donor ID from eventDonor
-      const donorId = eventDonor.donor?.id || eventDonor.donor_id || eventDonor.donorId;
-      
-      if (!donorId) {
-        console.warn('Could not find donor ID:', eventDonor);
-        return null;
-      }
-      
-      // Skip excluded donors
-      if (eventDonor.status === 'Excluded') {
-        return null;
-      }
-      
-      try {
-        // Get complete donor data
-        const donorData = await fetchWithAuth(`/api/donors/${donorId}`);
-        
-        // Skip deceased donors
-        if (donorData.deceased === true || donorData.is_deceased === true) {
-          console.log(`Skipping deceased donor ID=${donorId}`);
-          return null;
-        }
-        
-        // Return only donor data, not event donor relationship data
-        return donorData;
-      } catch (error) {
-        console.error(`Error fetching data for donor ID=${donorId}:`, error.message);
-        return null;
-      }
-    });
-    
-    // Wait for all donor data to be fetched and filter out nulls
-    let enrichedDonors = await Promise.all(donorPromises);
-    enrichedDonors = enrichedDonors.filter(donor => donor !== null);
-    
-    if (enrichedDonors.length === 0) {
+    // Filter out excluded donors and collect valid donor IDs
+    const validDonorIds = eventDonors
+      .filter(eventDonor => eventDonor.status !== 'Excluded')
+      .map(eventDonor => eventDonor.donor?.id || eventDonor.donor_id || eventDonor.donorId)
+      .filter(id => id !== undefined);
+
+    if (validDonorIds.length === 0) {
       throw new Error('No valid donors to export');
     }
 
+    // Get all donor data in one batch request
+    const donors = await getBatchDonors(validDonorIds);
+    
+    // Filter out deceased donors
+    const validDonors = donors.filter(donor => 
+      !donor.deceased && !donor.is_deceased
+    );
+
+    if (validDonors.length === 0) {
+      throw new Error('No valid donors to export after filtering deceased donors');
+    }
+
     // Use the generic jsonToCsv function
-    return jsonToCsv(enrichedDonors, {
+    return jsonToCsv(validDonors, {
       excludeFields: ['eventDonors', 'tags', 'deceased', 'is_deceased']
     });
   } catch (error) {
@@ -585,6 +567,22 @@ export const getRecommendedDonors = async (eventId) => {
     return data.recommendedDonors;
   } catch (error) {
     console.error('Error in getRecommendedDonors:', error);
+    throw error;
+  }
+};
+
+/**
+ * Get multiple donors by their IDs
+ * @param {Array} donorIds - Array of donor IDs
+ * @returns {Promise<Array>} Array of donor data
+ */
+export const getBatchDonors = async (donorIds) => {
+  try {
+    const ids = donorIds.join(',');
+    const result = await fetchWithAuth(`/api/donors/batch?ids=${ids}`);
+    return result.donors || [];
+  } catch (error) {
+    console.error('Error fetching batch donors:', error);
     throw error;
   }
 }; 
