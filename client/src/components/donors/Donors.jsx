@@ -287,31 +287,9 @@ const Donors = () => {
   /**
    * Open the add donor modal
    */
-  const handleOpenAddDonorModal = async () => {
+  const handleOpenAddDonorModal = () => {
     if (!selectedEvent) return;
-    
-    try {
-      // 先显示模态框
-      setShowAddDonorModal(true);
-      
-      setLoading(prev => ({ ...prev, availableDonors: true }));
-      setError(prev => ({ ...prev, availableDonors: null }));
-      
-      // 获取第一页可用捐赠者
-      const result = await getAvailableDonors(selectedEvent.id, {
-        page: 1,
-        limit: modalItemsPerPage,
-        search: ''
-      });
-      
-      setModalTotalPages(result.total_pages || 1);
-      setModalTotalDonors(result.total_count || 0);
-    } catch (error) {
-      console.error('Error fetching available donors:', error);
-      setError(prev => ({ ...prev, availableDonors: error.message }));
-    } finally {
-      setLoading(prev => ({ ...prev, availableDonors: false }));
-    }
+    setShowAddDonorModal(true);
   };
 
   // Handle search
