@@ -833,4 +833,54 @@ router.delete('/batch', protect, async (req, res) => {
   }
 });
 
+/**
+ * Get multiple donors by their IDs
+ * @name POST /api/donors/batch
+ * @function
+ * @memberof module:DonorAPI
+ * @inner
+ */
+router.post('/batch', protect, async (req, res) => {
+  try {
+    const { donorIds } = req.body;
+    
+    if (!donorIds || !Array.isArray(donorIds)) {
+      return res.status(400).json({ message: 'Invalid donor IDs format' });
+    }
+
+    // Convert string IDs to numbers
+    const numericIds = donorIds.map(id => Number(id));
+    
+    // Get donors with their event donor status
+    const donors = await prisma.donor.findMany({
+      where: {
+        id: {
+          in: numericIds
+        },
+        deceased: false
+      },
+      include: {
+        eventDonors: {
+          where: {
+            status: {
+              in: ['Pending', 'Approved']
+            }
+          }
+        }
+      }
+    });
+
+    // Filter donors that have at least one pending or approved event donor status
+    const validDonors = donors.filter(donor => donor.eventDonors.length > 0);
+
+    // Format response
+    res.json({
+      donors: formatDonor(validDonors)
+    });
+  } catch (error) {
+    console.error('Error fetching batch donors:', error);
+    res.status(500).json({ message: 'Internal server error', error: error.message });
+  }
+});
+
 export default router;

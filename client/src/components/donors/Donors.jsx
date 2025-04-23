@@ -894,7 +894,7 @@ const Donors = () => {
             <div className="modal-body">
               <div className="donor-profile-simple">
                 <h4>{selectedDonor.donor?.firstName || selectedDonor.firstName} {selectedDonor.donor?.lastName || selectedDonor.lastName}</h4>
-                {(selectedDonor.donor?.organizationName || selectedDonor.organizationName) && (
+                {((selectedDonor.donor?.organizationName || selectedDonor.organizationName)?.trim()) && (
                   <p className="org-name">{selectedDonor.donor?.organizationName || selectedDonor.organizationName}</p>
                 )}
               </div>
