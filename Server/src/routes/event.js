@@ -1924,4 +1924,89 @@ router.get('/:eventId/recommended-donors', protect, async (req, res) => {
   }
 });
 
+/**
+ * Get all donor IDs for a specific event
+ * 
+ * @name GET /api/events/:id/donor-ids
+ * @function
+ * @memberof module:EventAPI
+ * @inner
+ * @param {string} req.params.id - Event ID
+ * @param {string} req.headers.authorization - Bearer token for authentication
+ * @returns {Object} 200 - Array of donor IDs
+ * @returns {Error} 400 - Invalid event ID format
+ * @returns {Error} 401 - Unauthorized access
+ * @returns {Error} 404 - Event not found
+ * @returns {Error} 500 - Server error
+ * 
+ * @example
+ * // Request
+ * GET /api/events/1/donor-ids
+ * Authorization: Bearer <token>
+ * 
+ * // Success Response
+ * {
+ *   "donorIds": [1, 2, 3, 4, 5]
+ * }
+ */
+router.get('/:id/donor-ids', protect, async (req, res) => {
+  try {
+    let eventId;
+    try {
+      eventId = parseInt(req.params.id); 
+      if (isNaN(eventId)) {
+        return res.status(400).json({ message: 'Invalid event ID format' });
+      }
+    } catch (error) {
+      return res.status(400).json({ message: 'Invalid event ID format' });
+    }
+
+    // Verify if event exists
+    const event = await prisma.event.findUnique({
+      where: { id: eventId, isDeleted: false },
+      include: {
+        donorLists: {
+          select: {
+            id: true
+          }
+        }
+      }
+    });
+
+    if (!event) {
+      return res.status(404).json({ message: 'Event not found' });
+    }
+
+    // Return empty array if event has no donor list
+    if (!event.donorLists || event.donorLists.length === 0) {
+      return res.json({
+        donorIds: []
+      });
+    }
+
+    // Get the first donor list ID of the event
+    const donorListId = event.donorLists[0].id;
+
+    // Get all donor IDs
+    const eventDonors = await prisma.eventDonor.findMany({
+      where: {
+        donorListId: donorListId
+      },
+      select: {
+        donorId: true
+      }
+    });
+
+    // Extract donor IDs array
+    const donorIds = eventDonors.map(ed => ed.donorId);
+
+    res.json({
+      donorIds
+    });
+  } catch (error) {
+    console.error('Error fetching event donor IDs:', error);
+    res.status(500).json({ message: 'Internal server error', error: error.message });
+  }
+});
+
 export default router;

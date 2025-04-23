@@ -322,38 +322,23 @@ export const exportDonorsToCsv = async () => {
  */
 export const exportEventDonorsToCsv = async (eventId) => {
   try {
-    // Get event details
-    const donorsData = await fetchWithAuth(`/api/events/${eventId}/donors`);
-    let eventDonors = donorsData.donors || [];
+    // Get donor IDs for the event
+    const donorIdsData = await fetchWithAuth(`/api/events/${eventId}/donor-ids`);
+    const validDonorIds = donorIdsData.donorIds || [];
     
-    if (eventDonors.length === 0) {
-      throw new Error('No donors to export');
-    }
-    
-    // Filter out excluded donors and collect valid donor IDs
-    const validDonorIds = eventDonors
-      .filter(eventDonor => eventDonor.status !== 'Excluded')
-      .map(eventDonor => eventDonor.donor?.id || eventDonor.donor_id || eventDonor.donorId)
-      .filter(id => id !== undefined);
-
     if (validDonorIds.length === 0) {
       throw new Error('No valid donors to export');
     }
 
     // Get all donor data in one batch request
     const donors = await getBatchDonors(validDonorIds);
-    
-    // Filter out deceased donors
-    const validDonors = donors.filter(donor => 
-      !donor.deceased && !donor.is_deceased
-    );
 
-    if (validDonors.length === 0) {
-      throw new Error('No valid donors to export after filtering deceased donors');
+    if (donors.length === 0) {
+      throw new Error('No valid donors to export after filtering deceased and excluded donors');
     }
 
     // Use the generic jsonToCsv function
-    return jsonToCsv(validDonors, {
+    return jsonToCsv(donors, {
       excludeFields: ['eventDonors', 'tags', 'deceased', 'is_deceased']
     });
   } catch (error) {
@@ -578,8 +563,10 @@ export const getRecommendedDonors = async (eventId) => {
  */
 export const getBatchDonors = async (donorIds) => {
   try {
-    const ids = donorIds.join(',');
-    const result = await fetchWithAuth(`/api/donors/batch?ids=${ids}`);
+    const result = await fetchWithAuth(`/api/donors/batch`, {
+      method: 'POST',
+      body: JSON.stringify({ donorIds })
+    });
     return result.donors || [];
   } catch (error) {
     console.error('Error fetching batch donors:', error);
