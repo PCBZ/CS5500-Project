@@ -18,11 +18,6 @@ export class ProgressPoller {
     if (this.isStopped) return;
 
     try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        throw new Error('No authentication token found');
-      }
-
       const data = await fetchWithAuth(`/api/progress/${this.operationId}`)
       
       // Ensure we have valid progress data
