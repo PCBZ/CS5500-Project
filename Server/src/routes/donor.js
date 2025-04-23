@@ -835,71 +835,47 @@ router.delete('/batch', protect, async (req, res) => {
 
 /**
  * Get multiple donors by their IDs
- * 
- * @name GET /api/donors/batch
+ * @name POST /api/donors/batch
  * @function
  * @memberof module:DonorAPI
  * @inner
- * @param {string} req.query.ids - Comma-separated list of donor IDs
- * @param {string} req.headers.authorization - Bearer token for authentication
- * @returns {Object} 200 - Array of donor details
- * @returns {Error} 400 - Invalid donor IDs format
- * @returns {Error} 401 - Unauthorized access
- * @returns {Error} 500 - Server error
- * 
- * @example
- * // Request
- * GET /api/donors/batch?ids=1,2,3
- * Authorization: Bearer <token>
- * 
- * // Success Response
- * {
- *   "donors": [
- *     {
- *       "id": "1",
- *       "constituentId": "D-10023",
- *       "firstName": "Mei",
- *       "lastName": "Lee",
- *       ...
- *     },
- *     ...
- *   ]
- * }
  */
-router.get('/batch', protect, async (req, res) => {
+router.post('/batch', protect, async (req, res) => {
   try {
-    const { ids } = req.query;
+    const { donorIds } = req.body;
     
-    if (!ids) {
-      return res.status(400).json({ message: 'Missing donor IDs parameter' });
+    if (!donorIds || !Array.isArray(donorIds)) {
+      return res.status(400).json({ message: 'Invalid donor IDs format' });
     }
 
-    // Split and convert string IDs to numbers
-    const numericIds = ids.split(',').map(id => {
-      const numId = parseInt(id.trim());
-      if (isNaN(numId)) {
-        throw new Error(`Invalid donor ID format: ${id}`);
-      }
-      return numId;
-    });
-
+    // Convert string IDs to numbers
+    const numericIds = donorIds.map(id => Number(id));
+    
+    // Get donors with their event donor status
     const donors = await prisma.donor.findMany({
       where: {
         id: {
           in: numericIds
-        }
+        },
+        deceased: false
       },
-      include: { eventDonors: true }
+      include: {
+        eventDonors: {
+          where: {
+            status: {
+              in: ['Pending', 'Approved']
+            }
+          }
+        }
+      }
     });
 
-    // Format the donors with parsed tags
-    const formattedDonors = donors.map(donor => ({
-      ...donor,
-      tags: donor.tags && Array.isArray(donor.tags) ? donor.tags.map(tag => tag.name) : []
-    }));
+    // Filter donors that have at least one pending or approved event donor status
+    const validDonors = donors.filter(donor => donor.eventDonors.length > 0);
 
+    // Format response
     res.json({
-      donors: formatDonor(formattedDonors)
+      donors: formatDonor(validDonors)
     });
   } catch (error) {
     console.error('Error fetching batch donors:', error);
