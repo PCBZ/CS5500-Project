@@ -566,4 +566,36 @@ export const importDonors = async (file, onProgress, onComplete, onError) => {
     onError?.(error);
     throw error;
   }
+};
+
+/**
+ * Get recommended donors for an event
+ * @param {string} eventId - Event ID
+ * @returns {Promise<Array>} Array of recommended donors
+ */
+export const getRecommendedDonors = async (eventId) => {
+  try {
+    console.log('Fetching recommended donors for event:', eventId);
+    const data = await fetchWithAuth(`${API_URL}/api/events/${eventId}/recommended-donors`);
+    
+    if (!data) {
+      console.error('No data received from fetchWithAuth');
+      return [];
+    }
+
+    console.log('Received recommended donors data:', {
+      count: data.recommendedDonors?.length || 0,
+      sample: data.recommendedDonors?.[0]
+    });
+
+    if (!data.recommendedDonors) {
+      console.warn('No recommendedDonors field in response:', data);
+      return [];
+    }
+
+    return data.recommendedDonors;
+  } catch (error) {
+    console.error('Error in getRecommendedDonors:', error);
+    throw error;
+  }
 }; 
