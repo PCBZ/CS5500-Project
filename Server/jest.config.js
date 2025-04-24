@@ -1,8 +1,11 @@
-export default {
+module.exports = {
   testEnvironment: 'node',
+  setupFilesAfterEnv: ['./test/setup.js'],
+  testMatch: ['**/test/**/*.test.js'],
+  verbose: true,
+  testTimeout: 10000,
+  moduleFileExtensions: ['js', 'json'],
   transform: {
     '^.+\\.js$': 'babel-jest'
-  },
-  moduleFileExtensions: ['js', 'json', 'node'],
-  testMatch: ['**/test/**/*.test.js'],
+  }
 }; 
