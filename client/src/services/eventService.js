@@ -24,14 +24,6 @@ export const getEvents = async (params = {}) => {
 
     const data = await fetchWithAuth(url.toString());
     
-    // Map backend status values back to frontend values
-    if (data.events) {
-      data.events = data.events.map(event => ({
-        ...event,
-        status: event.status.toLowerCase()
-      }));
-    }
-    
     return {
       data: data.events || [],
       page: data.page || 1,

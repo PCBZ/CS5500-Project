@@ -7,7 +7,7 @@
  */
 export const toFrontendStatus = (backendStatus) => {
     if (!backendStatus) return '';
-    return backendStatus.toLowerCase();
+    return backendStatus;
 };
   
 /**
@@ -19,11 +19,11 @@ export const toBackendStatus = (frontendStatus) => {
     if (!frontendStatus) return 'Planning'; // Default value
     
     switch(frontendStatus) {
-        case 'complete': return 'Complete';
-        case 'planning': return 'Planning';
-        case 'listgeneration': return 'ListGeneration';
-        case 'review': return 'Review';
-        case 'ready': return 'Ready';
+        case 'Complete': return 'Complete';
+        case 'Planning': return 'Planning';
+        case 'ListGeneration': return 'ListGeneration';
+        case 'Review': return 'Review';
+        case 'Ready': return 'Ready';
         default: return frontendStatus; // Fallback if already in correct format
     }
 };
