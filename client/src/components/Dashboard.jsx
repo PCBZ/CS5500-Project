@@ -31,7 +31,7 @@ const Dashboard = () => {
       const summary = await getDonorListsSummary();
       
       // Fetch active events
-      const eventsResult = await getEvents({ status: 'active', limit: 10 });
+      const eventsResult = await getEvents({ status: 'Ready', limit: 10 });
       const activeEvents = eventsResult.data || [];
       
       // 在设置状态前检查组件是否仍然挂载
