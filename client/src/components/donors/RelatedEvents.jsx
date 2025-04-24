@@ -69,7 +69,7 @@ const RelatedEvents = ({
           </div>
         ) : (
           <div className="related-events-list">
-            {similarEvents.map(({ event, details }) => (
+            {similarEvents.map(({ event, matchingCategories }) => (
               <div 
                 key={event.id} 
                 className="related-event-item" 
@@ -102,15 +102,15 @@ const RelatedEvents = ({
                   </div>
                   
                   <div className="related-event-categories">
-                    {details.matchedCategories.slice(0, 3).map(category => (
+                    {matchingCategories.slice(0, 3).map(category => (
                       <div key={category} className="category-tag">
                         <FaTag className="tag-icon" />
                         <span>{getCategoryDisplayName(category)}</span>
                       </div>
                     ))}
                     
-                    {details.matchedCategories.length > 3 && (
-                      <div className="more-categories">+{details.matchedCategories.length - 3} more</div>
+                    {matchingCategories.length > 3 && (
+                      <div className="more-categories">+{matchingCategories.length - 3} more</div>
                     )}
                   </div>
                 </div>
