@@ -296,7 +296,7 @@ const Donors = () => {
   const handleSearch = async (e) => {
     const newSearchQuery = e.target.value;
     setSearchQuery(newSearchQuery);
-    setCurrentPage(1); // 重置到第一页
+    setCurrentPage(1); // Reset to the first page
     
     if (!selectedEvent) return;
     
@@ -591,7 +591,7 @@ const Donors = () => {
   const handleStatusFilter = async (status) => {
     const newStatus = status === statusFilter ? '' : status;
     setStatusFilter(newStatus);
-    setCurrentPage(1); // 重置到第一页
+    setCurrentPage(1); // Reset to the first page
     
     if (!selectedEvent) return;
     
@@ -599,7 +599,7 @@ const Donors = () => {
       setLoading(prev => ({ ...prev, donors: true }));
       setError(prev => ({ ...prev, donors: null }));
       
-      // 获取新的捐赠者数据
+      // Fetch new donor data
       const response = await getEventDonors(selectedEvent.id, {
         page: 1,
         limit: itemsPerPage,
@@ -620,11 +620,11 @@ const Donors = () => {
 
   const handleDonorAdded = async () => {
     try {
-      // 重新获取活动的捐赠者列表
+      // Refresh the event's donor list
       await fetchEventDonors();
-      // 更新统计信息
+      // Update statistics
       await fetchEventStats();
-      // 显示成功消息
+      // Show success message
       setSuccess('Donor added successfully!');
       setTimeout(() => setSuccess(''), 3000);
     } catch (error) {
@@ -869,8 +869,8 @@ const Donors = () => {
           error={error}
           fetchEvents={fetchEvents}
           formatDate={formatDate}
-          events={events} // 添加所有事件数据
-          onEventSelect={handleRelatedEventSelect} // 添加事件选择处理函数
+          events={events} // Add all event data
+          onEventSelect={handleRelatedEventSelect} // Add event selection handler
         />
       </div>
 

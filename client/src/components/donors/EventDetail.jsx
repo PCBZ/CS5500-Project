@@ -1,7 +1,7 @@
 import React from 'react';
 import { FaCalendarAlt, FaMapMarkerAlt, FaUsers, FaClock, FaSpinner } from 'react-icons/fa';
 import './EventDetail.css';
-import RelatedEvents from './RelatedEvents'; // 导入相关活动组件
+import RelatedEvents from './RelatedEvents'; // Import related events component
 
 const EventDetail = ({ 
   selectedEvent, 
@@ -9,8 +9,8 @@ const EventDetail = ({
   error, 
   fetchEvents, 
   formatDate,
-  events, // 添加events参数接收所有活动数据
-  onEventSelect // 添加onEventSelect参数接收事件选择处理函数
+  events, // Add events parameter to receive all event data
+  onEventSelect // Add onEventSelect parameter to receive event selection handler
 }) => {
   return (
     <div className="donor-details-container">
@@ -55,7 +55,7 @@ const EventDetail = ({
         )}
       </div>
       
-      {/* 相关活动组件 - 在Event Details区域下方添加 */}
+      {/* Related events component - Added below Event Details section */}
       {selectedEvent && events && events.length > 0 && (
         <RelatedEvents 
           currentEvent={selectedEvent}
