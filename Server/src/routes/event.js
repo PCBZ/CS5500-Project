@@ -110,7 +110,6 @@ router.get('/', protect, async (req, res) => {
     // Convert status string value to Prisma EventStatus enum
     // Valid values: Planning, ListGeneration, Review, Ready, Complete
     if (status) {
-      // 有效值: Planning, ListGeneration, Review, Ready, Complete
       const validStatuses = ['Planning', 'ListGeneration', 'Review', 'Ready', 'Complete'];
       
       if (validStatuses.includes(status)) {
