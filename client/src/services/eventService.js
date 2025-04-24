@@ -15,18 +15,10 @@ export const getEvents = async (params = {}) => {
   try {
     const url = new URL(`${API_URL}/api/events`);
     
-    // Handle incoming active status, map to correct backend status value
-    const modifiedParams = { ...params };
-    
-    // If status is "active", replace it with backend understood value "Ready"
-    if (modifiedParams.status === 'active') {
-      modifiedParams.status = 'Ready';
-    }
-    
     // Add query parameters
-    Object.keys(modifiedParams).forEach(key => {
-      if (modifiedParams[key] !== undefined && modifiedParams[key] !== '') {
-        url.searchParams.append(key, modifiedParams[key]);
+    Object.keys(params).forEach(key => {
+      if (params[key] !== undefined && params[key] !== '') {
+        url.searchParams.append(key, params[key]);
       }
     });
 
@@ -36,7 +28,7 @@ export const getEvents = async (params = {}) => {
     if (data.events) {
       data.events = data.events.map(event => ({
         ...event,
-        status: event.status === 'Ready' ? 'active' : event.status.toLowerCase()
+        status: event.status.toLowerCase()
       }));
     }
     
