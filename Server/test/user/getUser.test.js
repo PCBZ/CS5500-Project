@@ -93,7 +93,10 @@ describe('Get User Details', () => {
       .get(`/api/user/${userId}`);
 
     expect(response.status).toBe(401);
-    expect(response.body).toHaveProperty('message', 'Not authorized, no token');
+    expect(response.body).toHaveProperty('success', false);
+    expect(response.body).toHaveProperty('error');
+    expect(response.body.error).toHaveProperty('code', 'AUTH_001');
+    expect(response.body.error).toHaveProperty('message', 'Authentication token is missing');
   }, 10000);
 
   it('should not get user details with invalid token', async () => {
@@ -102,7 +105,10 @@ describe('Get User Details', () => {
       .set('Authorization', 'Bearer invalid_token');
 
     expect(response.status).toBe(401);
-    expect(response.body).toHaveProperty('message', 'Not authorized, token failed');
+    expect(response.body).toHaveProperty('success', false);
+    expect(response.body).toHaveProperty('error');
+    expect(response.body.error).toHaveProperty('code', 'AUTH_003');
+    expect(response.body.error).toHaveProperty('message', 'Invalid token');
   }, 10000);
 
   it('should not get non-existent user', async () => {
@@ -136,6 +142,9 @@ describe('Get User Details', () => {
       .set('Authorization', `Bearer ${expiredToken}`);
 
     expect(response.status).toBe(401);
-    expect(response.body).toHaveProperty('message', 'Not authorized, token failed');
+    expect(response.body).toHaveProperty('success', false);
+    expect(response.body).toHaveProperty('error');
+    expect(response.body.error).toHaveProperty('code', 'AUTH_003');
+    expect(response.body.error).toHaveProperty('message', 'Invalid token');
   }, 10000);
 }); 
