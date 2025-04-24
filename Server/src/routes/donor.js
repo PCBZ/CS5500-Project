@@ -160,8 +160,8 @@ router.get('/', protect, async (req, res) => {
     // Get total count for pagination
     const total = await prisma.donor.count({ where });
 
-    // 转换下划线格式的排序字段为驼峰命名
-    // 映射查询参数中的蛇形命名到数据库模型的驼峰命名
+    // Convert underscore format sort field to camelCase
+    // Map snake_case in query parameters to camelCase in database model
     const sortMapping = {
       'first_name': 'firstName',
       'last_name': 'lastName',
@@ -171,7 +171,7 @@ router.get('/', protect, async (req, res) => {
       'last_gift_date': 'lastGiftDate'
     };
 
-    // 使用映射表或直接使用字段名（如果已经是驼峰命名）
+    // Use mapping table or directly use field name (if already in camelCase)
     const sortField = sortMapping[sort] || sort;
 
     // Get donors with pagination, sorting, and filtering

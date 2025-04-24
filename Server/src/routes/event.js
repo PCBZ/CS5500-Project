@@ -107,9 +107,9 @@ router.get('/', protect, async (req, res) => {
       isDeleted: false
     };
 
-    // 将status字符串值转换为Prisma的EventStatus枚举值
+    // Convert status string value to Prisma EventStatus enum
+    // Valid values: Planning, ListGeneration, Review, Ready, Complete
     if (status) {
-      // 有效值: Planning, ListGeneration, Review, Ready, Complete
       const validStatuses = ['Planning', 'ListGeneration', 'Review', 'Ready', 'Complete'];
       
       if (validStatuses.includes(status)) {
@@ -284,7 +284,7 @@ router.post('/', protect, async (req, res) => {
       const donorList = await prisma.eventDonorList.create({
         data: {
           eventId: event.id,
-          name: `${event.name} - 捐赠者名单`,
+          name: `${event.name} - Donor List`,
           totalDonors: 0,
           approved: 0,
           excluded: 0,
@@ -904,7 +904,7 @@ router.get('/:id/donors', protect, async (req, res) => {
       return res.status(404).json({ message: 'Event not found' });
     }
     
-    // 设置分页参数
+    // Set pagination parameters
     const {
       page = '1',
       limit = '20',
@@ -916,7 +916,7 @@ router.get('/:id/donors', protect, async (req, res) => {
     const limitNum = parseInt(limit);
     const skip = (pageNum - 1) * limitNum;
 
-    // 如果事件没有捐赠者列表，返回空结果
+    // If event has no donor list, return empty result
     if (!event.donorLists || event.donorLists.length === 0) {
       return res.json({
         donors: [],
@@ -929,20 +929,20 @@ router.get('/:id/donors', protect, async (req, res) => {
       });
     }
 
-    // 获取事件的第一个捐赠者列表ID
+    // Get the first donor list ID of the event
     const donorListId = event.donorLists[0].id;
     
-    // 构建查询条件
+    // Build query conditions
     const where = {
       donorListId: donorListId
     };
     
-    // 添加状态过滤
+    // Add status filter
     if (status) {
       where.status = status;
     }
     
-    // 添加名称搜索过滤
+    // Add name search filter
     if (search) {
       const searchLower = search.toLowerCase();
       where.donor = {
@@ -954,10 +954,10 @@ router.get('/:id/donors', protect, async (req, res) => {
       };
     }
 
-    // 获取总记录数
+    // Get total record count
     const total = await prisma.eventDonor.count({ where });
 
-    // 获取捐赠者数据
+    // Get donors already in the event
     const eventDonors = await prisma.eventDonor.findMany({
       where,
       skip,
@@ -982,7 +982,7 @@ router.get('/:id/donors', protect, async (req, res) => {
       }
     });
 
-    // 格式化数据响应
+    // Format response
     const formattedDonors = eventDonors.map(ed => ({
       id: ed.id,
       donor_id: ed.donorId,
@@ -1064,7 +1064,7 @@ router.get('/:id/donors', protect, async (req, res) => {
  */
 router.post('/:id/donors', protect, async (req, res) => {
   try {
-    // 验证事件ID
+    // Validate event ID
     let eventId;
     try {
       eventId = parseInt(req.params.id); 
@@ -1075,7 +1075,7 @@ router.post('/:id/donors', protect, async (req, res) => {
       return res.status(400).json({ message: 'Invalid event ID format' });
     }
 
-    // 验证捐赠者ID
+    // Validate donor ID
     const { donorId } = req.body;
     if (!donorId) {
       return res.status(400).json({ message: 'Donor ID is required' });
@@ -1086,7 +1086,7 @@ router.post('/:id/donors', protect, async (req, res) => {
       return res.status(400).json({ message: 'Invalid donor ID format' });
     }
 
-    // 验证事件是否存在
+    // Validate if event exists
     const event = await prisma.event.findUnique({
       where: { id: eventId },
       include: {
@@ -1104,7 +1104,7 @@ router.post('/:id/donors', protect, async (req, res) => {
       return res.status(404).json({ message: 'Event not found' });
     }
 
-    // 验证捐赠者是否存在
+    // Validate if donor exists
     const donor = await prisma.donor.findUnique({
       where: { id: donorIdInt }
     });
@@ -1113,13 +1113,13 @@ router.post('/:id/donors', protect, async (req, res) => {
       return res.status(404).json({ message: 'Donor not found' });
     }
 
-    // 获取或创建事件的捐赠者列表
+    // Get or create event's donor list
     let donorList = event.donorLists && event.donorLists.length > 0 
       ? event.donorLists[0] 
       : null;
 
     if (!donorList) {
-      // 创建捐赠者列表
+      // Create donor list
       donorList = await prisma.eventDonorList.create({
         data: {
           name: `${event.name} - Donor List`,
@@ -1135,7 +1135,7 @@ router.post('/:id/donors', protect, async (req, res) => {
       });
     }
 
-    // 检查捐赠者是否已在列表中
+    // Check if donor is already in the list
     const existingEventDonor = await prisma.eventDonor.findFirst({
       where: {
         donorListId: donorList.id,
@@ -1151,7 +1151,7 @@ router.post('/:id/donors', protect, async (req, res) => {
       });
     }
 
-    // 添加捐赠者到列表
+    // Add donor to list
     const eventDonor = await prisma.eventDonor.create({
       data: {
         donorListId: donorList.id,
@@ -1161,7 +1161,7 @@ router.post('/:id/donors', protect, async (req, res) => {
       }
     });
 
-    // 更新列表统计数据
+    // Update list statistics
     await prisma.eventDonorList.update({
       where: { id: donorList.id },
       data: {
@@ -1170,7 +1170,7 @@ router.post('/:id/donors', protect, async (req, res) => {
       }
     });
 
-    // 获取更新后的捐赠者列表
+    // Get updated donor list
     const updatedDonorList = await prisma.eventDonorList.findUnique({
       where: { id: donorList.id },
       select: {
@@ -1231,7 +1231,7 @@ router.post('/:id/donors', protect, async (req, res) => {
  */
 router.delete('/:id/donors/:donorId', protect, async (req, res) => {
   try {
-    // 验证事件ID
+    // Validate event ID
     let eventId;
     try {
       eventId = parseInt(req.params.id); 
@@ -1242,7 +1242,7 @@ router.delete('/:id/donors/:donorId', protect, async (req, res) => {
       return res.status(400).json({ message: 'Invalid event ID format' });
     }
 
-    // 验证捐赠者ID
+    // Validate donor ID
     let donorId;
     try {
       donorId = parseInt(req.params.donorId);
@@ -1253,7 +1253,7 @@ router.delete('/:id/donors/:donorId', protect, async (req, res) => {
       return res.status(400).json({ message: 'Invalid donor ID format' });
     }
 
-    // 验证事件是否存在并获取捐赠者列表ID
+    // Validate if event exists and get donor list ID
     const event = await prisma.event.findUnique({
       where: { id: eventId },
       include: {
@@ -1271,14 +1271,14 @@ router.delete('/:id/donors/:donorId', protect, async (req, res) => {
       return res.status(404).json({ message: 'Event not found' });
     }
 
-    // 检查事件是否有捐赠者列表
+    // Check if event has donor list
     if (!event.donorLists || event.donorLists.length === 0) {
       return res.status(404).json({ message: 'Event has no donor list' });
     }
 
     const donorListId = event.donorLists[0].id;
 
-    // 查找捐赠者在列表中的记录
+    // Find donor record in the list
     const eventDonor = await prisma.eventDonor.findFirst({
       where: {
         donorListId: donorListId,
@@ -1290,22 +1290,22 @@ router.delete('/:id/donors/:donorId', protect, async (req, res) => {
       return res.status(404).json({ message: 'Donor not found in this event' });
     }
 
-    // 获取捐赠者状态，用于更新统计信息
+    // Get donor status for updating statistics
     const donorStatus = eventDonor.status;
 
-    // 删除捐赠者记录
+    // Delete donor record
     await prisma.eventDonor.delete({
       where: {
         id: eventDonor.id
       }
     });
 
-    // 更新列表统计信息
+    // Update list statistics
     const updateData = {
       totalDonors: { decrement: 1 }
     };
 
-    // 根据捐赠者状态更新对应的计数
+    // Update corresponding count based on donor status
     if (donorStatus === 'Pending') {
       updateData.pending = { decrement: 1 };
     } else if (donorStatus === 'Approved') {
@@ -1316,13 +1316,13 @@ router.delete('/:id/donors/:donorId', protect, async (req, res) => {
       updateData.autoExcluded = { decrement: 1 };
     }
 
-    // 更新捐赠者列表统计数据
+    // Update donor list statistics
     await prisma.eventDonorList.update({
       where: { id: donorListId },
       data: updateData
     });
 
-    // 获取更新后的捐赠者列表
+    // Get updated donor list
     const updatedDonorList = await prisma.eventDonorList.findUnique({
       where: { id: donorListId },
       select: {
@@ -1700,7 +1700,7 @@ router.get('/:id/available-donors', protect, async (req, res) => {
   try {
     const eventId = parseInt(req.params.id);
 
-    // Step 1: 获取事件信息
+    // Step 1: Get event information
     const event = await prisma.event.findUnique({
       where: { id: eventId }
     });
@@ -1709,7 +1709,7 @@ router.get('/:id/available-donors', protect, async (req, res) => {
       return res.status(404).json({ message: 'Event not found' });
     }
 
-    // Step 2: 获取事件中已有的捐赠者
+    // Step 2: Get existing donors in the event
     const existingDonors = await prisma.eventDonor.findMany({
       where: {
         donorList: {
@@ -1717,28 +1717,28 @@ router.get('/:id/available-donors', protect, async (req, res) => {
         }
       },
       include: {
-        donor: true  // 包含完整的捐赠者信息
+        donor: true  // Include full donor information
       }
     });
 
-    // 处理多种ID字段并确保唯一性
+    // Process multiple ID fields and ensure uniqueness
     const currentEventDonorIds = [...new Set(
       existingDonors
         .map(donor => {
-          // 处理可能的不同ID字段
+          // Process possible different ID fields
           const id = donor.donorId || donor.donor_id || donor.donor?.id;
           if (!id) {
             console.warn(`Warning: Donor record missing ID:`, donor);
           }
           return id;
         })
-        .filter(id => id != null)  // 过滤掉null值
+        .filter(id => id != null)  // Filter out null values
     )];
 
-    // 如果没有找到捐赠者列表
+    // If no donors found in the event
     if (!existingDonors && !currentEventDonorIds.length) {
       console.log(`No donors found for event ${eventId}, creating empty list`);
-      // 继续处理，但使用空数组
+      // Continue processing, but use empty array
     }
 
     // Get pagination and filter parameters

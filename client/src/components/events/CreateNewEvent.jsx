@@ -39,7 +39,7 @@ function CreateNewEvent({ onClose, onEventCreated }) {
     endDate: useRef(null)
   };
 
-  // 处理点击外部关闭日历
+  // Handle click outside to close calendar
   useEffect(() => {
     function handleClickOutside(event) {
       Object.keys(calendarRefs).forEach(key => {
@@ -55,7 +55,7 @@ function CreateNewEvent({ onClose, onEventCreated }) {
     };
   }, []);
 
-  // 获取当前月份的日历数据
+  // Get calendar days for current month
   const getCalendarDays = (date) => {
     const year = date.getFullYear();
     const month = date.getMonth();
@@ -63,7 +63,7 @@ function CreateNewEvent({ onClose, onEventCreated }) {
     const lastDay = new Date(year, month + 1, 0);
     const days = [];
 
-    // 添加上个月的日期
+    // Add days from previous month
     const firstDayWeekday = firstDay.getDay();
     for (let i = firstDayWeekday - 1; i >= 0; i--) {
       const date = new Date(year, month, -i);

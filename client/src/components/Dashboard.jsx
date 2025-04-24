@@ -16,12 +16,12 @@ const Dashboard = () => {
   });
   const [events, setEvents] = useState([]);
   const [error, setError] = useState(null);
-  // 添加组件挂载状态引用
+  // Add component mount state reference
   const isMountedRef = React.useRef(true);
-  // 使用 useNavigate 钩子
+  // Use useNavigate hook
   const navigate = useNavigate();
 
-  // 在组件级别定义fetchDashboardData函数
+  // Define fetchDashboardData function at component level
   const fetchDashboardData = async () => {
     try {
       if (isMountedRef.current) setLoading(true);
@@ -34,7 +34,7 @@ const Dashboard = () => {
       const eventsResult = await getEvents({ status: 'Ready', limit: 10 });
       const activeEvents = eventsResult.data || [];
       
-      // 在设置状态前检查组件是否仍然挂载
+      // Check if component is still mounted before setting state
       if (isMountedRef.current) {
         setEvents(activeEvents.slice(0, 3)); // Only show the first three events
         
@@ -56,16 +56,16 @@ const Dashboard = () => {
   };
 
   useEffect(() => {
-    // 组件挂载时，初始化用户数据
+    // Initialize user data when component mounts
     const userData = getCurrentUser();
     if (userData && isMountedRef.current) {
       setUser(userData);
     }
 
-    // 调用fetchDashboardData函数获取数据
+    // Call fetchDashboardData function to get data
     fetchDashboardData();
 
-    // 清理函数，在组件卸载时执行
+    // Cleanup function, executed when component unmounts
     return () => {
       isMountedRef.current = false;
     };

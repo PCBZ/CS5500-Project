@@ -4,16 +4,16 @@ import { findSimilarEvents, getCategoryDisplayName } from './EventKeywordAnalyze
 import './RelatedEvents.css';
 
 /**
- * 相关活动组件
- * 根据关键词分析显示与当前活动相似的其他活动
+ * Related Events Component
+ * Displays events similar to the current event based on keyword analysis
  * 
  * @param {Object} props
- * @param {Object} props.currentEvent - 当前活动对象
- * @param {Array} props.allEvents - 所有活动的数组
- * @param {Function} props.formatDate - 日期格式化函数
- * @param {Function} props.onEventSelect - 活动选择回调函数
- * @param {number} props.maxEvents - 最大显示活动数量，默认为3
- * @param {boolean} props.loading - 加载状态
+ * @param {Object} props.currentEvent - Current event object
+ * @param {Array} props.allEvents - Array of all events
+ * @param {Function} props.formatDate - Date formatting function
+ * @param {Function} props.onEventSelect - Event selection callback function
+ * @param {number} props.maxEvents - Maximum number of events to display, default is 3
+ * @param {boolean} props.loading - Loading state
  */
 const RelatedEvents = ({ 
   currentEvent, 
@@ -26,7 +26,7 @@ const RelatedEvents = ({
   const [similarEvents, setSimilarEvents] = useState([]);
   const [showTooltip, setShowTooltip] = useState(false);
 
-  // 当当前活动或所有活动改变时，重新计算相似活动
+  // Recalculate similar events when current event or all events change
   useEffect(() => {
     if (currentEvent && allEvents && allEvents.length > 0) {
       const similar = findSimilarEvents(currentEvent, allEvents, maxEvents);
@@ -36,7 +36,7 @@ const RelatedEvents = ({
     }
   }, [currentEvent, allEvents, maxEvents]);
 
-  // 如果没有相似活动，不显示组件
+  // Don't display component if there are no similar events
   if (similarEvents.length === 0 && !loading) {
     return null;
   }
@@ -69,7 +69,7 @@ const RelatedEvents = ({
           </div>
         ) : (
           <div className="related-events-list">
-            {similarEvents.map(({ event, details }) => (
+            {similarEvents.map(({ event, matchingCategories }) => (
               <div 
                 key={event.id} 
                 className="related-event-item" 
@@ -102,15 +102,15 @@ const RelatedEvents = ({
                   </div>
                   
                   <div className="related-event-categories">
-                    {details.matchedCategories.slice(0, 3).map(category => (
+                    {matchingCategories.slice(0, 3).map(category => (
                       <div key={category} className="category-tag">
                         <FaTag className="tag-icon" />
                         <span>{getCategoryDisplayName(category)}</span>
                       </div>
                     ))}
                     
-                    {details.matchedCategories.length > 3 && (
-                      <div className="more-categories">+{details.matchedCategories.length - 3} more</div>
+                    {matchingCategories.length > 3 && (
+                      <div className="more-categories">+{matchingCategories.length - 3} more</div>
                     )}
                   </div>
                 </div>
