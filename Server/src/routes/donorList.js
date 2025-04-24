@@ -341,13 +341,13 @@ router.post('/:id/donors', protect, async (req, res) => {
       return res.status(400).json({ message: 'Invalid donor IDs array' });
     }
 
-    // 确保所有 ID 都是数字类型
+    // Ensure all IDs are numeric
     const numericDonorIds = donorIds.map(id => Number(id));
     if (numericDonorIds.some(isNaN)) {
       return res.status(400).json({ message: 'Invalid donor ID format' });
     }
 
-    // Check if list exists
+    // Verify if the donor list exists
     const list = await prisma.eventDonorList.findUnique({
       where: { id: listId }
     });
@@ -750,7 +750,7 @@ router.get('/:id/donors', protect, async (req, res) => {
     const limitNum = parseInt(limit);
     const skip = (pageNum - 1) * limitNum;
 
-    // 验证捐赠者列表是否存在
+    // Verify if the donor list exists
     const list = await prisma.eventDonorList.findUnique({
       where: { id: listId }
     });
@@ -759,17 +759,17 @@ router.get('/:id/donors', protect, async (req, res) => {
       return res.status(404).json({ message: 'Donor list not found' });
     }
 
-    // 构建查询条件
+    // Build query conditions
     const where = {
       donorListId: listId
     };
 
-    // 添加状态过滤
+    // Add status filter
     if (status) {
       where.status = status;
     }
 
-    // 添加名称搜索过滤（搜索关联的捐赠者的名称）
+    // Add name search filter (search for associated donor names)
     if (search) {
       where.donor = {
         OR: [
@@ -780,10 +780,10 @@ router.get('/:id/donors', protect, async (req, res) => {
       };
     }
 
-    // 获取总记录数
+    // Get total record count
     const total = await prisma.eventDonor.count({ where });
 
-    // 获取捐赠者数据
+    // Get donor data
     const eventDonors = await prisma.eventDonor.findMany({
       where,
       skip,
@@ -804,7 +804,7 @@ router.get('/:id/donors', protect, async (req, res) => {
       }
     });
 
-    // 转换数据为API期望的格式
+    // Convert data to API expected format
     const formattedDonors = eventDonors.map(ed => ({
       id: ed.id,
       donor_id: ed.donorId,
