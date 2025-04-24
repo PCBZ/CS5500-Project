@@ -480,7 +480,7 @@
 }
 
 /* Ready - Light Green */
-.activity-status.active {
+.activity-status.ready {
   background-color: #D1FAE5;
   color: #10B981;
 }

@@ -638,8 +638,12 @@ router.get('/:listId/stats', protect, async (req, res) => {
  */
 router.get('/stats/summary', protect, async (req, res) => {
   try {
-    // Get all donor lists
-    const donorLists = await prisma.eventDonorList.findMany();
+    // Get all donor lists with their eventDonors
+    const donorLists = await prisma.eventDonorList.findMany({
+      include: {
+        eventDonors: true
+      }
+    });
     
     if (donorLists.length === 0) {
       return res.status(200).json({
@@ -656,18 +660,44 @@ router.get('/stats/summary', protect, async (req, res) => {
       });
     }
 
-    // Calculate aggregated statistics
+    // Calculate aggregated statistics from eventDonors
     const totalLists = donorLists.length;
-    const totalDonors = donorLists.reduce((sum, list) => sum + list.totalDonors, 0);
-    const totalApproved = donorLists.reduce((sum, list) => sum + list.approved, 0);
-    const totalExcluded = donorLists.reduce((sum, list) => sum + list.excluded, 0);
-    const totalPending = donorLists.reduce((sum, list) => sum + list.pending, 0);
-    const totalAutoExcluded = donorLists.reduce((sum, list) => sum + list.autoExcluded, 0);
-    const totalReviewed = totalApproved + totalExcluded;
-    
     const completedLists = donorLists.filter(list => list.reviewStatus === 'completed').length;
     const pendingLists = donorLists.filter(list => list.reviewStatus === 'pending').length;
-    
+
+    // Initialize counters
+    let totalDonors = 0;
+    let totalApproved = 0;
+    let totalExcluded = 0;
+    let totalPending = 0;
+    let totalAutoExcluded = 0;
+
+    // Calculate statistics from eventDonors
+    donorLists.forEach(list => {
+      const donors = list.eventDonors;
+      totalDonors += donors.length;
+
+      donors.forEach(donor => {
+        switch (donor.status) {
+          case 'Approved':
+            totalApproved++;
+            break;
+          case 'Excluded':
+            totalExcluded++;
+            break;
+          case 'Pending':
+            totalPending++;
+            break;
+          default:
+            break;
+        }
+        if (donor.autoExcluded) {
+          totalAutoExcluded++;
+        }
+      });
+    });
+
+    const totalReviewed = totalApproved + totalExcluded;
     const overallApprovalRate = totalDonors > 0 
       ? Math.round((totalApproved / totalDonors) * 100) 
       : 0;

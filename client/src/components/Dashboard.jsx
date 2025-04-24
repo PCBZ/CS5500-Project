@@ -31,7 +31,7 @@ const Dashboard = () => {
       const summary = await getDonorListsSummary();
       
       // Fetch active events
-      const eventsResult = await getEvents({ status: 'active', limit: 10 });
+      const eventsResult = await getEvents({ status: 'Ready', limit: 10 });
       const activeEvents = eventsResult.data || [];
       
       // Check if component is still mounted before setting state

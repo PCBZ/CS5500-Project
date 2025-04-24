@@ -110,10 +110,10 @@ router.get('/', protect, async (req, res) => {
     // Convert status string value to Prisma EventStatus enum
     // Valid values: Planning, ListGeneration, Review, Ready, Complete
     if (status) {
-      // Special case: 'active' can map to multiple "active" states
-      if (status === 'active') {
-        where.status = { in: ['Planning', 'ListGeneration', 'Review', 'Ready'] };
-      } else {
+      // 有效值: Planning, ListGeneration, Review, Ready, Complete
+      const validStatuses = ['Planning', 'ListGeneration', 'Review', 'Ready', 'Complete'];
+      
+      if (validStatuses.includes(status)) {
         where.status = status;
       }
     }
@@ -239,7 +239,7 @@ router.post('/', protect, async (req, res) => {
       timelineListGenerationDate,
       timelineReviewDeadline,
       timelineInvitationDate,
-      status = 'Planning'
+      status
     } = req.body;
 
     // Validate required fields
