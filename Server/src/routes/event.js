@@ -114,9 +114,6 @@ router.get('/', protect, async (req, res) => {
       
       if (validStatuses.includes(status)) {
         where.status = status;
-      } else if (status === 'active') {
-        // 特殊情况: 'active' 可以映射到多个"活跃"状态
-        where.status = { in: ['Planning', 'ListGeneration', 'Review', 'Ready'] };
       }
     }
     
@@ -241,7 +238,7 @@ router.post('/', protect, async (req, res) => {
       timelineListGenerationDate,
       timelineReviewDeadline,
       timelineInvitationDate,
-      status = 'Planning'
+      status
     } = req.body;
 
     // Validate required fields
