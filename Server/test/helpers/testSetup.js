@@ -51,14 +51,22 @@ export const setupTestUser = async (prisma, userData) => {
  * @param {object} prisma - PrismaClient instance
  */
 export const cleanupTestEvents = async (prisma) => {
-  await prisma.event.deleteMany({
-    where: {
-      name: {
-        contains: 'Test'
+  try {
+    // Use soft delete instead of actual delete to avoid foreign key constraint errors
+    await prisma.event.updateMany({
+      where: {
+        name: {
+          contains: 'Test'
+        }
+      },
+      data: {
+        isDeleted: true
       }
-    }
-  });
-  console.log('Cleaned up test events');
+    });
+    console.log('Cleaned up test events');
+  } catch (error) {
+    console.error('Error during test event cleanup:', error);
+  }
 };
 
 /**
