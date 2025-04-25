@@ -219,6 +219,9 @@ describe('Update List Status API Tests', () => {
       .send({ review_status: 'completed' });
 
     expect(response.status).toBe(401);
-    expect(response.body).toHaveProperty('message', 'Not authorized, no token');
+    expect(response.body).toHaveProperty('success', false);
+    expect(response.body).toHaveProperty('error');
+    expect(response.body.error).toHaveProperty('code', 'AUTH_001');
+    expect(response.body.error).toHaveProperty('message', 'Authentication token is missing');
   });
 }); 

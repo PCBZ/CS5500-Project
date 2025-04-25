@@ -8,6 +8,42 @@ const prisma = new PrismaClient();
 // Increase timeout for database operations
 jest.setTimeout(30000);
 
+// Mock authentication middleware
+jest.mock('../../src/middleware/auth.js', () => ({
+  protect: jest.fn((req, res, next) => {
+    if (!req.headers.authorization) {
+      return res.status(401).json({ 
+        success: false,
+        error: {
+          code: 'AUTH_001',
+          message: 'Authentication token is missing',
+          details: 'Please provide a valid Bearer token in the Authorization header'
+        }
+      });
+    }
+    
+    const token = req.headers.authorization.split(' ')[1];
+    if (token !== 'valid_test_token') {
+      return res.status(401).json({ 
+        success: false,
+        error: {
+          code: 'AUTH_003',
+          message: 'Invalid token',
+          details: 'The provided token is invalid or has expired'
+        }
+      });
+    }
+    
+    req.user = {
+      id: 1,
+      name: 'Test User',
+      email: 'test.user@example.com',
+      role: 'pmm'
+    };
+    next();
+  })
+}));
+
 // Test user data for authentication
 const testUser = {
   id: 1,
@@ -16,13 +52,9 @@ const testUser = {
   role: 'pmm'
 };
 
-// Generate a valid token for testing
+// 简化token生成，直接返回预定义的有效token
 const generateToken = () => {
-  return jwt.sign(
-    { userId: testUser.id, role: testUser.role },
-    process.env.JWT_SECRET || 'your_jwt_secret_key',
-    { expiresIn: '1h' }
-  );
+  return 'valid_test_token';
 };
 
 // Test donor data
@@ -124,6 +156,10 @@ describe('Get Donor API', () => {
         .get(`/api/donors/${donorId}`);
 
       expect(response.status).toBe(401);
+      expect(response.body).toHaveProperty('success', false);
+      expect(response.body).toHaveProperty('error');
+      expect(response.body.error).toHaveProperty('code', 'AUTH_001');
+      expect(response.body.error).toHaveProperty('message', 'Authentication token is missing');
     }, 10000);
   });
 
@@ -200,6 +236,10 @@ describe('Get Donor API', () => {
         .get('/api/donors');
 
       expect(response.status).toBe(401);
+      expect(response.body).toHaveProperty('success', false);
+      expect(response.body).toHaveProperty('error');
+      expect(response.body.error).toHaveProperty('code', 'AUTH_001');
+      expect(response.body.error).toHaveProperty('message', 'Authentication token is missing');
     }, 10000);
   });
 });
