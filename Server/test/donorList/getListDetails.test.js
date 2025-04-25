@@ -230,9 +230,12 @@ describe('Get Donor List Details API Tests', () => {
 
   it('should return 401 without authentication', async () => {
     const response = await request(app)
-      .get(`/api/lists/${testList.id}`);
+      .get(`/api/lists/${testList.id}`)
+      .send();
 
     expect(response.status).toBe(401);
-    expect(response.body).toHaveProperty('message', 'Not authorized, no token');
+    expect(response.body).toHaveProperty('success', false);
+    expect(response.body.error).toHaveProperty('code', 'AUTH_001');
+    expect(response.body.error).toHaveProperty('message', 'Authentication token is missing');
   });
 }); 

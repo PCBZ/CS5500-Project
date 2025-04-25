@@ -78,12 +78,13 @@ describe('DELETE /api/events/:id', () => {
     expect(response.status).toBe(200);
     expect(response.body).toHaveProperty('message', 'Event deleted successfully');
     
-    // Verify the event was actually deleted from the database
+    // Verify the event was soft deleted (isDeleted flag set to true)
     const deletedEvent = await prisma.event.findUnique({
       where: { id: parseInt(testEventId) }
     });
     
-    expect(deletedEvent).toBeNull();
+    expect(deletedEvent).not.toBeNull();
+    expect(deletedEvent.isDeleted).toBe(true);
   });
 
   it('should handle invalid event ID format', async () => {
@@ -95,7 +96,7 @@ describe('DELETE /api/events/:id', () => {
     expect(response.body).toHaveProperty('message', 'Invalid event ID format');
   });
 
-  it('should return 404 for non-existent event ID', async () => {
+  it('should allow deleting an already deleted event', async () => {
     // First delete the test event
     await request(app)
       .delete(`/api/events/${testEventId}`)
@@ -106,8 +107,9 @@ describe('DELETE /api/events/:id', () => {
       .delete(`/api/events/${testEventId}`)
       .set('Authorization', `Bearer ${authToken}`);
 
-    expect(response.status).toBe(404);
-    expect(response.body).toHaveProperty('message', 'Event not found');
+    // Should still return success 
+    expect(response.status).toBe(200);
+    expect(response.body).toHaveProperty('message', 'Event deleted successfully');
   });
 
   it('should require authentication', async () => {

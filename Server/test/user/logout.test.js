@@ -103,7 +103,10 @@ describe('User Logout', () => {
       .post('/api/user/logout');
 
     expect(response.status).toBe(401);
-    expect(response.body).toHaveProperty('message', 'Not authorized, no token');
+    expect(response.body).toHaveProperty('success', false);
+    expect(response.body).toHaveProperty('error');
+    expect(response.body.error).toHaveProperty('code', 'AUTH_001');
+    expect(response.body.error).toHaveProperty('message', 'Authentication token is missing');
   }, 10000);
 
   it('should not logout with invalid token', async () => {
@@ -112,7 +115,10 @@ describe('User Logout', () => {
       .set('Authorization', 'Bearer invalid_token');
 
     expect(response.status).toBe(401);
-    expect(response.body).toHaveProperty('message', 'Not authorized, token failed');
+    expect(response.body).toHaveProperty('success', false);
+    expect(response.body).toHaveProperty('error');
+    expect(response.body.error).toHaveProperty('code', 'AUTH_003');
+    expect(response.body.error).toHaveProperty('message', 'Invalid token');
   }, 10000);
 
   it('should not logout with malformed token', async () => {
@@ -121,7 +127,10 @@ describe('User Logout', () => {
       .set('Authorization', 'InvalidTokenFormat');
 
     expect(response.status).toBe(401);
-    expect(response.body).toHaveProperty('message', 'Not authorized, no token');
+    expect(response.body).toHaveProperty('success', false);
+    expect(response.body).toHaveProperty('error');
+    expect(response.body.error).toHaveProperty('code', 'AUTH_001');
+    expect(response.body.error).toHaveProperty('message', 'Authentication token is missing');
   }, 10000);
 
   it('should not logout with expired token', async () => {
@@ -137,6 +146,9 @@ describe('User Logout', () => {
       .set('Authorization', `Bearer ${expiredToken}`);
 
     expect(response.status).toBe(401);
-    expect(response.body).toHaveProperty('message', 'Not authorized, token failed');
+    expect(response.body).toHaveProperty('success', false);
+    expect(response.body).toHaveProperty('error');
+    expect(response.body.error).toHaveProperty('code', 'AUTH_003');
+    expect(response.body.error).toHaveProperty('message', 'Invalid token');
   }, 10000);
 }); 

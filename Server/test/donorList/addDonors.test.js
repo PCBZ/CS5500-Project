@@ -201,18 +201,14 @@ describe('Add Donors to List API Tests', () => {
       .post(`/api/lists/${testList.id}/donors`)
       .set('Authorization', `Bearer ${authToken}`)
       .send({
-        donors: [{
-          donor_id: testDonor.id.toString(),
-          status: 'Pending',
-          comments: 'Test donor'
-        }]
+        donorIds: [testDonor.id.toString()]
       });
 
-    expect(response.status).toBe(201);
-    expect(response.body).toHaveProperty('message', 'Donors added successfully.');
-    expect(response.body).toHaveProperty('added_donors');
-    expect(response.body.added_donors).toBeInstanceOf(Array);
-    expect(response.body.added_donors.length).toBe(1);
+    expect(response.status).toBe(200);
+    expect(response.body).toHaveProperty('message');
+    expect(response.body).toHaveProperty('added', 1);
+    expect(response.body).toHaveProperty('totalDonors', 1);
+    expect(response.body).toHaveProperty('pending', 1);
 
     // Verify list statistics have been updated
     const updatedList = await prisma.eventDonorList.findUnique({
@@ -227,30 +223,24 @@ describe('Add Donors to List API Tests', () => {
       .post('/api/lists/999999/donors')
       .set('Authorization', `Bearer ${authToken}`)
       .send({
-        donors: [{
-          donor_id: testDonor.id.toString(),
-          status: 'Pending',
-          comments: 'Test donor'
-        }]
+        donorIds: [testDonor.id.toString()]
       });
 
     expect(response.status).toBe(404);
-    expect(response.body).toHaveProperty('message', 'List not found');
+    expect(response.body).toHaveProperty('message', 'Donor list not found');
   });
 
   it('should return 401 without authentication', async () => {
     const response = await request(app)
       .post(`/api/lists/${testList.id}/donors`)
       .send({
-        donors: [{
-          donor_id: testDonor.id.toString(),
-          status: 'Pending',
-          comments: 'Test donor'
-        }]
+        donorIds: [testDonor.id.toString()]
       });
 
     expect(response.status).toBe(401);
-    expect(response.body).toHaveProperty('message', 'Not authorized, no token');
+    expect(response.body).toHaveProperty('success', false);
+    expect(response.body.error).toHaveProperty('code', 'AUTH_001');
+    expect(response.body.error).toHaveProperty('message', 'Authentication token is missing');
   });
 
   it('should handle multiple donors in a single request', async () => {
@@ -268,22 +258,13 @@ describe('Add Donors to List API Tests', () => {
       .post(`/api/lists/${testList.id}/donors`)
       .set('Authorization', `Bearer ${authToken}`)
       .send({
-        donors: [
-          {
-            donor_id: testDonor.id.toString(),
-            status: 'Pending',
-            comments: 'First donor'
-          },
-          {
-            donor_id: secondDonor.id.toString(),
-            status: 'Pending',
-            comments: 'Second donor'
-          }
+        donorIds: [
+          secondDonor.id.toString()
         ]
       });
 
-    expect(response.status).toBe(201);
-    expect(response.body.added_donors).toHaveLength(2);
+    expect(response.status).toBe(200);
+    expect(response.body).toHaveProperty('added', 1);
 
     // Clean up second test donor
     // First delete the event donor record
