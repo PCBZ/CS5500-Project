@@ -46,10 +46,8 @@ A comprehensive donor management system designed specifically for BC Cancer Foun
 ### Frontend
 - **React.js** (v18.2.0) - Modern UI library with hooks and functional components
 - **TypeScript** - Type-safe JavaScript for better development experience
-- **Material-UI** (@mui/material) - React component library for consistent design
 - **React Router** (v6) - Client-side routing and navigation
 - **React Icons** - Comprehensive icon library
-- **Axios** - HTTP client for API communication
 
 ### Backend
 - **Node.js** (v18+) - JavaScript runtime environment
