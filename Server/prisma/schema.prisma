@@ -4,7 +4,7 @@ generator client {
 }
 
 datasource db {
-  provider = "mysql"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -36,9 +36,9 @@ enum EventStatus {
 
 model User {
   id              Int              @id @default(autoincrement())
-  name            String           @db.VarChar(255)
-  email           String           @unique @db.VarChar(255)
-  password        String           @db.VarChar(255)
+  name            String
+  email           String           @unique
+  password        String
   role            Role             @default(pmm)
   generatedLists  EventDonorList[]
   createdEvents   Event[]
@@ -50,7 +50,7 @@ model User {
 model EventDonorList {
   id            Int         @id @default(autoincrement())
   eventId       Int
-  name          String      @db.VarChar(255)
+  name          String      
   totalDonors   Int         @default(0)
   approved      Int         @default(0)
   excluded      Int         @default(0)
@@ -72,10 +72,10 @@ model EventDonor {
   donorListId   Int
   donorId       Int
   status        DonorStatus @default(Pending)
-  excludeReason String?     @db.VarChar(255)
+  excludeReason String?     
   reviewerId    Int?
   reviewDate    DateTime?
-  comments      String?     @db.Text
+  comments      String?     
   autoExcluded  Boolean     @default(false)
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
@@ -119,7 +119,7 @@ model Donor {
   subscriptionEventsInPerson   String?
   subscriptionEventsMagazine   String?
   communicationPreference      String?
-  tags                        String?     @db.Text
+  tags                        String?     
   eventDonors                 EventDonor[]
 
   @@map("donors")
@@ -127,12 +127,12 @@ model Donor {
 
 model Event {
   id                          Int         @id @default(autoincrement())
-  name                        String      @db.VarChar(255)
-  type                        String      @db.VarChar(255)
+  name                        String      
+  type                        String      
   date                        DateTime
-  location                    String      @db.VarChar(255)
+  location                    String      
   capacity                    Int         @default(0)
-  focus                       String?     @db.VarChar(255)
+  focus                       String?     
   criteriaMinGivingLevel      Float       @default(0)
   timelineListGenerationDate  DateTime?
   timelineReviewDeadline      DateTime?
