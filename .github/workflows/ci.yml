@@ -53,17 +53,16 @@ jobs:
   test:
     runs-on: ubuntu-latest
     services:
-      mysql:
-        image: mysql:8.0
+      postgres:
+        image: postgres:16
         env:
-          MYSQL_ROOT_PASSWORD: root
-          MYSQL_DATABASE: testdb
-          MYSQL_USER: testuser
-          MYSQL_PASSWORD: testpass
+          POSTGRES_USER: testuser
+          POSTGRES_PASSWORD: testpass
+          POSTGRES_DB: testdb
         ports:
-          - 3306:3306
+          - 5432:5432
         options: >-
-          --health-cmd="mysqladmin ping"
+          --health-cmd="pg_isready -U testuser"
           --health-interval=10s
           --health-timeout=5s
           --health-retries=3
@@ -87,7 +86,7 @@ jobs:
     - name: Set up test database
       working-directory: ./Server
       env:
-        DATABASE_URL: "mysql://testuser:testpass@localhost:3306/testdb"
+        DATABASE_URL: "postgresql://testuser:testpass@localhost:5432/testdb"
       run: |
         npx prisma generate
         npx prisma db push
@@ -95,6 +94,6 @@ jobs:
     - name: Run server tests
       working-directory: ./Server
       env:
-        DATABASE_URL: "mysql://testuser:testpass@localhost:3306/testdb"
+        DATABASE_URL: "postgresql://testuser:testpass@localhost:5432/testdb"
         NODE_ENV: test
       run: npm test
