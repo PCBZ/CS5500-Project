@@ -1,0 +1,201 @@
+first_name,nick_name,last_name,organization_name,pmm,smm,vmm,total_donations,total_pledges,largest_gift,largest_gift_appeal,first_gift_date,last_gift_date,last_gift_amount,last_gift_request,last_gift_appeal,address_line1,city,communication_preference,tags
+Joseph,Jos,Taylor,,Alice Chen,Bob Nguyen,Carol Davis,6365,1273,4181,"Planned Giving",1293942178,1371352978,1871,"Planned Giving","Major Gift",1 Main St,Halifax,Email,VIP
+Jessica,Jes,Thomas,,Alice Chen,Bob Nguyen,Carol Davis,1648,329,1056,"Major Gift",1293942178,1497583378,504,"Major Gift","Annual Fund",2 Main St,Winnipeg,Phone,Board Member
+Patricia,Pat,Taylor,,Alice Chen,Bob Nguyen,Carol Davis,32053,6410,20213,"Capital Campaign",1325478178,1466047378,5416,"Capital Campaign","Emergency Fund",3 Main St,Calgary,Email,Recurring
+Joseph,Jos,Williams,,Alice Chen,Bob Nguyen,Carol Davis,27285,5457,10475,"Capital Campaign",1546402978,1718508178,4557,"Capital Campaign","Major Gift",4 Main St,Calgary,Phone,VIP
+John,Joh,Jones,,Alice Chen,Bob Nguyen,Carol Davis,15501,3100,8461,"Capital Campaign",1546402978,1686885778,3217,"Capital Campaign","Emergency Fund",5 Main St,Ottawa,Phone,Corporate
+John,Joh,Johnson,,Alice Chen,Bob Nguyen,Carol Davis,11866,2373,7703,"Major Gift",1262406178,1339816978,2210,"Major Gift","Planned Giving",6 Main St,Calgary,Email,Corporate
+James,Jam,Martinez,,Alice Chen,Bob Nguyen,Carol Davis,21136,4227,10377,"Planned Giving",1293942178,1466047378,3022,"Planned Giving","Annual Fund",7 Main St,Toronto,Email,Alumni
+Linda,Lin,Taylor,,Alice Chen,Bob Nguyen,Carol Davis,30925,6185,13775,"Emergency Fund",1483330978,1529119378,5248,"Emergency Fund","Major Gift",8 Main St,Ottawa,Mail,Corporate
+David,Dav,Anderson,,Alice Chen,Bob Nguyen,Carol Davis,17918,3583,10066,"Annual Fund",1357100578,1434424978,3515,"Annual Fund","Annual Fund",9 Main St,Montreal,Mail,Board Member
+Sarah,Sar,Davis,,Alice Chen,Bob Nguyen,Carol Davis,28399,5679,15628,"Major Gift",1451708578,1560655378,5418,"Major Gift","Annual Fund",10 Main St,Halifax,Mail,VIP
+Barbara,Bar,Jones,,Alice Chen,Bob Nguyen,Carol Davis,29919,5983,12947,"Capital Campaign",1514866978,1623813778,4241,"Capital Campaign","Emergency Fund",11 Main St,Halifax,Phone,Corporate
+Jennifer,Jen,Martinez,,Alice Chen,Bob Nguyen,Carol Davis,2575,515,1545,"Emergency Fund",1546402978,1718508178,674,"Emergency Fund","Annual Fund",12 Main St,Calgary,Mail,Corporate
+John,Joh,Jones,,Alice Chen,Bob Nguyen,Carol Davis,13670,2734,5883,"Capital Campaign",1546402978,1686885778,2935,"Capital Campaign","Capital Campaign",13 Main St,Edmonton,Mail,Alumni
+Linda,Lin,Jones,,Alice Chen,Bob Nguyen,Carol Davis,3928,785,1543,"Emergency Fund",1293942178,1402888978,419,"Emergency Fund","Annual Fund",14 Main St,Halifax,Mail,Corporate
+John,Joh,Hernandez,,Alice Chen,Bob Nguyen,Carol Davis,10054,2010,5518,"Capital Campaign",1293942178,1497583378,2461,"Capital Campaign","Annual Fund",15 Main St,Vancouver,Email,Lapsed
+Sarah,Sar,Hernandez,,Alice Chen,Bob Nguyen,Carol Davis,16713,3342,8069,"Emergency Fund",1293942178,1402888978,3936,"Emergency Fund","Planned Giving",16 Main St,Ottawa,Mail,Lapsed
+Linda,Lin,Davis,,Alice Chen,Bob Nguyen,Carol Davis,8113,1622,5190,"Major Gift",1262406178,1434424978,2088,"Major Gift","Major Gift",17 Main St,Halifax,Phone,VIP
+Barbara,Bar,Garcia,,Alice Chen,Bob Nguyen,Carol Davis,24381,4876,11626,"Major Gift",1451708578,1497583378,4215,"Major Gift","Emergency Fund",18 Main St,Toronto,Mail,Lapsed
+Barbara,Bar,Clark,,Alice Chen,Bob Nguyen,Carol Davis,17285,3457,9569,"Capital Campaign",1451708578,1560655378,2446,"Capital Campaign","Planned Giving",19 Main St,Toronto,Phone,Board Member
+Susan,Sus,Clark,,Alice Chen,Bob Nguyen,Carol Davis,15525,3105,9760,"Capital Campaign",1546402978,1592277778,3206,"Capital Campaign","Capital Campaign",20 Main St,Calgary,Mail,Lapsed
+David,Dav,Martinez,,Alice Chen,Bob Nguyen,Carol Davis,30811,6162,11257,"Annual Fund",1420172578,1560655378,4012,"Annual Fund","Planned Giving",21 Main St,Winnipeg,Mail,Corporate
+Michael,Mic,Thomas,,Alice Chen,Bob Nguyen,Carol Davis,25484,5096,12658,"Major Gift",1483330978,1686885778,5053,"Major Gift","Planned Giving",22 Main St,Ottawa,Email,Recurring
+Susan,Sus,Davis,,Alice Chen,Bob Nguyen,Carol Davis,3675,735,1386,"Major Gift",1451708578,1623813778,659,"Major Gift","Capital Campaign",23 Main St,Winnipeg,Phone,Lapsed
+Linda,Lin,Brown,,Alice Chen,Bob Nguyen,Carol Davis,13066,2613,6001,"Emergency Fund",1420172578,1529119378,2663,"Emergency Fund","Capital Campaign",24 Main St,Edmonton,Mail,VIP
+Linda,Lin,Jones,,Alice Chen,Bob Nguyen,Carol Davis,5665,1133,3144,"Annual Fund",1388636578,1497583378,1334,"Annual Fund","Planned Giving",25 Main St,Calgary,Email,Lapsed
+David,Dav,Johnson,,Alice Chen,Bob Nguyen,Carol Davis,2874,574,1483,"Capital Campaign",1388636578,1560655378,475,"Capital Campaign","Emergency Fund",26 Main St,Halifax,Email,VIP
+Richard,Ric,Brown,,Alice Chen,Bob Nguyen,Carol Davis,16965,3393,10615,"Capital Campaign",1357100578,1434424978,3822,"Capital Campaign","Annual Fund",27 Main St,Halifax,Email,Lapsed
+Susan,Sus,Taylor,,Alice Chen,Bob Nguyen,Carol Davis,16081,3216,7677,"Planned Giving",1514866978,1686885778,3295,"Planned Giving","Capital Campaign",28 Main St,Halifax,Phone,Board Member
+John,Joh,Smith,,Alice Chen,Bob Nguyen,Carol Davis,26554,5310,9331,"Capital Campaign",1483330978,1686885778,3072,"Capital Campaign","Capital Campaign",29 Main St,Winnipeg,Email,Board Member
+Sarah,Sar,Miller,,Alice Chen,Bob Nguyen,Carol Davis,25847,5169,12646,"Capital Campaign",1451708578,1560655378,6232,"Capital Campaign","Emergency Fund",30 Main St,Toronto,Mail,Board Member
+James,Jam,Miller,,Alice Chen,Bob Nguyen,Carol Davis,10704,2140,4623,"Capital Campaign",1388636578,1466047378,2074,"Capital Campaign","Planned Giving",31 Main St,Edmonton,Phone,Board Member
+Jennifer,Jen,Johnson,,Alice Chen,Bob Nguyen,Carol Davis,18372,3674,7640,"Emergency Fund",1357100578,1434424978,2703,"Emergency Fund","Major Gift",32 Main St,Ottawa,Mail,Lapsed
+Susan,Sus,Garcia,,Alice Chen,Bob Nguyen,Carol Davis,14808,2961,7341,"Planned Giving",1420172578,1466047378,3350,"Planned Giving","Major Gift",33 Main St,Calgary,Phone,Lapsed
+William,Wil,Lopez,,Alice Chen,Bob Nguyen,Carol Davis,6576,1315,4102,"Major Gift",1514866978,1718508178,1836,"Major Gift","Emergency Fund",34 Main St,Edmonton,Mail,Foundation
+Sarah,Sar,Martinez,,Alice Chen,Bob Nguyen,Carol Davis,13685,2737,7755,"Annual Fund",1514866978,1718508178,2994,"Annual Fund","Planned Giving",35 Main St,Calgary,Email,Corporate
+Mary,Mar,Miller,,Alice Chen,Bob Nguyen,Carol Davis,18291,3658,11485,"Annual Fund",1483330978,1686885778,3913,"Annual Fund","Annual Fund",36 Main St,Vancouver,Phone,Lapsed
+Joseph,Jos,Clark,,Alice Chen,Bob Nguyen,Carol Davis,2807,561,1427,"Major Gift",1483330978,1623813778,502,"Major Gift","Emergency Fund",37 Main St,Montreal,Email,Alumni
+Linda,Lin,Williams,,Alice Chen,Bob Nguyen,Carol Davis,5539,1107,1851,"Emergency Fund",1451708578,1497583378,727,"Emergency Fund","Major Gift",38 Main St,Ottawa,Mail,Corporate
+Robert,Rob,Anderson,,Alice Chen,Bob Nguyen,Carol Davis,25146,5029,13320,"Planned Giving",1451708578,1560655378,4912,"Planned Giving","Planned Giving",39 Main St,Montreal,Mail,Recurring
+James,Jam,Johnson,,Alice Chen,Bob Nguyen,Carol Davis,23917,4783,8732,"Capital Campaign",1388636578,1560655378,2701,"Capital Campaign","Planned Giving",40 Main St,Winnipeg,Phone,Alumni
+Linda,Lin,Garcia,,Alice Chen,Bob Nguyen,Carol Davis,31881,6376,20282,"Major Gift",1451708578,1529119378,6177,"Major Gift","Emergency Fund",41 Main St,Toronto,Email,Foundation
+Robert,Rob,Davis,,Alice Chen,Bob Nguyen,Carol Davis,2359,471,902,"Annual Fund",1483330978,1529119378,290,"Annual Fund","Emergency Fund",42 Main St,Calgary,Mail,Foundation
+Richard,Ric,Miller,,Alice Chen,Bob Nguyen,Carol Davis,14001,2800,5268,"Capital Campaign",1357100578,1497583378,2388,"Capital Campaign","Planned Giving",43 Main St,Edmonton,Mail,VIP
+Richard,Ric,Wilson,,Alice Chen,Bob Nguyen,Carol Davis,19237,3847,9026,"Emergency Fund",1546402978,1623813778,3484,"Emergency Fund","Capital Campaign",44 Main St,Ottawa,Mail,Corporate
+Linda,Lin,Lopez,,Alice Chen,Bob Nguyen,Carol Davis,17000,3400,5797,"Capital Campaign",1546402978,1592277778,2301,"Capital Campaign","Major Gift",45 Main St,Halifax,Mail,Alumni
+David,Dav,Johnson,,Alice Chen,Bob Nguyen,Carol Davis,26278,5255,12310,"Annual Fund",1420172578,1497583378,3494,"Annual Fund","Capital Campaign",46 Main St,Halifax,Phone,Recurring
+Barbara,Bar,Johnson,,Alice Chen,Bob Nguyen,Carol Davis,28615,5723,13010,"Capital Campaign",1388636578,1466047378,3724,"Capital Campaign","Capital Campaign",47 Main St,Toronto,Phone,Board Member
+Joseph,Jos,Johnson,,Alice Chen,Bob Nguyen,Carol Davis,27711,5542,17481,"Capital Campaign",1514866978,1655349778,8626,"Capital Campaign","Planned Giving",48 Main St,Montreal,Phone,Board Member
+Jessica,Jes,Anderson,,Alice Chen,Bob Nguyen,Carol Davis,3955,791,1359,"Capital Campaign",1357100578,1402888979,480,"Capital Campaign","Annual Fund",49 Main St,Edmonton,Mail,Lapsed
+William,Wil,Davis,,Alice Chen,Bob Nguyen,Carol Davis,6979,1395,3498,"Planned Giving",1546402979,1655349779,1251,"Planned Giving","Major Gift",50 Main St,Vancouver,Mail,Recurring
+Michael,Mic,Johnson,,Alice Chen,Bob Nguyen,Carol Davis,4455,891,1750,"Planned Giving",1514866979,1718508179,557,"Planned Giving","Major Gift",51 Main St,Halifax,Email,VIP
+Mary,Mar,Miller,,Alice Chen,Bob Nguyen,Carol Davis,19123,3824,6682,"Capital Campaign",1514866979,1623813779,2198,"Capital Campaign","Planned Giving",52 Main St,Toronto,Phone,Lapsed
+Linda,Lin,Brown,,Alice Chen,Bob Nguyen,Carol Davis,5457,1091,2068,"Annual Fund",1483330979,1529119379,925,"Annual Fund","Capital Campaign",53 Main St,Montreal,Mail,Foundation
+Jessica,Jes,Lopez,,Alice Chen,Bob Nguyen,Carol Davis,22060,4412,8366,"Planned Giving",1546402979,1718508179,3335,"Planned Giving","Planned Giving",54 Main St,Winnipeg,Email,Recurring
+Robert,Rob,Thomas,,Alice Chen,Bob Nguyen,Carol Davis,12223,2444,6961,"Planned Giving",1420172579,1466047379,2467,"Planned Giving","Planned Giving",55 Main St,Montreal,Phone,Recurring
+William,Wil,Taylor,,Alice Chen,Bob Nguyen,Carol Davis,4684,936,2521,"Emergency Fund",1546402979,1655349779,1051,"Emergency Fund","Major Gift",56 Main St,Winnipeg,Email,Board Member
+Barbara,Bar,Williams,,Alice Chen,Bob Nguyen,Carol Davis,10782,2156,5807,"Emergency Fund",1293942179,1466047379,1801,"Emergency Fund","Major Gift",57 Main St,Toronto,Phone,Corporate
+Mary,Mar,Johnson,,Alice Chen,Bob Nguyen,Carol Davis,16026,3205,10146,"Annual Fund",1514866979,1560655379,2716,"Annual Fund","Emergency Fund",58 Main St,Vancouver,Email,Foundation
+Michael,Mic,Anderson,,Alice Chen,Bob Nguyen,Carol Davis,7389,1477,3204,"Emergency Fund",1420172579,1592277779,1305,"Emergency Fund","Annual Fund",59 Main St,Montreal,Phone,VIP
+James,Jam,Anderson,,Alice Chen,Bob Nguyen,Carol Davis,14702,2940,7894,"Emergency Fund",1388636579,1592277779,3936,"Emergency Fund","Annual Fund",60 Main St,Winnipeg,Email,Foundation
+Jennifer,Jen,Jones,,Alice Chen,Bob Nguyen,Carol Davis,33099,6619,14209,"Capital Campaign",1325478179,1402888979,5741,"Capital Campaign","Major Gift",61 Main St,Montreal,Phone,VIP
+Barbara,Bar,Smith,,Alice Chen,Bob Nguyen,Carol Davis,16432,3286,6930,"Capital Campaign",1483330979,1623813779,1952,"Capital Campaign","Major Gift",62 Main St,Montreal,Mail,Corporate
+Barbara,Bar,Wilson,,Alice Chen,Bob Nguyen,Carol Davis,2319,463,874,"Major Gift",1262406179,1466047379,251,"Major Gift","Major Gift",63 Main St,Toronto,Phone,Foundation
+Sarah,Sar,Taylor,,Alice Chen,Bob Nguyen,Carol Davis,27818,5563,11467,"Major Gift",1420172579,1529119379,5360,"Major Gift","Capital Campaign",64 Main St,Vancouver,Phone,VIP
+Jennifer,Jen,Thomas,,Alice Chen,Bob Nguyen,Carol Davis,3587,717,2087,"Major Gift",1357100579,1560655379,679,"Major Gift","Emergency Fund",65 Main St,Toronto,Email,Recurring
+Robert,Rob,Jones,,Alice Chen,Bob Nguyen,Carol Davis,9076,1815,5369,"Planned Giving",1325478179,1497583379,1782,"Planned Giving","Capital Campaign",66 Main St,Edmonton,Mail,Recurring
+Patricia,Pat,Miller,,Alice Chen,Bob Nguyen,Carol Davis,29364,5872,16192,"Capital Campaign",1357100579,1402888979,6894,"Capital Campaign","Major Gift",67 Main St,Halifax,Email,Corporate
+John,Joh,Taylor,,Alice Chen,Bob Nguyen,Carol Davis,22458,4491,8919,"Major Gift",1388636579,1560655379,4409,"Major Gift","Major Gift",68 Main St,Vancouver,Email,Recurring
+Barbara,Bar,Clark,,Alice Chen,Bob Nguyen,Carol Davis,23582,4716,8448,"Annual Fund",1546402979,1623813779,2348,"Annual Fund","Emergency Fund",69 Main St,Montreal,Mail,Foundation
+Richard,Ric,Garcia,,Alice Chen,Bob Nguyen,Carol Davis,22347,4469,11192,"Planned Giving",1262406179,1402888979,3907,"Planned Giving","Major Gift",70 Main St,Vancouver,Phone,Corporate
+David,Dav,Anderson,,Alice Chen,Bob Nguyen,Carol Davis,5946,1189,2330,"Major Gift",1420172579,1560655379,819,"Major Gift","Emergency Fund",71 Main St,Vancouver,Phone,Alumni
+Jennifer,Jen,Smith,,Alice Chen,Bob Nguyen,Carol Davis,18926,3785,6957,"Capital Campaign",1262406179,1466047379,2709,"Capital Campaign","Emergency Fund",72 Main St,Halifax,Email,Foundation
+Robert,Rob,Jones,,Alice Chen,Bob Nguyen,Carol Davis,5997,1199,3243,"Capital Campaign",1546402979,1592277779,1452,"Capital Campaign","Planned Giving",73 Main St,Toronto,Phone,VIP
+David,Dav,Miller,,Alice Chen,Bob Nguyen,Carol Davis,19056,3811,7174,"Planned Giving",1451708579,1592277779,3385,"Planned Giving","Emergency Fund",74 Main St,Toronto,Phone,Corporate
+David,Dav,Brown,,Alice Chen,Bob Nguyen,Carol Davis,23176,4635,10303,"Major Gift",1325478179,1466047379,3110,"Major Gift","Annual Fund",75 Main St,Montreal,Mail,Lapsed
+Richard,Ric,Williams,,Alice Chen,Bob Nguyen,Carol Davis,26807,5361,11276,"Planned Giving",1325478179,1529119379,4752,"Planned Giving","Planned Giving",76 Main St,Calgary,Email,Corporate
+William,Wil,Taylor,,Alice Chen,Bob Nguyen,Carol Davis,29678,5935,14706,"Planned Giving",1262406179,1371352979,6244,"Planned Giving","Capital Campaign",77 Main St,Winnipeg,Phone,Alumni
+Linda,Lin,Davis,,Alice Chen,Bob Nguyen,Carol Davis,18300,3660,10763,"Capital Campaign",1420172579,1466047379,4530,"Capital Campaign","Planned Giving",78 Main St,Toronto,Phone,Corporate
+Sarah,Sar,Jones,,Alice Chen,Bob Nguyen,Carol Davis,18823,3764,8340,"Emergency Fund",1451708579,1655349779,2819,"Emergency Fund","Annual Fund",79 Main St,Montreal,Email,Recurring
+John,Joh,Brown,,Alice Chen,Bob Nguyen,Carol Davis,32431,6486,14917,"Emergency Fund",1357100579,1402888979,5019,"Emergency Fund","Capital Campaign",80 Main St,Montreal,Email,Board Member
+John,Joh,Smith,,Alice Chen,Bob Nguyen,Carol Davis,1856,371,629,"Annual Fund",1357100579,1434424979,193,"Annual Fund","Major Gift",81 Main St,Calgary,Mail,Lapsed
+Jennifer,Jen,Anderson,,Alice Chen,Bob Nguyen,Carol Davis,14134,2826,6212,"Emergency Fund",1546402979,1718508179,2991,"Emergency Fund","Planned Giving",82 Main St,Vancouver,Mail,Board Member
+John,Joh,Thomas,,Alice Chen,Bob Nguyen,Carol Davis,12523,2504,6734,"Annual Fund",1357100579,1402888979,2710,"Annual Fund","Major Gift",83 Main St,Edmonton,Email,Alumni
+Susan,Sus,Martinez,,Alice Chen,Bob Nguyen,Carol Davis,7106,1421,4294,"Major Gift",1483330979,1592277779,1137,"Major Gift","Major Gift",84 Main St,Calgary,Phone,Corporate
+Robert,Rob,Garcia,,Alice Chen,Bob Nguyen,Carol Davis,23123,4624,11391,"Major Gift",1514866979,1592277779,4706,"Major Gift","Planned Giving",85 Main St,Halifax,Phone,Lapsed
+Jennifer,Jen,Williams,,Alice Chen,Bob Nguyen,Carol Davis,21722,4344,7665,"Emergency Fund",1420172579,1623813779,2636,"Emergency Fund","Major Gift",86 Main St,Vancouver,Phone,Foundation
+Joseph,Jos,Jones,,Alice Chen,Bob Nguyen,Carol Davis,26864,5372,14217,"Capital Campaign",1357100579,1402888979,4148,"Capital Campaign","Planned Giving",87 Main St,Halifax,Mail,Foundation
+Patricia,Pat,Garcia,,Alice Chen,Bob Nguyen,Carol Davis,27176,5435,13162,"Capital Campaign",1357100579,1497583379,4933,"Capital Campaign","Capital Campaign",88 Main St,Winnipeg,Phone,VIP
+Linda,Lin,Martinez,,Alice Chen,Bob Nguyen,Carol Davis,23055,4611,10603,"Major Gift",1514866979,1560655379,4166,"Major Gift","Capital Campaign",89 Main St,Toronto,Phone,Board Member
+Michael,Mic,Miller,,Alice Chen,Bob Nguyen,Carol Davis,15787,3157,6738,"Major Gift",1514866979,1718508179,2643,"Major Gift","Emergency Fund",90 Main St,Vancouver,Email,VIP
+Robert,Rob,Lopez,,Alice Chen,Bob Nguyen,Carol Davis,27686,5537,14454,"Capital Campaign",1451708579,1560655379,5607,"Capital Campaign","Major Gift",91 Main St,Winnipeg,Phone,Alumni
+Michael,Mic,Taylor,,Alice Chen,Bob Nguyen,Carol Davis,11939,2387,6044,"Annual Fund",1388636579,1434424979,1864,"Annual Fund","Emergency Fund",92 Main St,Montreal,Phone,Foundation
+John,Joh,Martinez,,Alice Chen,Bob Nguyen,Carol Davis,1934,386,1145,"Annual Fund",1483330979,1623813779,420,"Annual Fund","Planned Giving",93 Main St,Toronto,Mail,Corporate
+Robert,Rob,Lopez,,Alice Chen,Bob Nguyen,Carol Davis,27873,5574,10315,"Planned Giving",1293942179,1402888979,4529,"Planned Giving","Emergency Fund",94 Main St,Edmonton,Email,Corporate
+Mary,Mar,Martinez,,Alice Chen,Bob Nguyen,Carol Davis,21449,4289,9907,"Annual Fund",1420172579,1497583379,3757,"Annual Fund","Capital Campaign",95 Main St,Calgary,Email,Lapsed
+Jennifer,Jen,Jones,,Alice Chen,Bob Nguyen,Carol Davis,10971,2194,6622,"Emergency Fund",1420172579,1466047379,3288,"Emergency Fund","Major Gift",96 Main St,Edmonton,Email,Alumni
+Richard,Ric,Taylor,,Alice Chen,Bob Nguyen,Carol Davis,22442,4488,11844,"Planned Giving",1420172579,1497583379,5552,"Planned Giving","Emergency Fund",97 Main St,Ottawa,Mail,Corporate
+Richard,Ric,Hernandez,,Alice Chen,Bob Nguyen,Carol Davis,25178,5035,10952,"Planned Giving",1420172579,1560655379,5441,"Planned Giving","Capital Campaign",98 Main St,Montreal,Phone,Corporate
+William,Wil,Hernandez,,Alice Chen,Bob Nguyen,Carol Davis,9922,1984,6319,"Major Gift",1420172579,1560655379,3026,"Major Gift","Planned Giving",99 Main St,Edmonton,Email,VIP
+Michael,Mic,Anderson,,Alice Chen,Bob Nguyen,Carol Davis,25847,5169,13313,"Capital Campaign",1293942179,1466047379,5738,"Capital Campaign","Emergency Fund",100 Main St,Toronto,Phone,Board Member
+Mary,Mar,Davis,,Alice Chen,Bob Nguyen,Carol Davis,21286,4257,8681,"Annual Fund",1388636579,1466047379,3309,"Annual Fund","Emergency Fund",101 Main St,Vancouver,Phone,Recurring
+Patricia,Pat,Johnson,,Alice Chen,Bob Nguyen,Carol Davis,9367,1873,5955,"Annual Fund",1514866979,1655349779,2848,"Annual Fund","Major Gift",102 Main St,Calgary,Email,Recurring
+David,Dav,Davis,,Alice Chen,Bob Nguyen,Carol Davis,26771,5354,17746,"Emergency Fund",1483330979,1655349779,5091,"Emergency Fund","Annual Fund",103 Main St,Vancouver,Phone,Recurring
+James,Jam,Johnson,,Alice Chen,Bob Nguyen,Carol Davis,15095,3019,8218,"Emergency Fund",1451708579,1497583379,4026,"Emergency Fund","Capital Campaign",104 Main St,Winnipeg,Phone,Recurring
+David,Dav,Martinez,,Alice Chen,Bob Nguyen,Carol Davis,8843,1768,2949,"Annual Fund",1293942179,1434424979,1166,"Annual Fund","Major Gift",105 Main St,Calgary,Email,Recurring
+David,Dav,Hernandez,,Alice Chen,Bob Nguyen,Carol Davis,9088,1817,3995,"Emergency Fund",1325478179,1497583379,1074,"Emergency Fund","Planned Giving",106 Main St,Ottawa,Email,Alumni
+Michael,Mic,Smith,,Alice Chen,Bob Nguyen,Carol Davis,2499,499,1110,"Major Gift",1262406179,1308194579,404,"Major Gift","Major Gift",107 Main St,Edmonton,Email,Foundation
+Jennifer,Jen,Martinez,,Alice Chen,Bob Nguyen,Carol Davis,10725,2145,5892,"Capital Campaign",1546402979,1686885779,2768,"Capital Campaign","Planned Giving",108 Main St,Montreal,Phone,Alumni
+Robert,Rob,Lopez,,Alice Chen,Bob Nguyen,Carol Davis,12666,2533,5837,"Annual Fund",1420172579,1529119379,1995,"Annual Fund","Major Gift",109 Main St,Edmonton,Email,Board Member
+Joseph,Jos,Thomas,,Alice Chen,Bob Nguyen,Carol Davis,3889,777,2556,"Capital Campaign",1514866979,1686885779,981,"Capital Campaign","Annual Fund",110 Main St,Halifax,Mail,VIP
+Mary,Mar,Davis,,Alice Chen,Bob Nguyen,Carol Davis,15371,3074,8175,"Major Gift",1451708579,1560655379,2273,"Major Gift","Annual Fund",111 Main St,Winnipeg,Phone,Corporate
+Jessica,Jes,Thomas,,Alice Chen,Bob Nguyen,Carol Davis,9644,1928,3507,"Planned Giving",1357100579,1402888979,1669,"Planned Giving","Major Gift",112 Main St,Winnipeg,Mail,Board Member
+David,Dav,Jones,,Alice Chen,Bob Nguyen,Carol Davis,882,176,497,"Annual Fund",1325478179,1497583379,152,"Annual Fund","Emergency Fund",113 Main St,Vancouver,Mail,Corporate
+Sarah,Sar,Smith,,Alice Chen,Bob Nguyen,Carol Davis,20574,4114,9699,"Planned Giving",1262406179,1402888979,4258,"Planned Giving","Capital Campaign",114 Main St,Vancouver,Mail,Recurring
+Jennifer,Jen,Taylor,,Alice Chen,Bob Nguyen,Carol Davis,27964,5592,18277,"Planned Giving",1325478179,1466047379,8338,"Planned Giving","Emergency Fund",115 Main St,Toronto,Phone,Lapsed
+Joseph,Jos,Williams,,Alice Chen,Bob Nguyen,Carol Davis,23568,4713,7890,"Capital Campaign",1546402979,1592277779,1993,"Capital Campaign","Planned Giving",116 Main St,Toronto,Email,Board Member
+Richard,Ric,Thomas,,Alice Chen,Bob Nguyen,Carol Davis,23176,4635,10790,"Emergency Fund",1451708579,1623813779,4851,"Emergency Fund","Major Gift",117 Main St,Toronto,Email,Recurring
+Jennifer,Jen,Jones,,Alice Chen,Bob Nguyen,Carol Davis,14743,2948,8791,"Annual Fund",1388636579,1560655379,3503,"Annual Fund","Planned Giving",118 Main St,Winnipeg,Email,Board Member
+David,Dav,Davis,,Alice Chen,Bob Nguyen,Carol Davis,21505,4301,13706,"Planned Giving",1357100579,1529119379,5333,"Planned Giving","Planned Giving",119 Main St,Toronto,Mail,VIP
+William,Wil,Brown,,Alice Chen,Bob Nguyen,Carol Davis,21916,4383,11171,"Emergency Fund",1388636579,1434424979,3967,"Emergency Fund","Major Gift",120 Main St,Halifax,Phone,Foundation
+Susan,Sus,Anderson,,Alice Chen,Bob Nguyen,Carol Davis,12102,2420,5261,"Emergency Fund",1546402979,1750044179,2124,"Emergency Fund","Planned Giving",121 Main St,Toronto,Phone,VIP
+Sarah,Sar,Lopez,,Alice Chen,Bob Nguyen,Carol Davis,28278,5655,16406,"Major Gift",1293942179,1466047379,4643,"Major Gift","Annual Fund",122 Main St,Toronto,Mail,Corporate
+John,Joh,Lopez,,Alice Chen,Bob Nguyen,Carol Davis,11794,2358,6837,"Capital Campaign",1388636579,1529119379,2080,"Capital Campaign","Planned Giving",123 Main St,Calgary,Email,Recurring
+Patricia,Pat,Johnson,,Alice Chen,Bob Nguyen,Carol Davis,17920,3584,8012,"Major Gift",1388636579,1497583379,2663,"Major Gift","Major Gift",124 Main St,Edmonton,Phone,Corporate
+Patricia,Pat,Martinez,,Alice Chen,Bob Nguyen,Carol Davis,26412,5282,10502,"Emergency Fund",1514866979,1686885779,2717,"Emergency Fund","Capital Campaign",125 Main St,Toronto,Mail,Alumni
+Sarah,Sar,Clark,,Alice Chen,Bob Nguyen,Carol Davis,20838,4167,10266,"Annual Fund",1388636579,1466047379,2984,"Annual Fund","Emergency Fund",126 Main St,Vancouver,Phone,Alumni
+Richard,Ric,Taylor,,Alice Chen,Bob Nguyen,Carol Davis,17591,3518,8093,"Capital Campaign",1546402979,1592277779,2288,"Capital Campaign","Capital Campaign",127 Main St,Winnipeg,Email,Lapsed
+Robert,Rob,Thomas,,Alice Chen,Bob Nguyen,Carol Davis,24769,4953,13675,"Capital Campaign",1357100579,1497583379,5358,"Capital Campaign","Major Gift",128 Main St,Montreal,Email,Alumni
+John,Joh,Anderson,,Alice Chen,Bob Nguyen,Carol Davis,25104,5020,16592,"Emergency Fund",1546402979,1750044179,4632,"Emergency Fund","Major Gift",129 Main St,Vancouver,Phone,Board Member
+Sarah,Sar,Anderson,,Alice Chen,Bob Nguyen,Carol Davis,9267,1853,5057,"Capital Campaign",1451708579,1497583379,1721,"Capital Campaign","Capital Campaign",130 Main St,Winnipeg,Phone,Recurring
+Barbara,Bar,Williams,,Alice Chen,Bob Nguyen,Carol Davis,9946,1989,3469,"Emergency Fund",1293942179,1371352979,1734,"Emergency Fund","Annual Fund",131 Main St,Ottawa,Phone,Corporate
+Richard,Ric,Smith,,Alice Chen,Bob Nguyen,Carol Davis,24846,4969,14785,"Major Gift",1483330979,1623813779,4088,"Major Gift","Planned Giving",132 Main St,Toronto,Email,Corporate
+Richard,Ric,Davis,,Alice Chen,Bob Nguyen,Carol Davis,27221,5444,15553,"Planned Giving",1420172579,1623813779,6321,"Planned Giving","Capital Campaign",133 Main St,Toronto,Email,Lapsed
+Sarah,Sar,Hernandez,,Alice Chen,Bob Nguyen,Carol Davis,24042,4808,10298,"Annual Fund",1262406179,1434424979,3751,"Annual Fund","Capital Campaign",134 Main St,Vancouver,Mail,VIP
+Jessica,Jes,Brown,,Alice Chen,Bob Nguyen,Carol Davis,33174,6634,13868,"Planned Giving",1388636579,1466047379,4251,"Planned Giving","Major Gift",135 Main St,Winnipeg,Mail,Alumni
+Joseph,Jos,Thomas,,Alice Chen,Bob Nguyen,Carol Davis,10779,2155,4302,"Major Gift",1514866979,1686885779,1867,"Major Gift","Capital Campaign",136 Main St,Halifax,Email,VIP
+Mary,Mar,Brown,,Alice Chen,Bob Nguyen,Carol Davis,32136,6427,17061,"Major Gift",1483330979,1655349779,7489,"Major Gift","Major Gift",137 Main St,Vancouver,Email,Foundation
+James,Jam,Wilson,,Alice Chen,Bob Nguyen,Carol Davis,19733,3946,11136,"Emergency Fund",1357100579,1434424979,3190,"Emergency Fund","Capital Campaign",138 Main St,Calgary,Email,Recurring
+Jessica,Jes,Anderson,,Alice Chen,Bob Nguyen,Carol Davis,13353,2670,5765,"Planned Giving",1293942179,1402888979,2749,"Planned Giving","Annual Fund",139 Main St,Winnipeg,Mail,Recurring
+Robert,Rob,Brown,,Alice Chen,Bob Nguyen,Carol Davis,15933,3186,9152,"Emergency Fund",1483330979,1592277779,3262,"Emergency Fund","Emergency Fund",140 Main St,Montreal,Mail,Alumni
+David,Dav,Smith,,Alice Chen,Bob Nguyen,Carol Davis,33240,6648,22036,"Capital Campaign",1357100579,1497583379,8519,"Capital Campaign","Annual Fund",141 Main St,Winnipeg,Mail,Recurring
+Barbara,Bar,Miller,,Alice Chen,Bob Nguyen,Carol Davis,18466,3693,10711,"Major Gift",1483330979,1529119379,4888,"Major Gift","Emergency Fund",142 Main St,Halifax,Email,Foundation
+Barbara,Bar,Wilson,,Alice Chen,Bob Nguyen,Carol Davis,28220,5644,11620,"Planned Giving",1325478179,1434424979,5718,"Planned Giving","Planned Giving",143 Main St,Ottawa,Phone,Lapsed
+David,Dav,Clark,,Alice Chen,Bob Nguyen,Carol Davis,22230,4446,10098,"Emergency Fund",1451708579,1655349779,3640,"Emergency Fund","Planned Giving",144 Main St,Montreal,Email,Board Member
+James,Jam,Anderson,,Alice Chen,Bob Nguyen,Carol Davis,20713,4142,8507,"Planned Giving",1325478179,1466047379,3882,"Planned Giving","Capital Campaign",145 Main St,Halifax,Phone,Board Member
+Sarah,Sar,Anderson,,Alice Chen,Bob Nguyen,Carol Davis,17851,3570,9466,"Major Gift",1483330979,1529119379,4170,"Major Gift","Planned Giving",146 Main St,Winnipeg,Phone,Foundation
+James,Jam,Hernandez,,Alice Chen,Bob Nguyen,Carol Davis,31339,6267,10817,"Capital Campaign",1546402979,1655349779,4780,"Capital Campaign","Planned Giving",147 Main St,Calgary,Phone,Lapsed
+Jennifer,Jen,Wilson,,Alice Chen,Bob Nguyen,Carol Davis,5996,1199,3253,"Capital Campaign",1293942179,1497583379,1098,"Capital Campaign","Emergency Fund",148 Main St,Halifax,Mail,Alumni
+Robert,Rob,Davis,,Alice Chen,Bob Nguyen,Carol Davis,4220,844,2669,"Emergency Fund",1325478179,1466047379,1220,"Emergency Fund","Emergency Fund",149 Main St,Toronto,Email,VIP
+Susan,Sus,Brown,,Alice Chen,Bob Nguyen,Carol Davis,28744,5748,12280,"Planned Giving",1388636579,1497583379,4949,"Planned Giving","Annual Fund",150 Main St,Edmonton,Email,Recurring
+Michael,Mic,Brown,,Alice Chen,Bob Nguyen,Carol Davis,19986,3997,12724,"Major Gift",1483330979,1560655379,3734,"Major Gift","Capital Campaign",151 Main St,Winnipeg,Mail,Alumni
+William,Wil,Johnson,,Alice Chen,Bob Nguyen,Carol Davis,12745,2549,8469,"Emergency Fund",1325478179,1466047379,3167,"Emergency Fund","Capital Campaign",152 Main St,Vancouver,Email,Lapsed
+Michael,Mic,Smith,,Alice Chen,Bob Nguyen,Carol Davis,10761,2152,5184,"Planned Giving",1388636579,1529119379,2123,"Planned Giving","Capital Campaign",153 Main St,Ottawa,Mail,VIP
+Michael,Mic,Martinez,,Alice Chen,Bob Nguyen,Carol Davis,23320,4664,14703,"Capital Campaign",1262406179,1434424979,5866,"Capital Campaign","Capital Campaign",154 Main St,Edmonton,Mail,Board Member
+James,Jam,Johnson,,Alice Chen,Bob Nguyen,Carol Davis,17983,3596,7609,"Annual Fund",1514866979,1623813779,2666,"Annual Fund","Annual Fund",155 Main St,Toronto,Mail,Recurring
+John,Joh,Wilson,,Alice Chen,Bob Nguyen,Carol Davis,22266,4453,12972,"Planned Giving",1293942179,1371352979,6314,"Planned Giving","Major Gift",156 Main St,Winnipeg,Email,Recurring
+Jessica,Jes,Taylor,,Alice Chen,Bob Nguyen,Carol Davis,26863,5372,15523,"Major Gift",1388636579,1592277779,3901,"Major Gift","Annual Fund",157 Main St,Ottawa,Mail,Lapsed
+John,Joh,Anderson,,Alice Chen,Bob Nguyen,Carol Davis,6771,1354,4447,"Major Gift",1262406179,1434424979,1338,"Major Gift","Annual Fund",158 Main St,Vancouver,Phone,Lapsed
+David,Dav,Smith,,Alice Chen,Bob Nguyen,Carol Davis,16536,3307,6098,"Major Gift",1483330979,1560655379,2674,"Major Gift","Planned Giving",159 Main St,Halifax,Phone,Lapsed
+David,Dav,Anderson,,Alice Chen,Bob Nguyen,Carol Davis,28567,5713,16733,"Planned Giving",1483330979,1686885779,7743,"Planned Giving","Capital Campaign",160 Main St,Toronto,Mail,Board Member
+Patricia,Pat,Taylor,,Alice Chen,Bob Nguyen,Carol Davis,9575,1915,4066,"Capital Campaign",1514866979,1592277779,1921,"Capital Campaign","Planned Giving",161 Main St,Toronto,Phone,Foundation
+William,Wil,Lopez,,Alice Chen,Bob Nguyen,Carol Davis,29456,5891,14897,"Planned Giving",1420172579,1497583379,4574,"Planned Giving","Planned Giving",162 Main St,Edmonton,Phone,VIP
+Sarah,Sar,Hernandez,,Alice Chen,Bob Nguyen,Carol Davis,25187,5037,9840,"Emergency Fund",1388636579,1529119379,2580,"Emergency Fund","Emergency Fund",163 Main St,Halifax,Email,Lapsed
+Mary,Mar,Clark,,Alice Chen,Bob Nguyen,Carol Davis,11626,2325,3875,"Planned Giving",1388636579,1434424979,1741,"Planned Giving","Capital Campaign",164 Main St,Vancouver,Mail,Lapsed
+William,Wil,Martinez,,Alice Chen,Bob Nguyen,Carol Davis,28613,5722,17977,"Annual Fund",1357100579,1466047379,6945,"Annual Fund","Capital Campaign",165 Main St,Winnipeg,Mail,Lapsed
+David,Dav,Taylor,,Alice Chen,Bob Nguyen,Carol Davis,25576,5115,16643,"Planned Giving",1388636579,1529119379,5271,"Planned Giving","Emergency Fund",166 Main St,Ottawa,Mail,Lapsed
+Jessica,Jes,Martinez,,Alice Chen,Bob Nguyen,Carol Davis,30627,6125,15838,"Annual Fund",1514866979,1592277779,4344,"Annual Fund","Major Gift",167 Main St,Vancouver,Phone,Board Member
+Patricia,Pat,Garcia,,Alice Chen,Bob Nguyen,Carol Davis,27783,5556,18326,"Annual Fund",1293942179,1339816979,6678,"Annual Fund","Emergency Fund",168 Main St,Calgary,Mail,Board Member
+Susan,Sus,Smith,,Alice Chen,Bob Nguyen,Carol Davis,23698,4739,14493,"Capital Campaign",1483330979,1623813779,5384,"Capital Campaign","Major Gift",169 Main St,Montreal,Mail,Lapsed
+Sarah,Sar,Taylor,,Alice Chen,Bob Nguyen,Carol Davis,19414,3882,11126,"Planned Giving",1451708579,1623813779,3038,"Planned Giving","Planned Giving",170 Main St,Calgary,Phone,Board Member
+Sarah,Sar,Martinez,,Alice Chen,Bob Nguyen,Carol Davis,16333,3266,7609,"Annual Fund",1325478179,1371352979,2895,"Annual Fund","Planned Giving",171 Main St,Vancouver,Mail,Board Member
+Mary,Mar,Garcia,,Alice Chen,Bob Nguyen,Carol Davis,4377,875,2015,"Major Gift",1262406179,1434424979,639,"Major Gift","Planned Giving",172 Main St,Calgary,Phone,Lapsed
+Jessica,Jes,Wilson,,Alice Chen,Bob Nguyen,Carol Davis,23652,4730,9542,"Emergency Fund",1420172579,1592277779,2525,"Emergency Fund","Major Gift",173 Main St,Calgary,Mail,Alumni
+Richard,Ric,Williams,,Alice Chen,Bob Nguyen,Carol Davis,29602,5920,12238,"Emergency Fund",1483330979,1592277779,4265,"Emergency Fund","Emergency Fund",174 Main St,Edmonton,Phone,Foundation
+Mary,Mar,Taylor,,Alice Chen,Bob Nguyen,Carol Davis,15287,3057,8876,"Capital Campaign",1420172579,1623813779,3760,"Capital Campaign","Emergency Fund",175 Main St,Calgary,Phone,Corporate
+James,Jam,Davis,,Alice Chen,Bob Nguyen,Carol Davis,27555,5511,14064,"Annual Fund",1388636579,1466047379,3656,"Annual Fund","Annual Fund",176 Main St,Winnipeg,Mail,Alumni
+Richard,Ric,Wilson,,Alice Chen,Bob Nguyen,Carol Davis,21020,4204,7950,"Major Gift",1546402979,1686885779,3456,"Major Gift","Major Gift",177 Main St,Winnipeg,Mail,Recurring
+Jennifer,Jen,Johnson,,Alice Chen,Bob Nguyen,Carol Davis,28110,5622,12100,"Major Gift",1420172579,1529119379,4938,"Major Gift","Emergency Fund",178 Main St,Edmonton,Mail,Foundation
+Robert,Rob,Johnson,,Alice Chen,Bob Nguyen,Carol Davis,32904,6580,17235,"Planned Giving",1483330979,1623813779,7716,"Planned Giving","Planned Giving",179 Main St,Vancouver,Mail,Recurring
+Sarah,Sar,Miller,,Alice Chen,Bob Nguyen,Carol Davis,27478,5495,14496,"Major Gift",1357100579,1497583379,7072,"Major Gift","Annual Fund",180 Main St,Calgary,Phone,Corporate
+Robert,Rob,Martinez,,Alice Chen,Bob Nguyen,Carol Davis,12162,2432,4645,"Planned Giving",1420172579,1529119379,1288,"Planned Giving","Capital Campaign",181 Main St,Ottawa,Phone,Lapsed
+Robert,Rob,Williams,,Alice Chen,Bob Nguyen,Carol Davis,665,133,245,"Capital Campaign",1420172579,1592277779,91,"Capital Campaign","Capital Campaign",182 Main St,Montreal,Mail,VIP
+Joseph,Jos,Anderson,,Alice Chen,Bob Nguyen,Carol Davis,23090,4618,13807,"Emergency Fund",1420172579,1592277779,5958,"Emergency Fund","Planned Giving",183 Main St,Edmonton,Phone,Recurring
+Richard,Ric,Davis,,Alice Chen,Bob Nguyen,Carol Davis,14598,2919,6009,"Emergency Fund",1293942179,1434424979,1634,"Emergency Fund","Major Gift",184 Main St,Edmonton,Mail,Board Member
+Linda,Lin,Clark,,Alice Chen,Bob Nguyen,Carol Davis,21176,4235,12984,"Planned Giving",1420172580,1623813780,6153,"Planned Giving","Emergency Fund",185 Main St,Winnipeg,Phone,Alumni
+Patricia,Pat,Garcia,,Alice Chen,Bob Nguyen,Carol Davis,3502,700,1674,"Capital Campaign",1262406180,1308194580,463,"Capital Campaign","Emergency Fund",186 Main St,Ottawa,Phone,Board Member
+Susan,Sus,Clark,,Alice Chen,Bob Nguyen,Carol Davis,17147,3429,6492,"Capital Campaign",1388636580,1529119380,3145,"Capital Campaign","Major Gift",187 Main St,Ottawa,Email,Corporate
+Joseph,Jos,Jones,,Alice Chen,Bob Nguyen,Carol Davis,15746,3149,9883,"Annual Fund",1357100580,1466047380,3334,"Annual Fund","Major Gift",188 Main St,Toronto,Phone,Foundation
+David,Dav,Brown,,Alice Chen,Bob Nguyen,Carol Davis,23391,4678,14317,"Capital Campaign",1483330980,1686885780,4501,"Capital Campaign","Major Gift",189 Main St,Vancouver,Email,Lapsed
+James,Jam,Lopez,,Alice Chen,Bob Nguyen,Carol Davis,12100,2420,6754,"Planned Giving",1357100580,1402888980,3293,"Planned Giving","Annual Fund",190 Main St,Calgary,Mail,Board Member
+Sarah,Sar,Martinez,,Alice Chen,Bob Nguyen,Carol Davis,4766,953,2365,"Planned Giving",1325478180,1497583380,735,"Planned Giving","Annual Fund",191 Main St,Toronto,Email,Corporate
+Michael,Mic,Hernandez,,Alice Chen,Bob Nguyen,Carol Davis,3404,680,2152,"Emergency Fund",1357100580,1529119380,830,"Emergency Fund","Planned Giving",192 Main St,Vancouver,Mail,Lapsed
+William,Wil,Davis,,Alice Chen,Bob Nguyen,Carol Davis,20769,4153,13204,"Emergency Fund",1546402980,1750044180,5233,"Emergency Fund","Emergency Fund",193 Main St,Montreal,Phone,Corporate
+James,Jam,Miller,,Alice Chen,Bob Nguyen,Carol Davis,15061,3012,9033,"Capital Campaign",1420172580,1560655380,3651,"Capital Campaign","Planned Giving",194 Main St,Edmonton,Email,Board Member
+Sarah,Sar,Taylor,,Alice Chen,Bob Nguyen,Carol Davis,31205,6241,14221,"Planned Giving",1388636580,1560655380,7094,"Planned Giving","Capital Campaign",195 Main St,Winnipeg,Phone,Lapsed
+Sarah,Sar,Clark,,Alice Chen,Bob Nguyen,Carol Davis,27817,5563,11996,"Annual Fund",1262406180,1339816980,5874,"Annual Fund","Emergency Fund",196 Main St,Edmonton,Phone,Alumni
+Joseph,Jos,Clark,,Alice Chen,Bob Nguyen,Carol Davis,883,176,428,"Planned Giving",1293942180,1466047380,134,"Planned Giving","Capital Campaign",197 Main St,Ottawa,Mail,Alumni
+Jennifer,Jen,Lopez,,Alice Chen,Bob Nguyen,Carol Davis,6216,1243,3102,"Capital Campaign",1325478180,1434424980,1226,"Capital Campaign","Annual Fund",198 Main St,Winnipeg,Phone,Board Member
+Michael,Mic,Lopez,,Alice Chen,Bob Nguyen,Carol Davis,17249,3449,8181,"Annual Fund",1546402980,1592277780,2607,"Annual Fund","Major Gift",199 Main St,Winnipeg,Mail,Foundation
+Sarah,Sar,Clark,,Alice Chen,Bob Nguyen,Carol Davis,21172,4234,14056,"Planned Giving",1262406180,1371352980,6764,"Planned Giving","Major Gift",200 Main St,Edmonton,Phone,Foundation
