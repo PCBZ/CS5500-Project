@@ -45,15 +45,16 @@ A comprehensive donor management system designed specifically for BC Cancer Foun
 
 ### Frontend
 - **React.js** (v18.2.0) - Modern UI library with hooks and functional components
-- **TypeScript** - Type-safe JavaScript for better development experience
+- **Material UI (MUI)** (v5) - Component library and design system (`@mui/material`, `@mui/icons-material`)
 - **React Router** (v6) - Client-side routing and navigation
-- **React Icons** - Comprehensive icon library
+- **Axios** - HTTP client for API requests
+- **React Toastify** - Toast notifications
 
 ### Backend
 - **Node.js** (v18+) - JavaScript runtime environment
 - **Express.js** - Web application framework
-- **Prisma ORM** - Type-safe database client and migrations
-- **MySQL** (v8.0+) - Relational database management system
+- **Prisma ORM** (v6) - Type-safe database client and migrations
+- **PostgreSQL** - Relational database (hosted on Neon in production)
 - **JWT** - JSON Web Tokens for authentication
 - **bcrypt** - Password hashing and security
 
@@ -64,14 +65,14 @@ A comprehensive donor management system designed specifically for BC Cancer Foun
 - **Prettier** - Code formatting and style consistency
 
 ### DevOps & Deployment
-- **Docker** - Containerization for consistent deployments
+- **Docker** - Containerization for consistent deployments (see [Dockerfile](Dockerfile))
 - **GitHub Actions** - CI/CD pipeline automation
-- **Render/Heroku** - Cloud deployment platforms
+- **Render** - Cloud deployment platform
 
 ## Prerequisites
 
 - Node.js (v18 or higher)
-- MySQL (v8.0 or higher)
+- PostgreSQL (or a hosted Postgres instance such as Neon)
 - npm (v9 or higher)
 - Docker (optional, for containerized deployment)
 
@@ -99,20 +100,19 @@ A comprehensive donor management system designed specifically for BC Cancer Foun
    ```
    Configure the following variables:
    ```env
-   DATABASE_URL="mysql://username:password@localhost:3306/donor_management"
+   DATABASE_URL="postgresql://username:password@localhost:5432/donor_management"
    JWT_SECRET="your_secure_jwt_secret_key"
-   PORT=5000
+   PORT=5001
    NODE_ENV=development
    ```
 
    **Frontend (.env in client directory):**
    ```bash
    cd ../client
-   cp .env.example .env
    ```
-   Configure:
+   Create a `.env` file with:
    ```env
-   REACT_APP_API_URL=http://localhost:5000
+   REACT_APP_API_URL=http://localhost:5001
    ```
 
 4. **Set up the database:**
@@ -137,13 +137,15 @@ A comprehensive donor management system designed specifically for BC Cancer Foun
 
 6. **Access the application:**
    - Frontend: http://localhost:3000
-   - Backend API: http://localhost:5000
+   - Backend API: http://localhost:5001
 
 ### Alternative Installation Methods
 
 #### Using Docker
+Build and run the container image (frontend on :3001, backend on :5001):
 ```bash
-docker-compose up -d
+docker build -t cs5500-project .
+docker run -p 3001:3001 -p 5001:5001 --env-file Server/.env cs5500-project
 ```
 
 #### Production Build
@@ -159,27 +161,29 @@ npm run start:prod
 │   ├── src/               # Source code
 │   │   ├── routes/        # API route handlers
 │   │   ├── middleware/    # Custom middleware
-│   │   ├── lib/          # Prisma ORM and utilities
-│   │   └── index.js      # Application entry point
-│   ├── prisma/           # Prisma configuration
-│   │   ├── migrations/   # Database migrations
-│   │   └── schema.prisma # Database schema
-│   ├── test/            # Test files
-│   ├── docs/            # API documentation
-│   └── package.json     # Backend dependencies
-├── client/               # Frontend application
-│   ├── src/             # Source code
-│   │   ├── components/  # React components
-│   │   │   ├── common/  # Shared components
-│   │   │   ├── donors/  # Donor-related components
-│   │   │   ├── events/  # Event-related components
-│   │   │   └── lists/   # List-related components
-│   │   ├── pages/       # Page components
-│   │   ├── services/    # API service functions
-│   │   └── App.js       # Application entry
-│   ├── public/          # Static files
-│   └── package.json     # Frontend dependencies
-└── scripts/             # Utility scripts
+│   │   ├── lib/           # Prisma client and utilities
+│   │   ├── app.js         # Express app configuration
+│   │   └── index.js       # Application entry point
+│   ├── prisma/            # Prisma configuration
+│   │   ├── migrations/    # Database migrations
+│   │   └── schema.prisma  # Database schema
+│   ├── test/             # Test files
+│   ├── docs/             # Generated API documentation
+│   └── package.json      # Backend dependencies
+├── client/                # Frontend application
+│   ├── src/              # Source code
+│   │   ├── components/   # React components
+│   │   │   ├── auth/     # Authentication components
+│   │   │   ├── common/   # Shared components
+│   │   │   ├── donors/   # Donor-related components
+│   │   │   └── events/   # Event-related components
+│   │   ├── services/     # API service functions
+│   │   ├── api/          # API client setup
+│   │   ├── config.js     # App configuration
+│   │   └── App.jsx       # Application entry
+│   ├── public/           # Static files
+│   └── package.json      # Frontend dependencies
+└── scripts/              # Utility scripts
     └── uploadTestData.js # Test data upload script
 ```
 
@@ -199,11 +203,8 @@ cd client
 npm test
 ```
 
-#### Run All Tests
-```bash
-# From root directory
-npm test
-```
+> **Note:** There is no root-level test runner. Run the backend and frontend
+> test suites separately from their respective directories as shown above.
 
 ### Test Coverage
 - **Backend**: Unit tests for API endpoints, authentication, and database operations
@@ -224,26 +225,23 @@ View test results: [GitHub Actions](https://github.com/PCBZ/CS5500-Project/actio
 
 1. Build and run using Docker:
 ```bash
-docker-compose up -d
+docker build -t cs5500-project .
+docker run -p 3001:3001 -p 5001:5001 --env-file Server/.env cs5500-project
 ```
 
 2. Access the application:
-- Frontend: http://localhost:3000
-- Backend API: http://localhost:5000
+- Frontend: http://localhost:3001
+- Backend API: http://localhost:5001
 
 ### Environment Variables
 
-Configure the application using environment variables:
+Configure the application using environment variables (backend `.env` in the `Server` directory):
 
-- `PORT`: Frontend service port (default: 3000)
-- `API_PORT`: Backend service port (default: 5000)
-- `NODE_ENV`: Runtime environment (default: production)
-- `MYSQL_HOST`: MySQL host (default: localhost)
-- `MYSQL_USER`: MySQL username
-- `MYSQL_PASSWORD`: MySQL password
-- `MYSQL_DATABASE`: MySQL database name
+- `DATABASE_URL`: PostgreSQL connection string (e.g. `postgresql://user:password@host:5432/db`)
 - `JWT_SECRET`: JWT secret key
-- `LOG_LEVEL`: Logging level (default: info)
+- `PORT`: Backend service port (default: 5001)
+- `NODE_ENV`: Runtime environment (default: development)
+- `REACT_APP_API_URL`: Backend API URL used by the frontend (e.g. `http://localhost:5001`)
 
 ## Contributing
 
